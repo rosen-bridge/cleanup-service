@@ -1,0 +1,126 @@
+2022-04-01 20:15:53 [1;31mERROR[0;39m [36mnetwork.Explorer$[0;39m [35m[0;39m head of empty list
+2022-04-01 20:19:28 [1;31mERROR[0;39m [36mnetwork.Explorer$[0;39m [35m[0;39m head of empty list
+2022-04-01 20:19:44 [1;31mERROR[0;39m [36mnetwork.Explorer$[0;39m [35m[0;39m head of empty list
+2022-04-01 20:19:57 [1;31mERROR[0;39m [36mnetwork.Explorer$[0;39m [35m[0;39m head of empty list
+2022-04-01 20:20:14 [1;31mERROR[0;39m [36mnetwork.Explorer$[0;39m [35m[0;39m head of empty list
+2022-04-01 20:23:49 [1;31mERROR[0;39m [36mnetwork.Explorer$[0;39m [35m[0;39m head of empty list
+2022-04-01 20:24:48 [34mINFO [0;39m [36mnetwork.Explorer$[0;39m [35m[0;39m {
+  "items" : [
+    {
+      "boxId" : "58d7118f8f6eb85e6de7af991664237c7e82ef415ef9831674edadfa75ed0537",
+      "transactionId" : "65f931dee18840d944f8daca468acd2dc918bd0c7d40b55aa071407414d59abb",
+      "blockId" : "6aba0b73d7394bc18193db838f29125f5b6901714ea3a33cc1d3df44a8a05d0d",
+      "value" : 100000,
+      "index" : 0,
+      "globalIndex" : 287634,
+      "creationHeight" : 127265,
+      "settlementHeight" : 127267,
+      "ergoTree" : "0008cd0287580631d8dc242d046e10929be8ace98a6391cc8cdfd8ddb47037f1be296f62",
+      "address" : "9fYfh5kJRw1CWkCRepfEAzJkj9dFGX88rfsq3sNTRiVRgnWGGRC",
+      "assets" : [
+        {
+          "tokenId" : "008502d25e61063d1f3be9829e70590f94dd9089b8d0756c8cafdfbd2a303fb4",
+          "index" : 0,
+          "amount" : 100,
+          "name" : "withdrawApi2",
+          "decimals" : 1,
+          "type" : "EIP-004"
+        },
+        {
+          "tokenId" : "00419c7bdd23e71c14f6ff1e1180a5899a7be0e13f6aa6000cb2eeb514930df7",
+          "index" : 1,
+          "amount" : 100,
+          "name" : "withdrawApi",
+          "decimals" : 0,
+          "type" : "EIP-004"
+        }
+      ],
+      "additionalRegisters" : {
+        
+      },
+      "spentTransactionId" : null,
+      "mainChain" : true
+    },
+    {
+      "boxId" : "7ee7cdb97860cd14d4401590e32e98a032ecd86fd3f501f777e29e5aef9b5a08",
+      "transactionId" : "8a055d9a45ea697c8c479f51b8cb567700f9d0fb6a12f7ea42e1bcfb555271ff",
+      "blockId" : "524cab79418ea0e517be1a51b26fc98fea490636187c04bd18b816ac09e0ef80",
+      "value" : 590434347120,
+      "index" : 2,
+      "globalIndex" : 287613,
+      "creationHeight" : 127260,
+      "settlementHeight" : 127262,
+      "ergoTree" : "0008cd0287580631d8dc242d046e10929be8ace98a6391cc8cdfd8ddb47037f1be296f62",
+      "address" : "9fYfh5kJRw1CWkCRepfEAzJkj9dFGX88rfsq3sNTRiVRgnWGGRC",
+      "assets" : [
+        {
+          "tokenId" : "0003b82dd986019c8b75f07e5141bbc3393a2816a914340746c8a9d5d8e0b3e2",
+          "index" : 0,
+          "amount" : 2000,
+          "name" : "unsupportedTest",
+          "decimals" : 100,
+          "type" : "EIP-004"
+        },
+        {
+          "tokenId" : "008502d25e61063d1f3be9829e70590f94dd9089b8d0756c8cafdfbd2a303fb4",
+          "index" : 1,
+          "amount" : 499830,
+          "name" : "withdrawApi2",
+          "decimals" : 1,
+          "type" : "EIP-004"
+        },
+        {
+          "tokenId" : "00419c7bdd23e71c14f6ff1e1180a5899a7be0e13f6aa6000cb2eeb514930df7",
+          "index" : 2,
+          "amount" : 599750,
+          "name" : "withdrawApi",
+          "decimals" : 0,
+          "type" : "EIP-004"
+        }
+      ],
+      "additionalRegisters" : {
+        
+      },
+      "spentTransactionId" : null,
+      "mainChain" : true
+    },
+    {
+      "boxId" : "72d3bed3453aa36ac83a2e0b281c3692f261377b25a7ec9acf7d8b23c5be7a1c",
+      "transactionId" : "79fa5a1d1fb3ab9f8784ad00873024a210dc507d4287b5aaa3626d28a2cb2ca7",
+      "blockId" : "61e5c5cfc4d05eb34b127b9baa101639cb2450e12787f7ff94c29690ed401244",
+      "value" : 100000,
+      "index" : 0,
+      "globalIndex" : 274324,
+      "creationHeight" : 120749,
+      "settlementHeight" : 120752,
+      "ergoTree" : "0008cd0287580631d8dc242d046e10929be8ace98a6391cc8cdfd8ddb47037f1be296f62",
+      "address" : "9fYfh5kJRw1CWkCRepfEAzJkj9dFGX88rfsq3sNTRiVRgnWGGRC",
+      "assets" : [
+        {
+          "tokenId" : "008502d25e61063d1f3be9829e70590f94dd9089b8d0756c8cafdfbd2a303fb4",
+          "index" : 0,
+          "amount" : 70,
+          "name" : "withdrawApi2",
+          "decimals" : 1,
+          "type" : "EIP-004"
+        },
+        {
+          "tokenId" : "00419c7bdd23e71c14f6ff1e1180a5899a7be0e13f6aa6000cb2eeb514930df7",
+          "index" : 1,
+          "amount" : 150,
+          "name" : "withdrawApi",
+          "decimals" : 0,
+          "type" : "EIP-004"
+        }
+      ],
+      "additionalRegisters" : {
+        
+      },
+      "spentTransactionId" : null,
+      "mainChain" : true
+    }
+  ],
+  "total" : 3
+}
+2022-04-01 20:24:48 [1;31mERROR[0;39m [36mnetwork.Explorer$[0;39m [35m[0;39m head of empty list
+2022-04-01 20:25:40 [1;31mERROR[0;39m [36mnetwork.Explorer$[0;39m [35m[0;39m head of empty list
