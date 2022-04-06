@@ -42,15 +42,16 @@ object Configs extends ConfigHelper {
   lazy val addressEncoder = new ErgoAddressEncoder(node.networkType.networkPrefix)
   object tokens {
     lazy val RSN: String = readKey("tokens.RSN")
+    lazy val EWR: String = readKey("tokens.EWR")
     lazy val BankNft: String = readKey("tokens.BankNFT")
     lazy val GuardNFT: String = readKey("tokens.GuardNFT")
+    lazy val CleanupNFT: String = readKey("tokens.CleanupNFT")
   }
-  lazy val EWRId: String = readKey("EWRId")
-  lazy val fraudNum: Long = readKey("fraudNum").toLong
+  lazy val cleanupConfirm: Long = readKey("cleanup.confirm").toLong
   object cleaner {
-    lazy val token: String = readKey("cleaner.token")
     lazy val fraudToken: String = readKey("cleaner.fraudToken")
     lazy val secret: BigInteger = BigInt(readKey("cleaner.secret"), 16).bigInteger
+    lazy val address: String = readKey("cleaner.address")
     lazy val slashAddress: String = readKey("cleaner.slashAddress")
   }
 }

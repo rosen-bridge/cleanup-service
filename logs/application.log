@@ -124,3 +124,19 @@
 }
 2022-04-01 20:24:48 [1;31mERROR[0;39m [36mnetwork.Explorer$[0;39m [35m[0;39m head of empty list
 2022-04-01 20:25:40 [1;31mERROR[0;39m [36mnetwork.Explorer$[0;39m [35m[0;39m head of empty list
+2022-04-06 08:41:30 [1;31mERROR[0;39m [36mnetwork.Client[0;39m [35m[0;39m Could not set client! Error executing API request to http://10.10.9.3:9064/: connect timed out.
+2022-04-06 09:02:47 [1;31mERROR[0;39m [36mrosen.cleanup.Transactions[0;39m [35m[0;39m MoveToFraud tx proving failed. error message: Script reduced to false
+2022-04-06 09:10:46 [1;31mERROR[0;39m [36mrosen.cleanup.Transactions[0;39m [35m[0;39m MoveToFraud tx proving failed. error message: Script reduced to false
+2022-04-06 09:25:49 [1;31mERROR[0;39m [36mrosen.cleanup.Transactions[0;39m [35m[0;39m MoveToFraud tx proving failed. error message: Script reduced to false
+2022-04-06 09:32:36 [1;31mERROR[0;39m [36mrosen.cleanup.Transactions[0;39m [35m[0;39m MoveToFraud tx proving failed. error message: Script reduced to false
+2022-04-06 09:33:14 [1;31mERROR[0;39m [36mrosen.cleanup.Transactions[0;39m [35m[0;39m MoveToFraud tx proving failed. error message: Script reduced to false
+2022-04-06 10:43:07 [1;31mERROR[0;39m [36mrosen.cleanup.Transactions[0;39m [35m[0;39m MoveToFraud tx proving failed. error message: Script reduced to false
+2022-04-06 10:47:01 [1;31mERROR[0;39m [36mrosen.cleanup.Transactions[0;39m [35m[0;39m MoveToFraud tx proving failed. error message: Script reduced to false
+2022-04-06 10:47:50 [1;31mERROR[0;39m [36mrosen.cleanup.Transactions[0;39m [35m[0;39m MoveToFraud tx proving failed. error message: Script reduced to false
+2022-04-06 20:07:03 [1;31mERROR[0;39m [36mrosen.cleanup.Transactions[0;39m [35m[0;39m MoveToFraud tx proving failed. error message: Script reduced to false
+2022-04-06 20:42:19 [1;31mERROR[0;39m [36mrosen.cleanup.Transactions[0;39m [35m[0;39m MoveToFraud tx proving failed. error message: Script reduced to false
+2022-04-06 21:47:37 [34mINFO [0;39m [36mrosen.cleanup.Transactions[0;39m [35m[0;39m MoveToFraud tx generated. txId: 5368b4818a76a4e9dc0c1e99006ef7e050a446911caea1a35cc43dcdb2d5e3c5
+2022-04-06 21:57:16 [34mINFO [0;39m [36mrosen.cleanup.Transactions[0;39m [35m[0;39m MoveToFraud tx generated. txId: 39f410b7a68e152ccb66253d5615aaf4eec0b70d6f0a8a84d22267acf066f84c
+2022-04-06 22:00:41 [34mINFO [0;39m [36mrosen.cleanup.Transactions[0;39m [35m[0;39m MoveToFraud tx generated. txId: 723df542ceca40b4c0a1625ddf615533612e97cb60395aca55e242432f690bf2
+2022-04-06 22:01:54 [34mINFO [0;39m [36mrosen.cleanup.Transactions[0;39m [35m[0;39m MoveToFraud tx generated. txId: 63d9fa23782d30de980404d0146dc7433dba993272bbeac76f30697e0662cfdb
+2022-04-06 22:37:10 [34mINFO [0;39m [36mrosen.cleanup.Transactions[0;39m [35m[0;39m MoveToFraud tx generated. txId: 5102d8b8f88a30a3f52cb50a3147629ff6ed2c5ae0400de1e505b0c40d791fa2

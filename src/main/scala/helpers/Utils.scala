@@ -17,6 +17,8 @@ object Utils {
   private val random = Random
   private val secureRandom = new java.security.SecureRandom
 
+  // TODO: remove unused methods
+
   def randBigInt: BigInt = new BigInteger(256, secureRandom)
 
   def toByteArray(s: String): Array[Byte] = Base16.decode(s).get
@@ -34,6 +36,10 @@ object Utils {
   def getAddress(addressBytes: Array[Byte]): ErgoAddress = {
     val ergoTree = ErgoTreeSerializer.DefaultSerializer.deserializeErgoTree(addressBytes)
     Configs.addressEncoder.fromProposition(ergoTree).get
+  }
+
+  def getAddressFromString(address: String): ErgoAddress = {
+    Configs.addressEncoder.fromString(address).get
   }
 
   def addressGetBytes(address: Address):Array[Byte] ={

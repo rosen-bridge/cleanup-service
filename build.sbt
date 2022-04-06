@@ -11,13 +11,17 @@ libraryDependencies ++= Seq(
   appkit, (appkit % Test).classifier("tests").classifier("tests-sources"),
   "org.scalaj" %% "scalaj-http" % "2.4.2",
   "com.squareup.okhttp3" % "mockwebserver" % "4.9.3",
-  "org.scalatest" %% "scalatest" % "3.2.11" % "test",
-  "org.scalacheck" %% "scalacheck" % "1.15.4" % "test",
   "com.typesafe" % "config" % "1.4.2",
-  "ch.qos.logback" % "logback-classic" % "1.2.11"
+  "ch.qos.logback" % "logback-classic" % "1.2.11",
 )
 
-publishMavenStyle in ThisBuild := true
+libraryDependencies ++= Seq(
+  "org.scalatest" %% "scalatest" % "3.2.11" % "test",
+  "org.scalacheck" %% "scalacheck" % "1.15.4" % "test",
+  "org.scalatestplus" %% "mockito-3-4" % "3.2.10.0" % Test
+)
 
-publishArtifact in Test := false
+ThisBuild / publishMavenStyle := true
+
+Test / publishArtifact := false
 

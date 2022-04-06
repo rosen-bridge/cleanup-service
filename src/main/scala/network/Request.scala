@@ -8,7 +8,7 @@ import scalaj.http.{BaseHttp, HttpConstants}
 import scala.util.{Failure, Success, Try}
 
 object Request {
-  object RaffleHttp extends BaseHttp (
+  object RosenHttp extends BaseHttp (
     None,
     HttpConstants.defaultOptions,
     HttpConstants.utf8,
@@ -20,7 +20,7 @@ object Request {
   private val defaultPostHeader: Seq[(String, String)] = Seq[(String, String)](("Accept", "application/json"), ("Content-Type", "application/json"))
   def httpGetWithError(url: String, headers: Seq[(String, String)] = defaultHeader): Either[Throwable, Json] = {
     Try {
-      val responseReq = RaffleHttp(url).headers(headers).asString
+      val responseReq = RosenHttp(url).headers(headers).asString
       (responseReq.code, responseReq)
     }
     match{
@@ -39,7 +39,7 @@ object Request {
 
   def httpPostWithError(url: String, data: String): Either[Throwable, Json] = {
     Try {
-      val responseReq = RaffleHttp(url).postData(data).headers(defaultPostHeader).asString
+      val responseReq = RosenHttp(url).postData(data).headers(defaultPostHeader).asString
       (responseReq.is2xx, responseReq.code, responseReq)
     }
     match{
