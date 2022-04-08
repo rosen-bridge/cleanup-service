@@ -1,6 +1,6 @@
 package models
 
-import helpers.{Configs, Utils}
+import helpers.Configs
 import helpers.RosenExceptions.unexpectedException
 import org.ergoplatform.appkit.impl.ErgoTreeContract
 import org.ergoplatform.appkit.{ErgoToken, ErgoType, ErgoValue, InputBox, JavaHelpers, OutBox, UnsignedTransactionBuilder}
@@ -17,6 +17,8 @@ class ErgoBox(inBox: InputBox) {
   def getId: String = inBox.getId.toString
 
   def getTokens: Seq[ErgoToken] = inBox.getTokens.asScala
+
+  def getErgs: Long = inBox.getValue
 
 }
 
@@ -63,8 +65,9 @@ class CleanerBox(cleanerBox: InputBox) extends ErgoBox(cleanerBox) {
 
   /**
    * returns true if the box has enough erg to create new cleanerBox and pay tx fee
+   * @param feeBoxesErgs the amount of erg in the additional boxes of cleaner
    */
-  def hasEnoughErg: Boolean = cleanerBox.getValue >= Configs.minBoxValue + Configs.fee
+  def hasEnoughErg(feeBoxesErgs: Long = 0): Boolean = cleanerBox.getValue + feeBoxesErgs >= Configs.minBoxValue + Configs.fee
 
   /**
    * returns true if the box has enough erg to create new cleanerBox and pay tx fee

@@ -1,6 +1,6 @@
 package rosen.cleanup
 
-import helpers.RosenExceptions.{failedTxException, unexpectedException}
+import helpers.RosenExceptions.{failedTxException, notEnoughErgException, unexpectedException}
 import helpers.{Configs, RosenLogging, Utils}
 import models.{CleanerBox, TriggerEventBox}
 import network.{Client, Explorer}
@@ -17,7 +17,7 @@ class Procedures(client: Client, explorer: Explorer, transactions: Transactions)
     val ergoTree: ErgoTree = Address.create(Configs.cleaner.address).getErgoAddress.script
     val ergoTreeTemplateHash = Base16.encode(Sha256(ErgoTreeTemplate.fromErgoTree(ergoTree).getBytes))
     cleanerBoxId = explorer.getUnspentTokenBoxIdsForAddress(ergoTreeTemplateHash, Configs.tokens.CleanupNFT).headOption
-      .getOrElse(throw unexpectedException(s"no box found containing cleaner token ${Configs.tokens.CleanupNFT}"))
+      .getOrElse(throw unexpectedException(s"no box found containing CleanupNFT ${Configs.tokens.CleanupNFT} for address ${Configs.cleaner.address}"))
     // TODO: track mempool
   }
 
@@ -38,6 +38,9 @@ class Procedures(client: Client, explorer: Explorer, transactions: Transactions)
         moveToFraud(ctx, box)
       }
       catch {
+        case e: notEnoughErgException =>
+          log.error(s"Aborting process. Reason: ${e.getMessage}")
+
         case e: Throwable =>
           log.error(s"An error occurred while moving eventBox ${box.getId} to fraud.\n${e.getMessage}")
       }
@@ -63,11 +66,15 @@ class Procedures(client: Client, explorer: Explorer, transactions: Transactions)
     }
 
     // check if there is enough erg in cleaner box
-    val feeBoxes: Seq[InputBox] = if (cleanerBox.hasEnoughErg) Seq.empty[InputBox]
+    val feeBoxes: Seq[InputBox] = if (cleanerBox.hasEnoughErg()) Seq.empty[InputBox]
     else {
-      // TODO: get all other boxes of cleaner
-      //  throw feeException if still not enough erg
-      Seq.empty[InputBox]
+      // get all other boxes owned by cleaner
+      val feeBoxes: Seq[InputBox] = client.getCleanerFeeBoxes
+
+      // check if there is enough erg with additional boxes
+      val feeBoxesErgs: Long = feeBoxes.map(_.getValue).sum
+      if (!cleanerBox.hasEnoughErg(feeBoxesErgs)) throw notEnoughErgException(cleanerBox.getErgs + feeBoxesErgs, Configs.minBoxValue + Configs.fee)
+      else feeBoxes
     }
 
     // generate MoveToFraud tx
@@ -79,8 +86,7 @@ class Procedures(client: Client, explorer: Explorer, transactions: Transactions)
     }
     catch {
       case e: Throwable =>
-        log.info("failed to send MoveToFraud transaction")
-        log.debug(s"error: $e")
+        log.debug(s"failed to send MoveToFraud transaction. Error: $e")
         throw failedTxException(s"txId: ${tx.getId}")
     }
   }

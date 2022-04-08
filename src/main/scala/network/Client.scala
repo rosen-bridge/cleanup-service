@@ -83,4 +83,10 @@ class Client extends RosenLogging {
    */
   def getUnspentBoxForAddress(address: Address): Seq[InputBox] = getCoveringBoxesFor(address, (1e9 * 1e8).toLong).getBoxes.asScala
 
+  /**
+   * @return List of input boxes owned by cleaner and doesn't contain CleanupNFT
+   */
+  def getCleanerFeeBoxes: Seq[InputBox] = getCoveringBoxesFor(Address.create(Configs.cleaner.address), (1e9 * 1e8).toLong).getBoxes.asScala
+    .filterNot(box => box.getTokens.asScala.map(_.getId.toString).contains(Configs.tokens.CleanupNFT))
+
 }

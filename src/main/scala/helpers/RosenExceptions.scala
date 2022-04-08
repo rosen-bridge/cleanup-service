@@ -9,6 +9,8 @@ object RosenExceptions {
     extends Throwable(message)
   final case class proveException(private val message: String = "Tx proving failed")
     extends Throwable(message)
+  final case class notEnoughErgException(found: Long, required: Long, private val message: String = "Not enough erg in address")
+    extends Throwable(message + s", found $found, required $required")
   final case class failedTxException(info: String = "", private val message: String = "Tx sending failed")
     extends Throwable(message + ifNonEmpty(info))
   final case class parseJsonException(info: String = "", private val message: String = "Error occurred while parsing json")
