@@ -52,6 +52,6 @@ object Configs extends ConfigHelper {
     lazy val fraudToken: String = readKey("cleaner.fraudToken")
     lazy val secret: BigInteger = BigInt(readKey("cleaner.secret"), 16).bigInteger
     lazy val address: String = readKey("cleaner.address")
-    lazy val slashAddress: String = readKey("cleaner.slashAddress")
+    lazy val collectorAddress: String = readKey("cleaner.collectorAddress")
   }
 }

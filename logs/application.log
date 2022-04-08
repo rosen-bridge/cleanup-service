@@ -140,3 +140,6 @@
 2022-04-06 22:00:41 [34mINFO [0;39m [36mrosen.cleanup.Transactions[0;39m [35m[0;39m MoveToFraud tx generated. txId: 723df542ceca40b4c0a1625ddf615533612e97cb60395aca55e242432f690bf2
 2022-04-06 22:01:54 [34mINFO [0;39m [36mrosen.cleanup.Transactions[0;39m [35m[0;39m MoveToFraud tx generated. txId: 63d9fa23782d30de980404d0146dc7433dba993272bbeac76f30697e0662cfdb
 2022-04-06 22:37:10 [34mINFO [0;39m [36mrosen.cleanup.Transactions[0;39m [35m[0;39m MoveToFraud tx generated. txId: 5102d8b8f88a30a3f52cb50a3147629ff6ed2c5ae0400de1e505b0c40d791fa2
+2022-04-08 21:43:03 [34mINFO [0;39m [36mrosen.cleanup.Transactions[0;39m [35m[0;39m MoveToFraud tx generated. txId: 6b3d3671b561e2175299a23d972060a507c30c77ca236ad01633cef04fe30e00
+2022-04-08 21:44:15 [34mINFO [0;39m [36mrosen.cleanup.Transactions[0;39m [35m[0;39m MoveToFraud tx generated. txId: 79209939d81377460f9f00c801167f8414b56cf6c5facdf0f27dc06d8041cf33
+2022-04-08 21:46:38 [34mINFO [0;39m [36mrosen.cleanup.Transactions[0;39m [35m[0;39m MoveToFraud tx generated. txId: edfbfa5bcfd8a2006ca90082231d71a79fc2c3e479b3c183472f3b24d5f187af

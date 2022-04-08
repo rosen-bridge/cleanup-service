@@ -1,6 +1,7 @@
 package helpers
 
 import org.ergoplatform.ErgoAddress
+import org.ergoplatform.appkit.impl.ErgoTreeContract
 import org.ergoplatform.appkit.{Address, ErgoContract, ErgoType, ErgoValue, JavaHelpers}
 import scorex.crypto.hash.Digest32
 import scorex.util.encode.Base16
@@ -32,6 +33,8 @@ object Utils {
   def generateAddress(contract: ErgoContract): Address = {
     Address.create(Configs.addressEncoder.fromProposition(contract.getErgoTree).get.toString)
   }
+
+  def getAddressContract(address: String): ErgoTreeContract = new ErgoTreeContract(getAddressFromString(address).script, Configs.node.networkType)
 
   def getAddress(addressBytes: Array[Byte]): ErgoAddress = {
     val ergoTree = ErgoTreeSerializer.DefaultSerializer.deserializeErgoTree(addressBytes)

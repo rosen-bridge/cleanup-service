@@ -3,6 +3,7 @@ package rosen.cleanup
 import helpers.Configs
 import org.ergoplatform.appkit.ErgoToken
 import testUtils.{TestBoxes, TestSuite}
+import models._
 
 import scala.collection.JavaConverters._
 
@@ -49,7 +50,7 @@ class TransactionsSpec extends TestSuite {
 
     // verify fraud boxes conditions
     outputFrauds.foreach(fraud => fraud.getTokens.asScala should equal(fraudBoxTokens))
-    //outputFrauds.map(fraud => fraud.getRegisters) TODO: convert to FraudBox model and get UTPs. check to have all UTPs in eventBox
+    outputFrauds.map(fraud => new FraudBox(fraud).getUTP) should contain theSameElementsAs eventBox.getUTPs.toSeq
   }
 
 }

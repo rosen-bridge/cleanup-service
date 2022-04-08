@@ -1,6 +1,6 @@
 package models
 
-import helpers.Configs
+import helpers.{Configs, Utils}
 import helpers.RosenExceptions.unexpectedException
 import org.ergoplatform.appkit.impl.ErgoTreeContract
 import org.ergoplatform.appkit.{ErgoToken, ErgoType, ErgoValue, InputBox, JavaHelpers, OutBox, UnsignedTransactionBuilder}
@@ -15,6 +15,9 @@ class ErgoBox(inBox: InputBox) {
   def getBox: InputBox = inBox
 
   def getId: String = inBox.getId.toString
+
+  def getTokens: Seq[ErgoToken] = inBox.getTokens.asScala
+
 }
 
 class TriggerEventBox(eventBox: InputBox) extends ErgoBox(eventBox) {
@@ -50,11 +53,6 @@ class TriggerEventBox(eventBox: InputBox) extends ErgoBox(eventBox) {
 }
 
 class CleanerBox(cleanerBox: InputBox) extends ErgoBox(cleanerBox) {
-
-  /**
-   * returns number of fraudTokens in box
-   */
-  def getTokens: Seq[ErgoToken] = cleanerBox.getTokens.asScala
 
   /**
    * returns number of fraudTokens in box
@@ -122,5 +120,10 @@ class CleanerBox(cleanerBox: InputBox) extends ErgoBox(cleanerBox) {
 
 // TODO: Implement this class
 class FraudBox(fraudBox: InputBox) extends ErgoBox(fraudBox) {
+
+  /**
+   * returns watcher UTP in register R4 of fraud box
+   */
+  def getUTP: Array[Byte] = fraudBox.getRegisters.get(0).getValue.asInstanceOf[Coll[Coll[Byte]]].toArray(0).toArray.clone()
 
 }
