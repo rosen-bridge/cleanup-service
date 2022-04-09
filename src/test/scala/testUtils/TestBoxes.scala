@@ -133,9 +133,8 @@ object TestBoxes {
 
   /**
    * mocks a moveToFraud transaction (only cleaner box is valid)
-   * @param cleanerBox
-   * @param watchersLen
-   * @return
+   * @param cleanerBox the cleaner box in input
+   * @param watchersLen number of watchers in transaction event box
    */
   def mockMoveToFraudTransaction(cleanerBox: CleanerBox, watchersLen: Int): SignedTransaction = {
     // generate random id for transaction

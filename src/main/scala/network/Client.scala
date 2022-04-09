@@ -12,7 +12,6 @@ import scala.collection.JavaConverters._
 
 class Client extends RosenLogging {
   private var client: ErgoClient = _
-  private val DEFAULT_LIMIT_FOR_API = 100
 
   /**
    * Sets client for the entire app when the app starts
@@ -53,7 +52,7 @@ class Client extends RosenLogging {
    * @param boxId :String box Id
    * @return corresponding input box
    */
-  def getUnspentBoxesFor(boxId: String): InputBox = client.execute(ctx => {
+  def getUnspentBoxById(boxId: String): InputBox = client.execute(ctx => {
     try {
       ctx.getBoxesById(boxId).headOption.getOrElse(throw unexpectedException(s"no unspent box found for id $boxId"))
     } catch {

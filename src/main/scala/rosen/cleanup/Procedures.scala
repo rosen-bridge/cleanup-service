@@ -6,8 +6,6 @@ import models.{CleanerBox, TriggerEventBox}
 import network.Client
 import org.ergoplatform.appkit.{BlockchainContext, InputBox}
 
-import scala.collection.JavaConverters._
-
 class Procedures(client: Client, transactions: Transactions) extends RosenLogging {
 
   private var cleanerBox: CleanerBox = new CleanerBox(client.getCleanerBox)
@@ -40,7 +38,7 @@ class Procedures(client: Client, transactions: Transactions) extends RosenLoggin
           log.error(s"An error occurred while moving eventBox ${box.getId} to fraud.\n${e.getMessage}")
 
           try {
-            client.getUnspentBoxesFor(cleanerBox.getId)
+            client.getUnspentBoxById(cleanerBox.getId)
             log.warn(s"No problem found with the cleaner box. Aborting process.")
           }
           catch {
