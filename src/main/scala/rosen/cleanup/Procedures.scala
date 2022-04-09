@@ -1,25 +1,12 @@
 package rosen.cleanup
 
 import helpers.RosenExceptions.{failedTxException, notEnoughErgException, unexpectedException}
-import helpers.{Configs, RosenLogging, Utils}
+import helpers.{Configs, RosenLogging}
 import models.{CleanerBox, TriggerEventBox}
-import network.{Client, Explorer}
-import org.ergoplatform.appkit.{Address, BlockchainContext, ErgoTreeTemplate, InputBox}
-import rosen.bridge.Contracts
-import scorex.crypto.hash.Sha256
-import scorex.util.encode.Base16
-import sigmastate.Values.ErgoTree
-
-class Procedures(client: Client, explorer: Explorer, transactions: Transactions) extends RosenLogging {
-  var cleanerBoxId: String = ""
-
-  def initCleanerBoxId(): Unit = {
-    val ergoTree: ErgoTree = Address.create(Configs.cleaner.address).getErgoAddress.script
-    val ergoTreeTemplateHash = Base16.encode(Sha256(ErgoTreeTemplate.fromErgoTree(ergoTree).getBytes))
-    cleanerBoxId = explorer.getUnspentTokenBoxIdsForAddress(ergoTreeTemplateHash, Configs.tokens.CleanupNFT).headOption
-      .getOrElse(throw unexpectedException(s"no box found containing CleanupNFT ${Configs.tokens.CleanupNFT} for address ${Configs.cleaner.address}"))
-    // TODO: track mempool
-  }
+import network.Client
+import org.ergoplatform.appkit.{BlockchainContext, InputBox}
+class Procedures(client: Client, transactions: Transactions) extends RosenLogging {
+  var cleanerBox: CleanerBox = new CleanerBox(client.getCleanerBox)
 
   /**
    * processes trigger event boxes, moves them to fraud if it's old enough
@@ -28,9 +15,8 @@ class Procedures(client: Client, explorer: Explorer, transactions: Transactions)
    */
   def processEvents(ctx: BlockchainContext): Unit = {
     val height = client.getHeight
-    val triggerEventBoxes = client.getUnspentBoxForAddress(Utils.generateAddress(Contracts.WatcherTriggerEvent))
+    val triggerEventBoxes = client.getEventBoxes
       .filter(box => height - box.getCreationHeight.toLong > Configs.cleanupConfirm)
-    // TODO: filter the boxes that are already in mempool
       .map(new TriggerEventBox(_))
 
     triggerEventBoxes.foreach(box => {
@@ -43,6 +29,27 @@ class Procedures(client: Client, explorer: Explorer, transactions: Transactions)
 
         case e: Throwable =>
           log.error(s"An error occurred while moving eventBox ${box.getId} to fraud.\n${e.getMessage}")
+
+          try {
+            client.getUnspentBoxesFor(cleanerBox.getId)
+            log.warn(s"No problem found with the cleaner box. Aborting process.")
+          }
+          catch {
+            case _: unexpectedException =>
+              log.warn(s"It seems cleanerBox ${cleanerBox.getId} got forked. Re-initiating the box and trying again...")
+              cleanerBox = new CleanerBox(client.getCleanerBox)
+
+              try {
+                moveToFraud(ctx, box)
+              }
+              catch {
+                case e: notEnoughErgException =>
+                  log.error(s"Failed second try. Aborting process. Reason: ${e.getMessage}")
+              }
+
+            case e: Throwable =>
+              log.error(s"Aborting process. Reason: ${e.getMessage}")
+          }
       }
     })
   }
@@ -54,10 +61,6 @@ class Procedures(client: Client, explorer: Explorer, transactions: Transactions)
    * @param eventBox the trigger event box
    */
   private def moveToFraud(ctx: BlockchainContext, eventBox: TriggerEventBox): Unit = {
-    // get cleanerNFT box TODO: track mempool
-    val cleanerBox = new CleanerBox(ctx.getBoxesById(cleanerBoxId).headOption
-      .getOrElse(throw unexpectedException(s"no box found with id $cleanerBoxId")))
-
     // check if there is enough fraudTokens
     val watchersLen = eventBox.getWatchersLen
     if (cleanerBox.hasEnoughFraudToken(watchersLen)) {
