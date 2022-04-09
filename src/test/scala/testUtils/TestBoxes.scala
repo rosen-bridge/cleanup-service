@@ -4,9 +4,12 @@ import helpers.{Configs, Utils}
 import models.{CleanerBox, TriggerEventBox}
 import network.Client
 import org.ergoplatform.appkit.impl.ErgoTreeContract
-import org.ergoplatform.appkit.{ErgoContract, ErgoToken, ErgoType, ErgoValue, InputBox, JavaHelpers, OutBox}
+import org.ergoplatform.appkit.{ErgoContract, ErgoToken, ErgoType, ErgoValue, InputBox, JavaHelpers, OutBox, SignedTransaction}
+import org.mockito.Mockito.{mock, when}
 import rosen.bridge.Contracts
 import scorex.util.encode.Base16
+
+import scala.collection.JavaConverters._
 
 object TestBoxes {
 
@@ -27,6 +30,17 @@ object TestBoxes {
       ids = ids :+ generateRandomId
     }
     ids
+  }
+
+  /**
+   * generates multiple InputBoxes
+   */
+  def generateMockInputBoxes(size: Int): Seq[InputBox] = {
+    var boxes: Seq[InputBox] = Seq.empty[InputBox]
+    for (_ <- 0 until size) {
+      boxes = boxes :+ mock(classOf[InputBox])
+    }
+    boxes
   }
 
   /**
@@ -101,6 +115,44 @@ object TestBoxes {
         creationHeight
       ).convertToInputWith(generateRandomId, 0)
     )
+  }
+
+  /**
+   * mocks one feeBox for cleaner address
+   * @param creationHeight each box creation height
+   */
+  def mockMinimumFeeBox(creationHeight: Int): InputBox = {
+    createOutBox(
+      Configs.minBoxValue,
+      Seq.empty[ErgoToken],
+      Seq.empty[ErgoValue[_]],
+      new ErgoTreeContract(Utils.getAddressFromString(Configs.cleaner.address).script, Configs.node.networkType),
+      creationHeight
+    ).convertToInputWith(generateRandomId, 0)
+  }
+
+  /**
+   * mocks a moveToFraud transaction (only cleaner box is valid)
+   * @param cleanerBox
+   * @param watchersLen
+   * @return
+   */
+  def mockMoveToFraudTransaction(cleanerBox: CleanerBox, watchersLen: Int): SignedTransaction = {
+    // generate random id for transaction
+    val txId = generateRandomId
+
+    // creates new cleaner box
+    val newCleanerBox = client.getClient.execute(ctx => {
+      val txB = ctx.newTxBuilder()
+      cleanerBox.createCleanerBox(txB, watchersLen, Seq.empty[InputBox])
+    }).convertToInputWith(txId, watchersLen.toShort)
+
+    // mock transaction and its methods
+    val mockedSignedTransaction = mock(classOf[SignedTransaction])
+    val mockedListInputBoxes = generateMockInputBoxes(watchersLen) ++ Seq(newCleanerBox) ++ generateMockInputBoxes(1)
+    when(mockedSignedTransaction.getOutputsToSpend).thenReturn(mockedListInputBoxes.asJava)
+    when(mockedSignedTransaction.getId).thenReturn(txId)
+    mockedSignedTransaction
   }
 
 }

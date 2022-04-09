@@ -5,8 +5,17 @@ import helpers.{Configs, RosenLogging}
 import models.{CleanerBox, TriggerEventBox}
 import network.Client
 import org.ergoplatform.appkit.{BlockchainContext, InputBox}
+
+import scala.collection.JavaConverters._
+
 class Procedures(client: Client, transactions: Transactions) extends RosenLogging {
-  var cleanerBox: CleanerBox = new CleanerBox(client.getCleanerBox)
+
+  private var cleanerBox: CleanerBox = new CleanerBox(client.getCleanerBox)
+
+  /**
+   * returns cleaner box
+   */
+  def getCleanerBox: CleanerBox = cleanerBox
 
   /**
    * processes trigger event boxes, moves them to fraud if it's old enough
@@ -63,7 +72,7 @@ class Procedures(client: Client, transactions: Transactions) extends RosenLoggin
   private def moveToFraud(ctx: BlockchainContext, eventBox: TriggerEventBox): Unit = {
     // check if there is enough fraudTokens
     val watchersLen = eventBox.getWatchersLen
-    if (cleanerBox.hasEnoughFraudToken(watchersLen)) {
+    if (cleanerBox.notEnoughFraudToken(watchersLen)) {
       log.warn(s"Not enough fraudToken. Contains ${cleanerBox.getFraudTokens}, required $watchersLen. Aborting moveToFraud for eventBox ${eventBox.getId}")
       return
     }
@@ -86,6 +95,10 @@ class Procedures(client: Client, transactions: Transactions) extends RosenLoggin
     // send tx
     try {
       ctx.sendTransaction(tx)
+      log.info(s"MoveToFraud transaction sent. TxId: ${tx.getId}")
+
+      // update cleaner box
+      cleanerBox = new CleanerBox(tx.getOutputsToSpend.get(tx.getOutputsToSpend.size() - 2))
     }
     catch {
       case e: Throwable =>

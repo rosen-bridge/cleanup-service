@@ -70,9 +70,10 @@ class CleanerBox(cleanerBox: InputBox) extends ErgoBox(cleanerBox) {
   def hasEnoughErg(feeBoxesErgs: Long = 0): Boolean = cleanerBox.getValue + feeBoxesErgs >= Configs.minBoxValue + Configs.fee
 
   /**
-   * returns true if the box has enough erg to create new cleanerBox and pay tx fee
+   * returns true if the box has NOT enough fraud token to create new fraud boxes for the event (and remain one token)
+   * @param watchersLen number of watchers in the event
    */
-  def hasEnoughFraudToken(watchersLen: Long): Boolean = getFraudTokens > watchersLen
+  def notEnoughFraudToken(watchersLen: Long): Boolean = getFraudTokens <= watchersLen
 
   /**
    * creates new cleaner box using current cleaner box and feeBoxes and size of watchers in fraud trigger event box

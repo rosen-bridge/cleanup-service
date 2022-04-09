@@ -71,7 +71,7 @@ class Client extends RosenLogging {
   def getUnspentBoxesFor(address: Address, amount: Long, tokens: Seq[ErgoToken] = Seq.empty[ErgoToken], considerMempool: Boolean = false, changeBoxConsidered: Boolean = false): CoveringBoxes = client.execute(ctx => {
     try {
       val boxLoader = if (considerMempool) new ExplorerAndPoolUnspentBoxesLoader().withAllowChainedTx(true)
-      else ExplorerApiUnspentLoader
+      else new ExplorerApiUnspentLoader()
       BoxOperations.getCoveringBoxesFor(amount, tokens.asJava, changeBoxConsidered,
         (page: Integer) => { boxLoader.loadBoxesPage(ctx, address, page)})
     } catch {

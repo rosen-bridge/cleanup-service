@@ -143,3 +143,75 @@
 2022-04-08 21:43:03 [34mINFO [0;39m [36mrosen.cleanup.Transactions[0;39m [35m[0;39m MoveToFraud tx generated. txId: 6b3d3671b561e2175299a23d972060a507c30c77ca236ad01633cef04fe30e00
 2022-04-08 21:44:15 [34mINFO [0;39m [36mrosen.cleanup.Transactions[0;39m [35m[0;39m MoveToFraud tx generated. txId: 79209939d81377460f9f00c801167f8414b56cf6c5facdf0f27dc06d8041cf33
 2022-04-08 21:46:38 [34mINFO [0;39m [36mrosen.cleanup.Transactions[0;39m [35m[0;39m MoveToFraud tx generated. txId: edfbfa5bcfd8a2006ca90082231d71a79fc2c3e479b3c183472f3b24d5f187af
+2022-04-09 20:09:41 [1;31mERROR[0;39m [36mnetwork.Client[0;39m [35m[0;39m Could not set client! Error executing API request to http://10.10.9.3:9064/: connect timed out.
+2022-04-09 20:09:41 [1;31mERROR[0;39m [36mnetwork.Client[0;39m [35m[0;39m Could not set client! Error executing API request to http://10.10.9.3:9064/: connect timed out.
+2022-04-09 20:09:51 [1;31mERROR[0;39m [36mnetwork.Client[0;39m [35m[0;39m Error executing API request to http://10.10.9.3:9064/: connect timed out
+2022-04-09 20:09:51 [1;31mERROR[0;39m [36mnetwork.Client[0;39m [35m[0;39m Error executing API request to http://10.10.9.3:9064/: connect timed out
+2022-04-09 20:10:08 [31mWARN [0;39m [36mrosen.cleanup.Procedures[0;39m [35m[0;39m Not enough fraudToken. Contains 1000000, required 3. Aborting moveToFraud for eventBox b4cac90e174762bffa40f5dae800bddb03341fc170ac5bbf71c14c3d00643ace
+2022-04-09 20:10:09 [34mINFO [0;39m [36mrosen.cleanup.Transactions[0;39m [35m[0;39m MoveToFraud tx generated. txId: 5fb74da93061d5a97412aefb17254253ba878d642cf807d4e3e8c0c7eed449a2
+2022-04-09 21:24:48 [34mINFO [0;39m [36mrosen.cleanup.Transactions[0;39m [35m[0;39m MoveToFraud tx generated. txId: d2801c6d3b113faf3f833ee490324830a80d6b3cd2a594a4db56b68acbf2986f
+2022-04-09 21:26:16 [31mWARN [0;39m [36mrosen.cleanup.Procedures[0;39m [35m[0;39m Not enough fraudToken. Contains 1000000, required 3. Aborting moveToFraud for eventBox dd016e77be880ac92e13f5246a27d97c63f662b9cab4010fbc9eef3253342cd9
+2022-04-09 21:26:16 [34mINFO [0;39m [36mrosen.cleanup.Transactions[0;39m [35m[0;39m MoveToFraud tx generated. txId: c5673e4f6d1307e146f3e99b278b9daefd31c79736e0d487caa5c80648448b64
+2022-04-09 21:26:17 [31mWARN [0;39m [36mrosen.cleanup.Procedures[0;39m [35m[0;39m Not enough fraudToken. Contains 1000000, required 3. Aborting moveToFraud for eventBox 9e0d6bb9322c184eb05257ee20f11314bb34eaab2d9cd8b15c58974a041fdebc
+2022-04-09 21:26:17 [31mWARN [0;39m [36mrosen.cleanup.Procedures[0;39m [35m[0;39m Not enough fraudToken. Contains 1000000, required 5. Aborting moveToFraud for eventBox 13079cd0175e4b1e3c3c95b1e4505952bed17363d9ccd61572ed3140cb74d7aa
+2022-04-09 21:31:25 [31mWARN [0;39m [36mrosen.cleanup.Procedures[0;39m [35m[0;39m Not enough fraudToken. Contains 1000000, required 3. Aborting moveToFraud for eventBox 86fbb9115bec80f490c3aa96279331361dfeb119c42f887803605dc1f3ae3f23
+2022-04-09 21:31:26 [34mINFO [0;39m [36mrosen.cleanup.Transactions[0;39m [35m[0;39m MoveToFraud tx generated. txId: e03ebb7102e8afcd6ff6490492fb5f7f06acd64765117d5eac00e6aed12ca3e7
+2022-04-09 21:31:26 [31mWARN [0;39m [36mrosen.cleanup.Procedures[0;39m [35m[0;39m Not enough fraudToken. Contains 1000000, required 3. Aborting moveToFraud for eventBox cef895088b0778b046eea5dcfd56fe39a00702b6c0bc8ff02ca76e75c69e7cbd
+2022-04-09 21:31:26 [31mWARN [0;39m [36mrosen.cleanup.Procedures[0;39m [35m[0;39m Not enough fraudToken. Contains 1000000, required 5. Aborting moveToFraud for eventBox 76f38749b19fadacd88534724a1f68a601b615b783aa5e625ffea6e860ce7415
+2022-04-09 21:32:41 [31mWARN [0;39m [36mrosen.cleanup.Procedures[0;39m [35m[0;39m Not enough fraudToken. Contains 1000000, required 3. Aborting moveToFraud for eventBox 58351854ef1067fc025ab33287196d7da77e44960f2e1a31dafad4ec1c735d85
+2022-04-09 21:32:41 [34mINFO [0;39m [36mrosen.cleanup.Transactions[0;39m [35m[0;39m MoveToFraud tx generated. txId: fafeb17ec0e24bab27e38403847888bde719f5039431a09b5911b67fa41d9292
+2022-04-09 21:32:42 [31mWARN [0;39m [36mrosen.cleanup.Procedures[0;39m [35m[0;39m Not enough fraudToken. Contains 1000000, required 3. Aborting moveToFraud for eventBox 104515a4298e361eeb1623c429f81ff8a5762f55d68c892044e523cc82cb7f91
+2022-04-09 21:32:42 [31mWARN [0;39m [36mrosen.cleanup.Procedures[0;39m [35m[0;39m Not enough fraudToken. Contains 1000000, required 5. Aborting moveToFraud for eventBox cfe056992c1d6fe53c5b71a4007dccdeab53ee6318ce544dd2e3ec3c22d7f3b0
+2022-04-09 21:34:52 [34mINFO [0;39m [36mrosen.cleanup.Transactions[0;39m [35m[0;39m MoveToFraud tx generated. txId: bdb6957919d60f013a726e99287531c84fc8dfe0628fd91fe9f475f3a3ff061b
+2022-04-09 21:34:52 [39mDEBUG[0;39m [36mrosen.cleanup.Procedures[0;39m [35m[0;39m failed to send MoveToFraud transaction. Error: java.lang.NullPointerException
+2022-04-09 21:34:52 [1;31mERROR[0;39m [36mrosen.cleanup.Procedures[0;39m [35m[0;39m An error occurred while moving eventBox a7d14e1b132d45cf1a99cbdf06e89ad9cdcca17d86dfe74f475e9a4cbb8f3266 to fraud.
+null
+2022-04-09 21:34:52 [31mWARN [0;39m [36mrosen.cleanup.Procedures[0;39m [35m[0;39m No problem found with the cleaner box. Aborting process.
+2022-04-09 21:34:52 [39mDEBUG[0;39m [36mrosen.cleanup.Procedures[0;39m [35m[0;39m failed to send MoveToFraud transaction. Error: java.lang.NullPointerException
+2022-04-09 21:34:52 [1;31mERROR[0;39m [36mrosen.cleanup.Procedures[0;39m [35m[0;39m An error occurred while moving eventBox c71c27336f4be7c6ac8fb1fc6a2467bdb83a4582ddb74b4f86993131aa9b6b25 to fraud.
+null
+2022-04-09 21:34:52 [31mWARN [0;39m [36mrosen.cleanup.Procedures[0;39m [35m[0;39m No problem found with the cleaner box. Aborting process.
+2022-04-09 21:37:54 [34mINFO [0;39m [36mrosen.cleanup.Transactions[0;39m [35m[0;39m MoveToFraud tx generated. txId: 02e054dd8ee5f510951b45f9347114b6b08620ddb9adfce216a0b8d121b9da36
+2022-04-09 21:37:55 [39mDEBUG[0;39m [36mrosen.cleanup.Procedures[0;39m [35m[0;39m failed to send MoveToFraud transaction. Error: java.lang.NullPointerException
+2022-04-09 21:37:55 [1;31mERROR[0;39m [36mrosen.cleanup.Procedures[0;39m [35m[0;39m An error occurred while moving eventBox 2be08fc245f04a713addbe6200814273df47fa5f5cf00e1d10508c38beac703f to fraud.
+null
+2022-04-09 21:37:55 [31mWARN [0;39m [36mrosen.cleanup.Procedures[0;39m [35m[0;39m No problem found with the cleaner box. Aborting process.
+2022-04-09 21:37:55 [39mDEBUG[0;39m [36mrosen.cleanup.Procedures[0;39m [35m[0;39m failed to send MoveToFraud transaction. Error: java.lang.NullPointerException
+2022-04-09 21:37:55 [1;31mERROR[0;39m [36mrosen.cleanup.Procedures[0;39m [35m[0;39m An error occurred while moving eventBox bb9faae0569382a18e8e5a4c61ab68e8e557b6dfae73968fbc02fa1258429ae1 to fraud.
+null
+2022-04-09 21:37:55 [31mWARN [0;39m [36mrosen.cleanup.Procedures[0;39m [35m[0;39m No problem found with the cleaner box. Aborting process.
+2022-04-09 21:48:53 [34mINFO [0;39m [36mrosen.cleanup.Transactions[0;39m [35m[0;39m MoveToFraud tx generated. txId: 87343b8c7bae44d1d1a8dd205dfde536f9e2910ffe8b2611b82c2584df756bfc
+2022-04-09 21:48:54 [39mDEBUG[0;39m [36mrosen.cleanup.Procedures[0;39m [35m[0;39m failed to send MoveToFraud transaction. Error: java.lang.IndexOutOfBoundsException: Index: -2, Size: 0
+2022-04-09 21:48:54 [1;31mERROR[0;39m [36mrosen.cleanup.Procedures[0;39m [35m[0;39m An error occurred while moving eventBox 88e73e4c3784b7a5ac3cb29f6d80818b4ecebadfec01e524fed766785eba01df to fraud.
+Tx sending failed, txId: null
+2022-04-09 21:48:54 [31mWARN [0;39m [36mrosen.cleanup.Procedures[0;39m [35m[0;39m No problem found with the cleaner box. Aborting process.
+2022-04-09 21:48:54 [39mDEBUG[0;39m [36mrosen.cleanup.Procedures[0;39m [35m[0;39m failed to send MoveToFraud transaction. Error: java.lang.IndexOutOfBoundsException: Index: -2, Size: 0
+2022-04-09 21:48:54 [1;31mERROR[0;39m [36mrosen.cleanup.Procedures[0;39m [35m[0;39m An error occurred while moving eventBox 8b8830cedd9a8f8243b432f4de1fe02ef7a7af37cdb010c03737d1e1994552a1 to fraud.
+Tx sending failed, txId: null
+2022-04-09 21:48:54 [31mWARN [0;39m [36mrosen.cleanup.Procedures[0;39m [35m[0;39m No problem found with the cleaner box. Aborting process.
+2022-04-09 21:50:08 [34mINFO [0;39m [36mrosen.cleanup.Transactions[0;39m [35m[0;39m MoveToFraud tx generated. txId: 796988bc68f41c6bdb47f3b7530f9812fb6630d328bee957905ed5d975c7f827
+2022-04-09 21:50:09 [39mDEBUG[0;39m [36mrosen.cleanup.Procedures[0;39m [35m[0;39m failed to send MoveToFraud transaction. Error: java.lang.IndexOutOfBoundsException: Index: -2, Size: 0
+2022-04-09 21:50:09 [1;31mERROR[0;39m [36mrosen.cleanup.Procedures[0;39m [35m[0;39m An error occurred while moving eventBox 025096a5a7fe489d98615f7c8e9a0ee9809588dbccaab0383262b18e54ee1609 to fraud.
+Tx sending failed, txId: null
+2022-04-09 21:50:09 [31mWARN [0;39m [36mrosen.cleanup.Procedures[0;39m [35m[0;39m No problem found with the cleaner box. Aborting process.
+2022-04-09 21:50:09 [39mDEBUG[0;39m [36mrosen.cleanup.Procedures[0;39m [35m[0;39m failed to send MoveToFraud transaction. Error: java.lang.IndexOutOfBoundsException: Index: -2, Size: 0
+2022-04-09 21:50:09 [1;31mERROR[0;39m [36mrosen.cleanup.Procedures[0;39m [35m[0;39m An error occurred while moving eventBox 7f78a31396a93213ce9403165c3e32baa18d580237a283cd0350f173a40d5e28 to fraud.
+Tx sending failed, txId: null
+2022-04-09 21:50:09 [31mWARN [0;39m [36mrosen.cleanup.Procedures[0;39m [35m[0;39m No problem found with the cleaner box. Aborting process.
+2022-04-09 21:52:05 [34mINFO [0;39m [36mrosen.cleanup.Transactions[0;39m [35m[0;39m MoveToFraud tx generated. txId: 25a138ba793c42020bb8443f9f2ef6a46e11730ca66a668e101de63c4894f5ae
+2022-04-09 21:52:05 [39mDEBUG[0;39m [36mrosen.cleanup.Procedures[0;39m [35m[0;39m failed to send MoveToFraud transaction. Error: java.lang.IndexOutOfBoundsException: Index: -2, Size: 0
+2022-04-09 21:52:05 [1;31mERROR[0;39m [36mrosen.cleanup.Procedures[0;39m [35m[0;39m An error occurred while moving eventBox 7e6603848047a20b4bddd328909050c082226e025c5abc7d50f7f1ebc4b99502 to fraud.
+Tx sending failed, txId: null
+2022-04-09 21:52:05 [31mWARN [0;39m [36mrosen.cleanup.Procedures[0;39m [35m[0;39m No problem found with the cleaner box. Aborting process.
+2022-04-09 21:52:05 [39mDEBUG[0;39m [36mrosen.cleanup.Procedures[0;39m [35m[0;39m failed to send MoveToFraud transaction. Error: java.lang.IndexOutOfBoundsException: Index: -2, Size: 0
+2022-04-09 21:52:05 [1;31mERROR[0;39m [36mrosen.cleanup.Procedures[0;39m [35m[0;39m An error occurred while moving eventBox d72d5a1cb3718b4b2dca49365c2c35187841f346333c20efc5d66e183cd4d3b5 to fraud.
+Tx sending failed, txId: null
+2022-04-09 21:52:05 [31mWARN [0;39m [36mrosen.cleanup.Procedures[0;39m [35m[0;39m No problem found with the cleaner box. Aborting process.
+2022-04-09 22:05:50 [34mINFO [0;39m [36mrosen.cleanup.Transactions[0;39m [35m[0;39m MoveToFraud tx generated. txId: de5642b122c514e840b2f0cb659e48d1426777d5e4fee063abccebc844a064eb
+2022-04-09 22:07:47 [34mINFO [0;39m [36mrosen.cleanup.Transactions[0;39m [35m[0;39m MoveToFraud tx generated. txId: 12e37c4d5e1921db24d03d6ecd9ef12b8fa33d63a0525636d78aa08629bdc15c
+2022-04-09 22:14:29 [34mINFO [0;39m [36mrosen.cleanup.Transactions[0;39m [35m[0;39m MoveToFraud tx generated. txId: 46d6da94896be388f57c624a9533207e98c775a813035ea1e04b93c00596eb69
+2022-04-09 22:14:32 [34mINFO [0;39m [36mrosen.cleanup.Procedures[0;39m [35m[0;39m MoveToFraud transaction sent. TxId: 47f74839b93a3633a48fd7568310b8071cbb4cc53d5924798c4bcdec5d2b193c
+2022-04-09 22:14:32 [34mINFO [0;39m [36mrosen.cleanup.Procedures[0;39m [35m[0;39m MoveToFraud transaction sent. TxId: 47f74839b93a3633a48fd7568310b8071cbb4cc53d5924798c4bcdec5d2b193c
+2022-04-09 22:17:24 [34mINFO [0;39m [36mrosen.cleanup.Transactions[0;39m [35m[0;39m MoveToFraud tx generated. txId: d9752dbf48fd6522789b9785573f3e38c04d73867c50b8dcaf578162cdb14fcd
+2022-04-09 22:17:25 [34mINFO [0;39m [36mrosen.cleanup.Procedures[0;39m [35m[0;39m MoveToFraud transaction sent. TxId: bbf500c438656031c2041f037e239d71c794b4e238fe1832173590e4e3d4c08a
+2022-04-09 22:17:25 [34mINFO [0;39m [36mrosen.cleanup.Procedures[0;39m [35m[0;39m MoveToFraud transaction sent. TxId: bbf500c438656031c2041f037e239d71c794b4e238fe1832173590e4e3d4c08a
