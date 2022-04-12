@@ -296,3 +296,29 @@ Tx sending failed, txId: null
 2022-04-12 12:05:38 [34mINFO [0;39m [36mrosen.cleanup.Transactions[0;39m [35m[0;39m MoveToFraud tx generated. txId: 76da6d50ee65255c23fce3b80f928505bd0edb087f1da10ab8cc67439e6eb97d
 2022-04-12 12:05:40 [34mINFO [0;39m [36mrosen.cleanup.Transactions[0;39m [35m[0;39m MergeFraudToBank tx generated. txId: b4f78f4bd6d4289ee27b153e97e63434c2274caa0ce1f18bfc6b9bf88b9bf07c
 2022-04-12 12:05:42 [34mINFO [0;39m [36mrosen.cleanup.Transactions[0;39m [35m[0;39m MergeFraudToBank tx generated. txId: 905969f39a0abef0dc533d065ae8ea423994769a73d55eb0abf8763789460833
+2022-04-13 01:28:04 [1;31mERROR[0;39m [36mnetwork.Client[0;39m [35m[0;39m Could not set client! null.
+2022-04-13 01:28:04 [1;31mERROR[0;39m [36mnetwork.Client[0;39m [35m[0;39m null
+2022-04-13 01:28:04 [1;31mERROR[0;39m [36mnetwork.Client[0;39m [35m[0;39m null
+2022-04-13 01:28:36 [1;31mERROR[0;39m [36mnetwork.Client[0;39m [35m[0;39m Could not set client! null.
+2022-04-13 01:28:36 [1;31mERROR[0;39m [36mnetwork.Client[0;39m [35m[0;39m null
+2022-04-13 01:28:36 [1;31mERROR[0;39m [36mnetwork.Client[0;39m [35m[0;39m null
+2022-04-13 01:29:25 [1;31mERROR[0;39m [36mnetwork.Client[0;39m [35m[0;39m Could not set client! Could not initialize class helpers.Configs$.
+2022-04-13 01:29:25 [1;31mERROR[0;39m [36mnetwork.Client[0;39m [35m[0;39m null
+2022-04-13 01:29:25 [1;31mERROR[0;39m [36mnetwork.Client[0;39m [35m[0;39m Could not set client! null.
+2022-04-13 01:29:25 [1;31mERROR[0;39m [36mnetwork.Client[0;39m [35m[0;39m null
+2022-04-13 01:33:26 [1;31mERROR[0;39m [36mnetwork.Client[0;39m [35m[0;39m Could not set client! null.
+2022-04-13 01:33:26 [1;31mERROR[0;39m [36mnetwork.Client[0;39m [35m[0;39m null
+2022-04-13 01:33:26 [1;31mERROR[0;39m [36mnetwork.Client[0;39m [35m[0;39m null
+2022-04-13 01:40:33 [1;31mERROR[0;39m [36mnetwork.Client[0;39m [35m[0;39m Could not set client! null.
+2022-04-13 01:40:33 [1;31mERROR[0;39m [36mnetwork.Client[0;39m [35m[0;39m null
+2022-04-13 01:40:33 [1;31mERROR[0;39m [36mnetwork.Client[0;39m [35m[0;39m null
+2022-04-13 01:54:30 [1;31mERROR[0;39m [36mnetwork.Client[0;39m [35m[0;39m Could not set client! null.
+2022-04-13 01:54:30 [1;31mERROR[0;39m [36mnetwork.Client[0;39m [35m[0;39m null
+2022-04-13 01:54:30 [1;31mERROR[0;39m [36mnetwork.Client[0;39m [35m[0;39m null
+2022-04-13 01:58:45 [34mINFO [0;39m [36mrosen.cleanup.Transactions[0;39m [35m[0;39m MoveToFraud tx generated. txId: fe3ec4004c039d4ae3925977a18b34d90f17dc75e4e230cfcf1da861d70dff3d
+2022-04-13 01:58:46 [34mINFO [0;39m [36mrosen.cleanup.Procedures[0;39m [35m[0;39m MoveToFraud transaction sent. TxId: d8f963e617db68aae23fb8f145a3e9ddbecd6241e8cf22c9354783ef5dd2e8db
+2022-04-13 01:58:46 [34mINFO [0;39m [36mrosen.cleanup.Procedures[0;39m [35m[0;39m MoveToFraud transaction sent. TxId: f335d8f3afd7a06cb28808864f26f8053cfe0bf275afdcd99c7cfb90ee7df629
+2022-04-13 01:58:49 [34mINFO [0;39m [36mrosen.cleanup.Transactions[0;39m [35m[0;39m MergeFraudToBank tx generated. txId: 84521481edb0e3da3af67ff29379ff5d24d8d1512af02ff8e840904064598c7e
+2022-04-13 01:58:49 [34mINFO [0;39m [36mrosen.cleanup.Procedures[0;39m [35m[0;39m MergeFraudToBank transaction sent. TxId: a934068d42fa684ef077e08f644e238cbbdf1dcd71a67f1c5d412f847ead0fa3
+2022-04-13 01:58:50 [34mINFO [0;39m [36mrosen.cleanup.Procedures[0;39m [35m[0;39m MergeFraudToBank transaction sent. TxId: d656336260e597396aba7fb3bf244f56a4f06b1ebf34f5d132c6d828041d409d
+2022-04-13 01:58:51 [34mINFO [0;39m [36mrosen.cleanup.Transactions[0;39m [35m[0;39m MergeFraudToBank tx generated. txId: 90663362edb3697e2f8abf7e82d0b4379b9518a730d8130c0a984795cb5cbe95

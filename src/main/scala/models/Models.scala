@@ -114,11 +114,11 @@ class FraudBox(fraudBox: InputBox) extends ErgoBox(fraudBox) {
    * creates collector box which contains unlocked RSN
    * @param txB transaction builder
    */
-  def createCollectorBox(txB: UnsignedTransactionBuilder): OutBox = {
+  def createCollectorBox(txB: UnsignedTransactionBuilder, RSNAmount: Long): OutBox = {
     txB.outBoxBuilder()
       .value(Configs.minBoxValue)
       .contract(Utils.getAddressContract(Configs.cleaner.collectorAddress))
-      .tokens(new ErgoToken(Configs.tokens.RSN, 100))
+      .tokens(new ErgoToken(Configs.tokens.RSN, RSNAmount))
       .build()
   }
 
@@ -137,6 +137,11 @@ class BankBox(bankBox: InputBox) extends ErgoBox(bankBox) {
   def getEWRs: Array[Long] = bankBox.getRegisters.get(1).getValue.asInstanceOf[Coll[Long]].toArray.clone()
 
   /**
+   * returns price of EWR in RSN (first value of register R6)
+   */
+  def getRSNFactor: Long = bankBox.getRegisters.get(2).getValue.asInstanceOf[Coll[Long]].toArray.head
+
+  /**
    * creates new bank box using current bank box with new UTPs and EWRs passed by as arguments
    * @param txB transaction builder
    * @param UTPs array of watcher UTPs in register R4
@@ -152,7 +157,7 @@ class BankBox(bankBox: InputBox) extends ErgoBox(bankBox) {
       .tokens(
         new ErgoToken(Configs.tokens.BankNft, 1),
         new ErgoToken(Configs.tokens.EWR, EWRAmount + 1),
-        new ErgoToken(Configs.tokens.RSN, RSNAmount - 100)
+        new ErgoToken(Configs.tokens.RSN, RSNAmount - this.getRSNFactor)
       )
       .contract(Contracts.WatcherBank)
       .registers(

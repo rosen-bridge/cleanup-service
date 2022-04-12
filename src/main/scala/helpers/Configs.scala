@@ -53,4 +53,5 @@ object Configs extends ConfigHelper {
     lazy val address: String = readKey("cleaner.address")
     lazy val collectorAddress: String = readKey("cleaner.collectorAddress")
   }
+  lazy val processInterval: Int = readKey("processInterval", "600000").toInt
 }

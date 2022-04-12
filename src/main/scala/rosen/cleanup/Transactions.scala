@@ -92,7 +92,7 @@ class Transactions extends RosenLogging {
     val newCleanerBox = cleanerBox.createCleanerBox(txB, feeBoxes)
 
     // generate collector boxes, form outputBoxes with new cleaner box and bank box
-    val outputBoxes = Seq(newBankBox, fraudBox.createCollectorBox(txB), newCleanerBox)
+    val outputBoxes = Seq(newBankBox, fraudBox.createCollectorBox(txB, bankBox.getRSNFactor), newCleanerBox)
 
     // generate tx
     val unsignedTx = txB.boxesToSpend((Seq(bankBox.getBox, fraudBox.getBox, cleanerBox.getBox) ++ feeBoxes).asJava)
