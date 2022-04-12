@@ -6,8 +6,7 @@ import org.scalatest.propspec.AnyPropSpec
 
 trait TestSuite extends AnyPropSpec with Matchers {
 
-  protected val client = new Client
-  client.setClient()
+  protected val client: Client = TestBoxes.client
 
   protected val blockchainHeight: Long = client.getHeight
   // In some test box creation height is 10k less than blockchain height. So it should be more than 10k (11k for assurance)

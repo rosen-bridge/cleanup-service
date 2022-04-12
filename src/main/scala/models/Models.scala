@@ -1,7 +1,7 @@
 package models
 
-import helpers.Configs
 import helpers.RosenExceptions.unexpectedException
+import helpers.{Configs, Utils}
 import org.ergoplatform.appkit.impl.ErgoTreeContract
 import org.ergoplatform.appkit.{ErgoToken, ErgoType, ErgoValue, InputBox, JavaHelpers, OutBox, UnsignedTransactionBuilder}
 import rosen.bridge.Contracts
@@ -43,10 +43,7 @@ class TriggerEventBox(eventBox: InputBox) extends ErgoBox(eventBox) {
       txB.outBoxBuilder()
         .value(Configs.minBoxValue)
         .contract(Contracts.WatcherFraudLock)
-        .tokens(
-          new ErgoToken(Configs.tokens.EWR, 1),
-          new ErgoToken(Configs.cleaner.fraudToken, 1)
-        )
+        .tokens(new ErgoToken(Configs.tokens.EWR, 1))
         .registers(ErgoValue.of(Seq(UTP).map(item => JavaHelpers.SigmaDsl.Colls.fromArray(item)).toArray, ErgoType.collType(ErgoType.byteType())))
         .build()
     }).toSeq
@@ -57,36 +54,19 @@ class TriggerEventBox(eventBox: InputBox) extends ErgoBox(eventBox) {
 class CleanerBox(cleanerBox: InputBox) extends ErgoBox(cleanerBox) {
 
   /**
-   * returns number of fraudTokens in box
-   */
-  def getFraudTokens: Long = getTokens.find(token => token.getId.toString == Configs.cleaner.fraudToken)
-    .getOrElse(throw unexpectedException(s"cleaner box is not containing fraudToken ${Configs.cleaner.fraudToken}"))
-    .getValue
-
-  /**
    * returns true if the box has enough erg to create new cleanerBox and pay tx fee
    * @param feeBoxesErgs the amount of erg in the additional boxes of cleaner
    */
   def hasEnoughErg(feeBoxesErgs: Long = 0): Boolean = cleanerBox.getValue + feeBoxesErgs >= Configs.minBoxValue + Configs.fee
 
   /**
-   * returns true if the box has NOT enough fraud token to create new fraud boxes for the event (and remain one token)
-   * @param watchersLen number of watchers in the event
-   */
-  def notEnoughFraudToken(watchersLen: Long): Boolean = getFraudTokens <= watchersLen
-
-  /**
    * creates new cleaner box using current cleaner box and feeBoxes and size of watchers in fraud trigger event box
    * @param txB transaction builder
-   * @param watchersLen size of watchers in trigger event box
    * @param feeBoxes additional boxes of cleaner
    * @return
    */
-  def createCleanerBox(txB: UnsignedTransactionBuilder, watchersLen: Int, feeBoxes: Seq[InputBox]): OutBox = {
-    var tokensSeq: Seq[ErgoToken] = cleanerBox.getTokens.asScala.map(token => {
-      if (token.getId.toString == Configs.cleaner.fraudToken) new ErgoToken(token.getId, token.getValue - watchersLen)
-      else token
-    })
+  def createCleanerBox(txB: UnsignedTransactionBuilder, feeBoxes: Seq[InputBox]): OutBox = {
+    var tokensSeq: Seq[ErgoToken] = cleanerBox.getTokens.asScala
     var cleanerTotalErg: Long = cleanerBox.getValue - Configs.fee
 
     // calculate feeBoxes assets, add to cleaner box assets
@@ -129,5 +109,72 @@ class FraudBox(fraudBox: InputBox) extends ErgoBox(fraudBox) {
    * returns watcher UTP in register R4 of fraud box
    */
   def getUTP: Array[Byte] = fraudBox.getRegisters.get(0).getValue.asInstanceOf[Coll[Coll[Byte]]].toArray(0).toArray.clone()
+
+  /**
+   * creates collector box which contains unlocked RSN
+   * @param txB transaction builder
+   */
+  def createCollectorBox(txB: UnsignedTransactionBuilder): OutBox = {
+    txB.outBoxBuilder()
+      .value(Configs.minBoxValue)
+      .contract(Utils.getAddressContract(Configs.cleaner.collectorAddress))
+      .tokens(new ErgoToken(Configs.tokens.RSN, 100))
+      .build()
+  }
+
+}
+
+class BankBox(bankBox: InputBox) extends ErgoBox(bankBox) {
+
+  /**
+   * returns array of watcher UTPs in register R4 of bank box
+   */
+  def getUTPs: Array[Array[Byte]] = bankBox.getRegisters.get(0).getValue.asInstanceOf[Coll[Coll[Byte]]].toArray.map(item => item.toArray)
+
+  /**
+   * returns the number of EWRs for each UTP in register R5 of bank box
+   */
+  def getEWRs: Array[Long] = bankBox.getRegisters.get(1).getValue.asInstanceOf[Coll[Long]].toArray.clone()
+
+  /**
+   * creates new bank box using current bank box with new UTPs and EWRs passed by as arguments
+   * @param txB transaction builder
+   * @param UTPs array of watcher UTPs in register R4
+   * @param EWRs array of watcher EWRs in register R5
+   * @param watcherIndex the slashed UTP index in array of watcher UTPs
+   */
+  def createBankBox(txB: UnsignedTransactionBuilder, UTPs: Array[Array[Byte]], EWRs: Array[Long], watcherIndex: Int): OutBox = {
+    val R4 = UTPs.map(item => JavaHelpers.SigmaDsl.Colls.fromArray(item))
+    val R5 = JavaHelpers.SigmaDsl.Colls.fromArray(EWRs)
+
+    txB.outBoxBuilder()
+      .value(Configs.minBoxValue)
+      .tokens(
+        new ErgoToken(Configs.tokens.BankNft, 1),
+        new ErgoToken(Configs.tokens.EWR, EWRAmount + 1),
+        new ErgoToken(Configs.tokens.RSN, RSNAmount - 100)
+      )
+      .contract(Contracts.WatcherBank)
+      .registers(
+        ErgoValue.of(R4, ErgoType.collType(ErgoType.byteType())),
+        ErgoValue.of(R5, ErgoType.longType()),
+        bankBox.getRegisters.get(2),
+        ErgoValue.of(watcherIndex)
+      ).build()
+  }
+
+  /**
+   * returns the amount EWR in bank box
+   */
+  private def EWRAmount: Long = bankBox.getTokens.asScala.find(token => token.getId.toString == Configs.tokens.EWR)
+    .getOrElse(throw unexpectedException(s"Token EWR ${Configs.tokens.EWR} not found in bankBox with Id ${bankBox.getId.toString}"))
+    .getValue
+
+  /**
+   * returns the amount RSN in bank box
+   */
+  private def RSNAmount: Long = bankBox.getTokens.asScala.find(token => token.getId.toString == Configs.tokens.RSN)
+    .getOrElse(throw unexpectedException(s"Token RSN ${Configs.tokens.RSN} not found in bankBox with Id ${bankBox.getId.toString}"))
+    .getValue
 
 }

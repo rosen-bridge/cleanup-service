@@ -86,12 +86,27 @@ class Client extends RosenLogging {
   def getEventBoxes: Seq[InputBox] = getUnspentBoxesFor(Utils.generateAddress(Contracts.WatcherTriggerEvent), (1e9 * 1e8).toLong).getBoxes.asScala
 
   /**
+   * @return List of fraud lock boxes (does not consider mempool)
+   */
+  def getFraudBoxes: Seq[InputBox] = getUnspentBoxesFor(Utils.generateAddress(Contracts.WatcherFraudLock), (1e9 * 1e8).toLong).getBoxes.asScala
+
+  /**
    * @return Last cleaner box (consider mempool)
    */
   def getCleanerBox: InputBox = getUnspentBoxesFor(
     Utils.generateAddress(Contracts.WatcherTriggerEvent),
     (1e9 * 1e8).toLong,
     Seq(new ErgoToken(Configs.tokens.CleanupNFT, 1)),
+    considerMempool = true
+  ).getBoxes.asScala.last
+
+  /**
+   * @return Last bank box (consider mempool)
+   */
+  def getBankBox: InputBox = getUnspentBoxesFor(
+    Utils.generateAddress(Contracts.WatcherBank),
+    (1e9 * 1e8).toLong,
+    Seq(new ErgoToken(Configs.tokens.BankNft, 1)),
     considerMempool = true
   ).getBoxes.asScala.last
 

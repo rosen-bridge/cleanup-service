@@ -4,7 +4,7 @@ import java.math.BigInteger
 
 import com.typesafe.config.{Config, ConfigFactory}
 import org.ergoplatform.ErgoAddressEncoder
-import org.ergoplatform.appkit.{Address, ErgoClient, NetworkType, RestApiErgoClient}
+import org.ergoplatform.appkit.{ErgoClient, NetworkType, RestApiErgoClient}
 
 trait ConfigHelper {
   val config: Config  = ConfigFactory.load()
@@ -49,7 +49,6 @@ object Configs extends ConfigHelper {
   }
   lazy val cleanupConfirm: Long = readKey("cleanup.confirm").toLong
   object cleaner {
-    lazy val fraudToken: String = readKey("cleaner.fraudToken")
     lazy val secret: BigInteger = BigInt(readKey("cleaner.secret"), 16).bigInteger
     lazy val address: String = readKey("cleaner.address")
     lazy val collectorAddress: String = readKey("cleaner.collectorAddress")

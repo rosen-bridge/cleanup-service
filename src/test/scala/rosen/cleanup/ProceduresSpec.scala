@@ -2,10 +2,13 @@ package rosen.cleanup
 
 import helpers.Configs
 import helpers.RosenExceptions.notEnoughErgException
+import models.{BankBox, CleanerBox}
 import network.Client
-import org.ergoplatform.appkit.{BlockchainContext, ErgoToken}
+import org.ergoplatform.appkit.{BlockchainContext, SignedTransaction}
+import org.mockito.Mockito
 import org.mockito.ArgumentMatchers.any
-import org.mockito.Mockito.{mock, when}
+import org.mockito.Mockito.{mock, verify, when}
+import org.mockito.invocation.InvocationOnMock
 import org.scalatest.PrivateMethodTester
 import testUtils.{TestBoxes, TestSuite}
 
@@ -60,32 +63,77 @@ class ProceduresSpec extends TestSuite with PrivateMethodTester  {
       TestBoxes.mockTriggerEventBox(5, (blockchainHeight - Configs.cleanupConfirm - 1).toInt)
     )
     val watchersLen = eventBoxes.map(_.getWatchersLen).sum
-
-    val newCleanerFraudToken = {
-      val token = cleanerBox.getTokens(1)
-      new ErgoToken(token.getId, token.getValue - watchersLen)
-    }
+    var cleanerBoxIds = Seq.empty[String]
 
     // mock dependencies
     val mockedTransactions = mock(classOf[Transactions])
-    val mockedSignedTransaction = TestBoxes.mockMoveToFraudTransaction(cleanerBox, watchersLen)
-    when(mockedTransactions.generateFrauds(any(), any(), any(), any())).thenReturn(mockedSignedTransaction)
+    when(mockedTransactions.generateFrauds(any(), any(), any(), any())).thenAnswer((invocation: InvocationOnMock) => {
+      val cleanerBoxParameter = invocation.getArgument(2, classOf[CleanerBox])
+      cleanerBoxIds = cleanerBoxIds :+ cleanerBoxParameter.getId
+      TestBoxes.mockMoveToFraudTransaction(cleanerBox, watchersLen)
+    })
     val mockedClient = mock(classOf[Client])
     when(mockedClient.getHeight).thenReturn(blockchainHeight)
     when(mockedClient.getCleanerBox).thenReturn(cleanerBox.getBox)
     when(mockedClient.getEventBoxes).thenReturn(eventBoxes.map(_.getBox))
     val mockedCtx = mock(classOf[BlockchainContext])
-    val mockedTxId = TestBoxes.generateRandomId
-    when(mockedCtx.sendTransaction(any())).thenReturn(mockedTxId)
+    when(mockedCtx.sendTransaction(any()))
+      .thenAnswer((invocation: InvocationOnMock) => invocation.getArgument(0, classOf[SignedTransaction]).getId)
 
     // run test
     val procedures = new Procedures(mockedClient, mockedTransactions)
     procedures.processEvents(mockedCtx)
 
-    // verify cleaner box conditions
-    val outputCleaner = procedures.getCleanerBox
-    outputCleaner.getTokens.head should equal(cleanerBox.getTokens.head)
-    outputCleaner.getTokens(1) should equal(newCleanerFraudToken)
+    // verify generateFrauds method calls and different boxes
+    verify(mockedTransactions, Mockito.times(2)).generateFrauds(any(), any(), any(), any())
+    cleanerBoxIds.head should not equal(cleanerBoxIds.last)
+  }
+
+  /**
+   * Target: testing processFrauds and mergeFraudToBank
+   * Dependencies:
+   *    Client
+   *    Transaction
+   * Expected Output:
+   *    The function should chain two mergeFraudToBank transaction successfully
+   */
+  property("processFrauds chains mergeFraudToBank for two events") {
+    // initialize test data
+    val cleanerBox = TestBoxes.mockCleanerBox(Configs.minBoxValue + 2 * Configs.fee, (blockchainHeight - 10).toInt)
+    val bankBox = TestBoxes.mockBankBox(5, (blockchainHeight - 20).toInt)
+    val fraudBoxes = Seq(
+      TestBoxes.mockFraudBox(bankBox.getUTPs.last, (blockchainHeight - 3).toInt),
+      TestBoxes.mockFraudBox(bankBox.getUTPs.last, (blockchainHeight - 3).toInt)
+    )
+    var bankBoxIds = Seq.empty[String]
+    var cleanerBoxIds = Seq.empty[String]
+
+    // mock dependencies
+    val mockedTransactions = mock(classOf[Transactions])
+    when(mockedTransactions.mergeFraud(any(), any(), any(), any(), any())).thenAnswer((invocation: InvocationOnMock) => {
+      val bankBoxParameter = invocation.getArgument(2, classOf[BankBox])
+      val cleanerBoxParameter = invocation.getArgument(3, classOf[CleanerBox])
+      bankBoxIds = bankBoxIds :+ bankBoxParameter.getId
+      cleanerBoxIds = cleanerBoxIds :+ cleanerBoxParameter.getId
+      TestBoxes.mockMergeFraudTransaction(bankBoxParameter, cleanerBoxParameter)
+    })
+    val mockedClient = mock(classOf[Client])
+    when(mockedClient.getHeight).thenReturn(blockchainHeight)
+    when(mockedClient.getCleanerBox).thenReturn(cleanerBox.getBox)
+    when(mockedClient.getBankBox).thenReturn(bankBox.getBox)
+    when(mockedClient.getFraudBoxes).thenReturn(fraudBoxes.map(_.getBox))
+    val mockedCtx = mock(classOf[BlockchainContext])
+    when(mockedCtx.sendTransaction(any()))
+      .thenAnswer((invocation: InvocationOnMock) => invocation.getArgument(0, classOf[SignedTransaction]).getId)
+
+    // run test
+    val procedures = new Procedures(mockedClient, mockedTransactions)
+    procedures.processFrauds(mockedCtx)
+
+    // verify mergeFraud method calls and different boxes
+    verify(mockedTransactions, Mockito.times(2)).mergeFraud(any(), any(), any(), any(), any())
+    bankBoxIds.head should not equal(bankBoxIds.last)
+    cleanerBoxIds.head should not equal(cleanerBoxIds.last)
   }
 
 }
