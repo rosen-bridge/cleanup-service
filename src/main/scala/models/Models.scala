@@ -138,12 +138,12 @@ class BankBox(bankBox: InputBox) extends ErgoBox(bankBox) {
   /**
    * returns register R6
    */
-  def getRegisterR6: Array[Long] = bankBox.getRegisters.get(2).getValue.asInstanceOf[Coll[Long]].toArray.clone()
+  def getR6Values: Array[Long] = bankBox.getRegisters.get(2).getValue.asInstanceOf[Coll[Long]].toArray.clone()
 
   /**
    * returns price of EWR in RSN (first value of register R6)
    */
-  def getRSNFactor: Long = getRegisterR6.head
+  def getRSNFactor: Long = getR6Values.head
 
   /**
    * creates new bank box using current bank box with new UTPs and EWRs passed by as arguments
@@ -155,6 +155,7 @@ class BankBox(bankBox: InputBox) extends ErgoBox(bankBox) {
   def createBankBox(txB: UnsignedTransactionBuilder, UTPs: Array[Array[Byte]], EWRs: Array[Long], watcherIndex: Int): OutBox = {
     val R4 = UTPs.map(item => JavaHelpers.SigmaDsl.Colls.fromArray(item))
     val R5 = JavaHelpers.SigmaDsl.Colls.fromArray(EWRs)
+    val R6 = JavaHelpers.SigmaDsl.Colls.fromArray(getR6Values)
 
     txB.outBoxBuilder()
       .value(Configs.minBoxValue)
@@ -167,7 +168,7 @@ class BankBox(bankBox: InputBox) extends ErgoBox(bankBox) {
       .registers(
         ErgoValue.of(R4, ErgoType.collType(ErgoType.byteType())),
         ErgoValue.of(R5, ErgoType.longType()),
-        ErgoValue.of(getRegisterR6, ErgoType.longType()),
+        ErgoValue.of(R6, ErgoType.longType()),
         ErgoValue.of(watcherIndex)
       ).build()
   }
