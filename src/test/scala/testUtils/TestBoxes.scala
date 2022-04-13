@@ -197,10 +197,10 @@ object TestBoxes {
   }
 
   /**
-   * mocks a mergeFraud transaction (only cleaner box and bank box are valid, reducing last watcher EWR count)
+   * mocks a slashFraud transaction (only cleaner box and bank box are valid, reducing last watcher EWR count)
    * @param cleanerBox the cleaner box in input
    */
-  def mockMergeFraudTransaction(bankBox: BankBox, cleanerBox: CleanerBox): SignedTransaction = {
+  def mockSlashFraudTransaction(bankBox: BankBox, cleanerBox: CleanerBox): SignedTransaction = {
     // generate random id for transaction
     val txId = generateRandomId
 

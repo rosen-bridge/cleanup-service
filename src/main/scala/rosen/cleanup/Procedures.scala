@@ -1,6 +1,6 @@
 package rosen.cleanup
 
-import helpers.RosenExceptions.{failedTxException, notEnoughErgException, unexpectedException}
+import helpers.RosenExceptions.{FailedTxException, NotEnoughErgException, UnexpectedException}
 import helpers.{Configs, RosenLogging}
 import models.{BankBox, CleanerBox, FraudBox, TriggerEventBox}
 import network.Client
@@ -37,7 +37,7 @@ class Procedures(client: Client, transactions: Transactions) extends RosenLoggin
         moveToFraud(ctx, box)
       }
       catch {
-        case e: notEnoughErgException =>
+        case e: NotEnoughErgException =>
           log.error(s"Aborting process. Reason: ${e.getMessage}")
 
         case e: Throwable =>
@@ -48,7 +48,7 @@ class Procedures(client: Client, transactions: Transactions) extends RosenLoggin
             log.warn(s"No problem found with the cleaner box. Aborting process.")
           }
           catch {
-            case _: unexpectedException =>
+            case _: UnexpectedException =>
               log.warn(s"It seems cleanerBox ${cleanerBox.getId} got forked. Re-initiating the box and trying again...")
               cleanerBox = new CleanerBox(client.getCleanerBox)
 
@@ -81,7 +81,7 @@ class Procedures(client: Client, transactions: Transactions) extends RosenLoggin
 
       // check if there is enough erg with additional boxes
       val feeBoxesErgs: Long = feeBoxes.map(_.getValue).sum
-      if (!cleanerBox.hasEnoughErg(feeBoxesErgs)) throw notEnoughErgException(cleanerBox.getErgs + feeBoxesErgs, Configs.minBoxValue + Configs.fee)
+      if (!cleanerBox.hasEnoughErg(feeBoxesErgs)) throw NotEnoughErgException(cleanerBox.getErgs + feeBoxesErgs, Configs.minBoxValue + Configs.fee)
       else feeBoxes
     }
   }
@@ -110,12 +110,12 @@ class Procedures(client: Client, transactions: Transactions) extends RosenLoggin
     catch {
       case e: Throwable =>
         log.debug(s"failed to send MoveToFraud transaction. Error: $e")
-        throw failedTxException(s"txId: ${tx.getId}")
+        throw FailedTxException(s"txId: ${tx.getId}")
     }
   }
 
   /**
-   * process all frauds boxes that contains cleaner fraudToken, merges them to bank
+   * processes all frauds boxes that contains cleaner fraudToken, redeems and slashes their tokens
    *
    * @param ctx blockchain context
    */
@@ -124,10 +124,10 @@ class Procedures(client: Client, transactions: Transactions) extends RosenLoggin
 
     fraudBoxes.foreach(box => {
       try {
-        mergeFraudToBank(ctx, box)
+        slashFraudBox(ctx, box)
       }
       catch {
-        case e: notEnoughErgException =>
+        case e: NotEnoughErgException =>
           log.error(s"Aborting process. Reason: ${e.getMessage}")
 
         case e: Throwable =>
@@ -140,13 +140,13 @@ class Procedures(client: Client, transactions: Transactions) extends RosenLoggin
             log.warn(s"No problem found with the bank box either. Aborting process...")
           }
           catch {
-            case _: unexpectedException =>
+            case _: UnexpectedException =>
               log.warn(s"It seems cleanerBox or bankBox got forked. Re-initiating the boxes and trying again...")
               cleanerBox = new CleanerBox(client.getCleanerBox)
               bankBox = new BankBox(client.getBankBox)
 
               try {
-                mergeFraudToBank(ctx, box)
+                slashFraudBox(ctx, box)
               }
               catch {
                 case e: Throwable =>
@@ -161,22 +161,22 @@ class Procedures(client: Client, transactions: Transactions) extends RosenLoggin
   }
 
   /**
-   * merges fraud box to bank and unlock RSN to collector address
+   * redeems and slashes fraud box tokens
    *
    * @param ctx blockchain context
    * @param fraudBox the fraud box
    */
-  private def mergeFraudToBank(ctx: BlockchainContext, fraudBox: FraudBox): Unit = {
+  private def slashFraudBox(ctx: BlockchainContext, fraudBox: FraudBox): Unit = {
     // get feeBoxes if needed
     val feeBoxes: Seq[InputBox] = getCleanerFeeBoxes(cleanerBox)
 
     // generate MoveToFraud tx
-    val tx = transactions.mergeFraud(ctx, fraudBox, bankBox, cleanerBox, feeBoxes)
+    val tx = transactions.slashFraud(ctx, fraudBox, bankBox, cleanerBox, feeBoxes)
 
     // send tx
     try {
       ctx.sendTransaction(tx)
-      log.info(s"MergeFraudToBank transaction sent. TxId: ${tx.getId}")
+      log.info(s"SlashFraudBox transaction sent. TxId: ${tx.getId}")
 
       // update bank box and cleaner box
       val txOutputs = tx.getOutputsToSpend
@@ -185,8 +185,8 @@ class Procedures(client: Client, transactions: Transactions) extends RosenLoggin
     }
     catch {
       case e: Throwable =>
-        log.debug(s"failed to send MergeFraudToBank transaction. Error: $e")
-        throw failedTxException(s"txId: ${tx.getId}")
+        log.debug(s"failed to send SlashFraudBox transaction. Error: $e")
+        throw FailedTxException(s"txId: ${tx.getId}")
     }
   }
 

@@ -46,23 +46,23 @@ class TransactionsSpec extends TestSuite {
   }
 
   /**
-   * Target: testing mergeFraud
+   * Target: testing slashFraud
    * Dependencies:
    *    -
    * Expected Output:
    *    The function should construct a valid signedTransaction
    *    First output should be bank box
-   *    Second output should be collector box, containing unlocked RSN
+   *    Second output should be slashed box, containing unlocked RSN
    *    Third output should be cleaner box
    */
-  property("mergeFraud constructs valid transaction, removes UTP if it has 0 EWR") {
+  property("slashFraud constructs valid transaction, removes UTP if it has 0 EWR") {
     // initialize test data
     val bankBox = TestBoxes.mockBankBox(5, (blockchainHeight - 10).toInt)
     val fraudBox = TestBoxes.mockFraudBox(bankBox.getUTPs.head, (blockchainHeight - 5).toInt)
     val cleanerBox = TestBoxes.mockCleanerBox(1e9.toLong, (blockchainHeight - 10).toInt)
     val feeBoxes = Seq.empty[InputBox]
 
-    val collectorBoxTokens = Seq(new ErgoToken(Configs.tokens.RSN, 100))
+    val slashedBoxTokens = Seq(new ErgoToken(Configs.tokens.RSN, 100))
     val bankBoxTokens = Seq(
       new ErgoToken(Configs.tokens.BankNft, 1),
       new ErgoToken(Configs.tokens.EWR, 101),
@@ -70,10 +70,10 @@ class TransactionsSpec extends TestSuite {
     )
 
     // run test
-    val tx = client.getClient.execute(ctx => transactions.mergeFraud(ctx, fraudBox, bankBox, cleanerBox, feeBoxes))
+    val tx = client.getClient.execute(ctx => transactions.slashFraud(ctx, fraudBox, bankBox, cleanerBox, feeBoxes))
     val outputBoxes = tx.getOutputsToSpend.asScala
     val outputBank = new BankBox(outputBoxes.head)
-    val outputCollector = outputBoxes(1)
+    val outputSlashed = outputBoxes(1)
     val outputCleaner = outputBoxes(2)
 
     // verify tx size condition
@@ -86,32 +86,32 @@ class TransactionsSpec extends TestSuite {
     val newEWRs = outputBank.getEWRs
     newEWRs should equal(bankBox.getEWRs.slice(1, 5))
 
-    // verify collector box conditions
-    outputCollector.getTokens.asScala should equal(collectorBoxTokens)
-    Configs.addressEncoder.fromProposition(outputCollector.getErgoTree).get should equal(Utils.getAddress(Configs.cleaner.collectorAddress))
+    // verify slashed box conditions
+    outputSlashed.getTokens.asScala should equal(slashedBoxTokens)
+    Configs.addressEncoder.fromProposition(outputSlashed.getErgoTree).get should equal(Utils.getAddress(Configs.cleaner.slashedAddress))
 
     // verify cleaner box conditions
     outputCleaner.getTokens.get(0) should equal(cleanerBox.getTokens.head)
   }
 
   /**
-   * Target: testing mergeFraud
+   * Target: testing slashFraud
    * Dependencies:
    *    -
    * Expected Output:
    *    The function should construct a valid signedTransaction
    *    First output should be bank box
-   *    Second output should be collector box, containing unlocked RSN
+   *    Second output should be slashed box, containing unlocked RSN
    *    Third output should be cleaner box
    */
-  property("mergeFraud constructs valid transaction, reduces EWR by 1") {
+  property("slashFraud constructs valid transaction, reduces EWR by 1") {
     // initialize test data
     val bankBox = TestBoxes.mockBankBox(5, (blockchainHeight - 10).toInt)
     val fraudBox = TestBoxes.mockFraudBox(bankBox.getUTPs(1), (blockchainHeight - 5).toInt)
     val cleanerBox = TestBoxes.mockCleanerBox(1e9.toLong, (blockchainHeight - 10).toInt)
     val feeBoxes = Seq.empty[InputBox]
 
-    val collectorBoxTokens = Seq(new ErgoToken(Configs.tokens.RSN, 100))
+    val slashedBoxTokens = Seq(new ErgoToken(Configs.tokens.RSN, 100))
     val bankBoxTokens = Seq(
       new ErgoToken(Configs.tokens.BankNft, 1),
       new ErgoToken(Configs.tokens.EWR, 101),
@@ -119,10 +119,10 @@ class TransactionsSpec extends TestSuite {
     )
 
     // run test
-    val tx = client.getClient.execute(ctx => transactions.mergeFraud(ctx, fraudBox, bankBox, cleanerBox, feeBoxes))
+    val tx = client.getClient.execute(ctx => transactions.slashFraud(ctx, fraudBox, bankBox, cleanerBox, feeBoxes))
     val outputBoxes = tx.getOutputsToSpend.asScala
     val outputBank = new BankBox(outputBoxes.head)
-    val outputCollector = outputBoxes(1)
+    val outputSlashed = outputBoxes(1)
     val outputCleaner = outputBoxes(2)
 
     // verify tx size condition
@@ -136,9 +136,9 @@ class TransactionsSpec extends TestSuite {
     newEWRs(1) should equal(bankBox.getEWRs(1) - 1)
     newEWRs.slice(2, 5) :+ newEWRs.head should equal(bankBox.getEWRs.slice(2, 5) :+ bankBox.getEWRs.head)
 
-    // verify collector box conditions
-    outputCollector.getTokens.asScala should equal(collectorBoxTokens)
-    Configs.addressEncoder.fromProposition(outputCollector.getErgoTree).get should equal(Utils.getAddress(Configs.cleaner.collectorAddress))
+    // verify slashed box conditions
+    outputSlashed.getTokens.asScala should equal(slashedBoxTokens)
+    Configs.addressEncoder.fromProposition(outputSlashed.getErgoTree).get should equal(Utils.getAddress(Configs.cleaner.slashedAddress))
 
     // verify cleaner box conditions
     outputCleaner.getTokens.get(0) should equal(cleanerBox.getTokens.head)

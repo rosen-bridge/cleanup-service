@@ -44,7 +44,7 @@ class Client extends RosenLogging {
     } catch {
       case e: Throwable =>
         log.error(e.getMessage)
-        throw connectionException()
+        throw ConnectionException()
     }
   }
 
@@ -54,12 +54,12 @@ class Client extends RosenLogging {
    */
   def getUnspentBoxById(boxId: String): InputBox = client.execute(ctx => {
     try {
-      ctx.getBoxesById(boxId).headOption.getOrElse(throw unexpectedException(s"no unspent box found for id $boxId"))
+      ctx.getBoxesById(boxId).headOption.getOrElse(throw UnexpectedException(s"no unspent box found for id $boxId"))
     } catch {
-      case e: unexpectedException => throw e
+      case e: UnexpectedException => throw e
       case e: Throwable =>
         log.error(e.getMessage)
-        throw connectionException()
+        throw ConnectionException()
     }
   })
 
@@ -76,7 +76,7 @@ class Client extends RosenLogging {
     } catch {
       case e: Throwable =>
         log.error(e.getMessage)
-        throw connectionException()
+        throw ConnectionException()
     }
   })
 

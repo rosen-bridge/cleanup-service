@@ -51,7 +51,7 @@ object Configs extends ConfigHelper {
   object cleaner {
     lazy val secret: BigInteger = BigInt(readKey("cleaner.secret"), 16).bigInteger
     lazy val address: String = readKey("cleaner.address")
-    lazy val collectorAddress: String = readKey("cleaner.collectorAddress")
+    lazy val slashedAddress: String = readKey("cleaner.slashedAddress")
   }
   lazy val processInterval: Int = readKey("processInterval", "600000").toInt
 }

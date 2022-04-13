@@ -1,7 +1,7 @@
 package rosen.cleanup
 
 import helpers.Configs
-import helpers.RosenExceptions.notEnoughErgException
+import helpers.RosenExceptions.NotEnoughErgException
 import models.{BankBox, CleanerBox}
 import network.Client
 import org.ergoplatform.appkit.{BlockchainContext, SignedTransaction}
@@ -42,7 +42,7 @@ class ProceduresSpec extends TestSuite with PrivateMethodTester  {
       fail("No exception threw")
     }
     catch {
-      case _: notEnoughErgException => succeed
+      case _: NotEnoughErgException => succeed
       case e: Throwable => fail(s"Wrong exception: ${e.getMessage}")
     }
   }
@@ -90,14 +90,14 @@ class ProceduresSpec extends TestSuite with PrivateMethodTester  {
   }
 
   /**
-   * Target: testing processFrauds and mergeFraudToBank
+   * Target: testing processFrauds and slashFraudBox
    * Dependencies:
    *    Client
    *    Transaction
    * Expected Output:
-   *    The function should chain two mergeFraudToBank transaction successfully
+   *    The function should chain two slashFraudBox transaction successfully
    */
-  property("processFrauds chains mergeFraudToBank for two events") {
+  property("processFrauds chains slashFraudBox for two events") {
     // initialize test data
     val cleanerBox = TestBoxes.mockCleanerBox(Configs.minBoxValue + 2 * Configs.fee, (blockchainHeight - 10).toInt)
     val bankBox = TestBoxes.mockBankBox(5, (blockchainHeight - 20).toInt)
@@ -110,12 +110,12 @@ class ProceduresSpec extends TestSuite with PrivateMethodTester  {
 
     // mock dependencies
     val mockedTransactions = mock(classOf[Transactions])
-    when(mockedTransactions.mergeFraud(any(), any(), any(), any(), any())).thenAnswer((invocation: InvocationOnMock) => {
+    when(mockedTransactions.slashFraud(any(), any(), any(), any(), any())).thenAnswer((invocation: InvocationOnMock) => {
       val bankBoxParameter = invocation.getArgument(2, classOf[BankBox])
       val cleanerBoxParameter = invocation.getArgument(3, classOf[CleanerBox])
       bankBoxIds = bankBoxIds :+ bankBoxParameter.getId
       cleanerBoxIds = cleanerBoxIds :+ cleanerBoxParameter.getId
-      TestBoxes.mockMergeFraudTransaction(bankBoxParameter, cleanerBoxParameter)
+      TestBoxes.mockSlashFraudTransaction(bankBoxParameter, cleanerBoxParameter)
     })
     val mockedClient = mock(classOf[Client])
     when(mockedClient.getHeight).thenReturn(blockchainHeight)
@@ -130,8 +130,8 @@ class ProceduresSpec extends TestSuite with PrivateMethodTester  {
     val procedures = new Procedures(mockedClient, mockedTransactions)
     procedures.processFrauds(mockedCtx)
 
-    // verify mergeFraud method calls and different boxes
-    verify(mockedTransactions, Mockito.times(2)).mergeFraud(any(), any(), any(), any(), any())
+    // verify slashFraud method calls and different boxes
+    verify(mockedTransactions, Mockito.times(2)).slashFraud(any(), any(), any(), any(), any())
     bankBoxIds.head should not equal(bankBoxIds.last)
     cleanerBoxIds.head should not equal(cleanerBoxIds.last)
   }

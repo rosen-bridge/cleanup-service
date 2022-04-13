@@ -1,6 +1,6 @@
 package models
 
-import helpers.RosenExceptions.unexpectedException
+import helpers.RosenExceptions.UnexpectedException
 import helpers.{Configs, Utils}
 import org.ergoplatform.appkit.impl.ErgoTreeContract
 import org.ergoplatform.appkit.{ErgoToken, ErgoType, ErgoValue, InputBox, JavaHelpers, OutBox, UnsignedTransactionBuilder}
@@ -102,7 +102,6 @@ class CleanerBox(cleanerBox: InputBox) extends ErgoBox(cleanerBox) {
 
 }
 
-// TODO: Implement this class
 class FraudBox(fraudBox: InputBox) extends ErgoBox(fraudBox) {
 
   /**
@@ -111,13 +110,13 @@ class FraudBox(fraudBox: InputBox) extends ErgoBox(fraudBox) {
   def getUTP: Array[Byte] = fraudBox.getRegisters.get(0).getValue.asInstanceOf[Coll[Coll[Byte]]].toArray(0).toArray.clone()
 
   /**
-   * creates collector box which contains unlocked RSN
+   * creates slashed box which contains unlocked RSN
    * @param txB transaction builder
    */
-  def createCollectorBox(txB: UnsignedTransactionBuilder, RSNAmount: Long): OutBox = {
+  def createSlashedBox(txB: UnsignedTransactionBuilder, RSNAmount: Long): OutBox = {
     txB.outBoxBuilder()
       .value(Configs.minBoxValue)
-      .contract(Utils.getAddressContract(Configs.cleaner.collectorAddress))
+      .contract(Utils.getAddressContract(Configs.cleaner.slashedAddress))
       .tokens(new ErgoToken(Configs.tokens.RSN, RSNAmount))
       .build()
   }
@@ -137,9 +136,14 @@ class BankBox(bankBox: InputBox) extends ErgoBox(bankBox) {
   def getEWRs: Array[Long] = bankBox.getRegisters.get(1).getValue.asInstanceOf[Coll[Long]].toArray.clone()
 
   /**
+   * returns register R6
+   */
+  def getRegisterR6: Array[Long] = bankBox.getRegisters.get(2).getValue.asInstanceOf[Coll[Long]].toArray.clone()
+
+  /**
    * returns price of EWR in RSN (first value of register R6)
    */
-  def getRSNFactor: Long = bankBox.getRegisters.get(2).getValue.asInstanceOf[Coll[Long]].toArray.head
+  def getRSNFactor: Long = getRegisterR6.head
 
   /**
    * creates new bank box using current bank box with new UTPs and EWRs passed by as arguments
@@ -163,7 +167,7 @@ class BankBox(bankBox: InputBox) extends ErgoBox(bankBox) {
       .registers(
         ErgoValue.of(R4, ErgoType.collType(ErgoType.byteType())),
         ErgoValue.of(R5, ErgoType.longType()),
-        bankBox.getRegisters.get(2),
+        ErgoValue.of(getRegisterR6, ErgoType.longType()),
         ErgoValue.of(watcherIndex)
       ).build()
   }
@@ -172,14 +176,14 @@ class BankBox(bankBox: InputBox) extends ErgoBox(bankBox) {
    * returns the amount EWR in bank box
    */
   private def EWRAmount: Long = bankBox.getTokens.asScala.find(token => token.getId.toString == Configs.tokens.EWR)
-    .getOrElse(throw unexpectedException(s"Token EWR ${Configs.tokens.EWR} not found in bankBox with Id ${bankBox.getId.toString}"))
+    .getOrElse(throw UnexpectedException(s"Token EWR ${Configs.tokens.EWR} not found in bankBox with Id ${bankBox.getId.toString}"))
     .getValue
 
   /**
    * returns the amount RSN in bank box
    */
   private def RSNAmount: Long = bankBox.getTokens.asScala.find(token => token.getId.toString == Configs.tokens.RSN)
-    .getOrElse(throw unexpectedException(s"Token RSN ${Configs.tokens.RSN} not found in bankBox with Id ${bankBox.getId.toString}"))
+    .getOrElse(throw UnexpectedException(s"Token RSN ${Configs.tokens.RSN} not found in bankBox with Id ${bankBox.getId.toString}"))
     .getValue
 
 }
