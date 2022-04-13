@@ -7,3 +7,7 @@ test:
   stage: test
   script:
     - sbt clean test
+  artifacts:
+    reports:
+      cobertura: target/scala-2.12/coverage-report/cobertura.xml
+
