@@ -61,7 +61,7 @@ class TriggerEventBox(eventBox: InputBox) extends ErgoBox(eventBox) {
         .value(Configs.minBoxValue)
         .contract(Contracts.WatcherFraudLock)
         .tokens(new ErgoToken(Configs.tokens.EWR, 1))
-        .registers(ErgoValue.of(Seq(UTP).map(item => JavaHelpers.SigmaDsl.Colls.fromArray(item)).toArray, ErgoType.collType(ErgoType.byteType())))
+        .registers(ErgoValue.of(Seq(UTP).map(item => JavaHelpers.collFrom(item)).toArray, ErgoType.collType(ErgoType.byteType())))
         .build()
     }).toSeq
   }

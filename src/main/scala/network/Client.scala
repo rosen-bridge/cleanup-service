@@ -11,16 +11,17 @@ import rosen.bridge.Contracts
 import scala.collection.JavaConverters._
 
 class Client extends RosenLogging {
-  private val client: ErgoClient = RestApiErgoClient.create(Configs.node.url, Configs.node.networkType, "", Configs.explorer)
 
-  // test client connection by getting blockchain height, exit app on failure
-  try {
+  private val client: ErgoClient = try {
+    val client = RestApiErgoClient.create(Configs.node.url, Configs.node.networkType, "", Configs.explorer)
+    // test client connection by getting blockchain height, exit app on failure
     client.execute(ctx => {
       ctx.getHeight
     })
+    client
   } catch {
     case e: Throwable =>
-      log.error(s"Could not set client! ${e.getMessage}.")
+      log.error(s"Failed to set and interact with client! ${e.getMessage}.")
       sys.exit(1)
   }
 

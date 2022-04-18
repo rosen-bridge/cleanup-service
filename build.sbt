@@ -1,4 +1,4 @@
-name := "rosen-bridge-cleanup-service"
+name := "cleanup-service"
 
 version := "1.0.0"
 scalaVersion := "2.12.7"
