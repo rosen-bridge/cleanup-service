@@ -1,7 +1,7 @@
 <configuration>
 
     <appender name="FILE" class="ch.qos.logback.core.FileAppender">
-        <file>${user.home}/rosenBridge/tests/application.log</file>
+        <file>${application.home:-.}/logs/application.log</file>
         <encoder>
             <charset>UTF-8</charset>
             <pattern>

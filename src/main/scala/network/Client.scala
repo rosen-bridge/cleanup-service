@@ -11,24 +11,17 @@ import rosen.bridge.Contracts
 import scala.collection.JavaConverters._
 
 class Client extends RosenLogging {
-  private var client: ErgoClient = _
+  private val client: ErgoClient = RestApiErgoClient.create(Configs.node.url, Configs.node.networkType, "", Configs.explorer)
 
-  /**
-   * Sets client for the entire app when the app starts
-   *
-   * @return current height of blockchain
-   */
-  def setClient(): Long = {
-    try {
-      client = RestApiErgoClient.create(Configs.node.url, Configs.node.networkType, "", Configs.explorer)
-      client.execute(ctx => {
-        ctx.getHeight
-      })
-    } catch {
-      case e: Throwable =>
-        log.error(s"Could not set client! ${e.getMessage}.")
-        0L
-    }
+  // test client connection by getting blockchain height, exit app on failure
+  try {
+    client.execute(ctx => {
+      ctx.getHeight
+    })
+  } catch {
+    case e: Throwable =>
+      log.error(s"Could not set client! ${e.getMessage}.")
+      sys.exit(1)
   }
 
   def getClient: ErgoClient = {
@@ -81,7 +74,7 @@ class Client extends RosenLogging {
   })
 
   /**
-   * @return List of triger event boxes (does not consider mempool)
+   * @return List of trigger event boxes (does not consider mempool)
    */
   def getEventBoxes: Seq[InputBox] = getUnspentBoxesFor(Utils.generateAddress(Contracts.WatcherTriggerEvent), (1e9 * 1e8).toLong).getBoxes.asScala
 

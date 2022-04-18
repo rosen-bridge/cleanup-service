@@ -8,10 +8,8 @@ import rosen.cleanup.{Procedures, Transactions}
 object Main extends RosenLogging {
 
   def main(args: Array[String]): Unit = {
-    // initializing network client, 0 height means failed to connect to network
+    // initializing network client
     val client = new Client
-    val blockchainHeight = client.setClient()
-    if (blockchainHeight == 0) return
 
     // initializing service classes
     val transactions = new Transactions

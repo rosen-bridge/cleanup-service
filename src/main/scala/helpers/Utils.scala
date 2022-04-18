@@ -7,10 +7,10 @@ import org.ergoplatform.appkit.{Address, ErgoContract}
 object Utils {
 
   /**
-   * converts Address to ErgoContract
+   * converts ErgoContract to Address
    */
   def generateAddress(contract: ErgoContract): Address = {
-    Address.create(Configs.addressEncoder.fromProposition(contract.getErgoTree).get.toString)
+    Address.fromErgoTree(contract.getErgoTree, Configs.node.networkType)
   }
 
   /**
@@ -25,14 +25,6 @@ object Utils {
    */
   def getAddress(address: String): ErgoAddress = {
     Configs.addressEncoder.fromString(address).get
-  }
-
-  /**
-   * converts ErgoContract to base58 string representation of address
-   */
-  def getContractAddress(contract: ErgoContract): String = {
-    val ergoTree = contract.getErgoTree
-    Configs.addressEncoder.fromProposition(ergoTree).get.toString
   }
 
 }

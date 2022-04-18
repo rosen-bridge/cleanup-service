@@ -69,10 +69,9 @@ class Procedures(client: Client, transactions: Transactions) extends RosenLoggin
 
   /**
    * get the other boxes of cleaner if needed to pay transaction fee (throw exception if there is not enough erg in address)
-   * @param cleanerBox the cleaner box
    * @return if there is enough erg in cleaner box returns empty list, otherwise get feeBoxes in network
    */
-  private def getCleanerFeeBoxes(cleanerBox: CleanerBox): Seq[InputBox] = {
+  private def getCleanerFeeBoxes: Seq[InputBox] = {
     // check if there is enough erg in cleaner box
     if (cleanerBox.hasEnoughErg()) Seq.empty[InputBox]
     else {
@@ -94,7 +93,7 @@ class Procedures(client: Client, transactions: Transactions) extends RosenLoggin
    */
   private def moveToFraud(ctx: BlockchainContext, eventBox: TriggerEventBox): Unit = {
     // get feeBoxes if needed
-    val feeBoxes: Seq[InputBox] = getCleanerFeeBoxes(cleanerBox)
+    val feeBoxes: Seq[InputBox] = getCleanerFeeBoxes
 
     // generate MoveToFraud tx
     val tx = transactions.generateFrauds(ctx, eventBox, cleanerBox, feeBoxes)
@@ -168,7 +167,7 @@ class Procedures(client: Client, transactions: Transactions) extends RosenLoggin
    */
   private def slashFraudBox(ctx: BlockchainContext, fraudBox: FraudBox): Unit = {
     // get feeBoxes if needed
-    val feeBoxes: Seq[InputBox] = getCleanerFeeBoxes(cleanerBox)
+    val feeBoxes: Seq[InputBox] = getCleanerFeeBoxes
 
     // generate MoveToFraud tx
     val tx = transactions.slashFraud(ctx, fraudBox, bankBox, cleanerBox, feeBoxes)

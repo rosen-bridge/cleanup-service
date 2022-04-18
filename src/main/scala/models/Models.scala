@@ -20,6 +20,23 @@ class ErgoBox(inBox: InputBox) {
 
   def getErgs: Long = inBox.getValue
 
+  /**
+   * adds a token to sequence of token (update sequence in case the token already exists)
+   * @param tokenSeq sequence of tokens
+   * @param boxToken token to be added
+   * @return
+   */
+  protected def addBoxToken(tokenSeq: Seq[ErgoToken], boxToken: ErgoToken): Seq[ErgoToken] = {
+    val tokenIds = tokenSeq.map(_.getId.toString)
+    if (tokenIds.contains(boxToken.getId.toString)) {
+      val tokenIndex = tokenIds.indexOf(boxToken.getId.toString)
+      tokenSeq.slice(0, tokenIndex) ++
+        tokenSeq.slice(tokenIndex + 1, tokenSeq.length) :+
+        new ErgoToken(boxToken.getId.toString, tokenSeq(tokenIndex).getValue + boxToken.getValue)
+    }
+    else tokenSeq :+ boxToken
+  }
+
 }
 
 class TriggerEventBox(eventBox: InputBox) extends ErgoBox(eventBox) {
@@ -81,23 +98,6 @@ class CleanerBox(cleanerBox: InputBox) extends ErgoBox(cleanerBox) {
       .contract(new ErgoTreeContract(cleanerBox.getErgoTree, Configs.node.networkType))
       .tokens(tokensSeq: _*)
       .build()
-  }
-
-  /**
-   * adds a token to sequence of token (update sequence in case the token already exists)
-   * @param tokenSeq sequence of tokens
-   * @param boxToken token to be added
-   * @return
-   */
-  private def addBoxToken(tokenSeq: Seq[ErgoToken], boxToken: ErgoToken): Seq[ErgoToken] = {
-    val tokenIds = tokenSeq.map(_.getId.toString)
-    if (tokenIds.contains(boxToken.getId.toString)) {
-      val tokenIndex = tokenIds.indexOf(boxToken.getId.toString)
-      tokenSeq.slice(0, tokenIndex) ++
-        tokenSeq.slice(tokenIndex + 1, tokenSeq.length) :+
-        new ErgoToken(boxToken.getId.toString, tokenSeq(tokenIndex).getValue + boxToken.getValue)
-    }
-    else tokenSeq :+ boxToken
   }
 
 }

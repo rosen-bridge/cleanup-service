@@ -13,7 +13,6 @@ import scala.collection.JavaConverters._
 object TestBoxes {
 
   val client = new Client
-  client.setClient()
 
   /**
    * generates random ID (for tokenId or TxId)

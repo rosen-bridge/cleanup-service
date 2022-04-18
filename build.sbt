@@ -1,11 +1,14 @@
+name := "rosen-bridge-cleanup-service"
+
+version := "1.0.0"
+scalaVersion := "2.12.7"
+
 lazy val sonatypePublic = "Sonatype Public" at "https://oss.sonatype.org/content/groups/public/"
 lazy val sonatypeReleases = "Sonatype Releases" at "https://oss.sonatype.org/content/repositories/releases/"
 lazy val sonatypeSnapshots = "Sonatype Snapshots" at "https://oss.sonatype.org/content/repositories/snapshots/"
 
 resolvers ++= Seq(Resolver.mavenLocal, sonatypeReleases, sonatypeSnapshots, Resolver.mavenCentral)
 
-version := "1.0.0"
-scalaVersion := "2.12.7"
 val appkit = "org.ergoplatform" %% "ergo-appkit" % "4.0.8"
 
 libraryDependencies ++= Seq(
