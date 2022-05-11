@@ -2,14 +2,14 @@ package rosen.cleanup
 
 import helpers.RosenExceptions.{FailedTxException, NotEnoughErgException, UnexpectedException}
 import helpers.{Configs, RosenLogging}
-import models.{BankBox, CleanerBox, FraudBox, TriggerEventBox}
+import models.{RWTRepoBox, CleanerBox, FraudBox, TriggerEventBox}
 import network.Client
 import org.ergoplatform.appkit.{BlockchainContext, InputBox}
 
 class Procedures(client: Client, transactions: Transactions) extends RosenLogging {
 
   private var cleanerBox: CleanerBox = new CleanerBox(client.getCleanerBox)
-  private var bankBox: BankBox = new BankBox(client.getBankBox)
+  private var repoBox: RWTRepoBox = new RWTRepoBox(client.getRepoBox)
 
   /**
    * returns cleaner box
@@ -19,7 +19,7 @@ class Procedures(client: Client, transactions: Transactions) extends RosenLoggin
   /**
    * returns cleaner box
    */
-  def getBankBox: BankBox = bankBox
+  def getRepoBox: RWTRepoBox = repoBox
 
   /**
    * processes trigger event boxes, moves them to fraud if it's old enough
@@ -86,7 +86,7 @@ class Procedures(client: Client, transactions: Transactions) extends RosenLoggin
   }
 
   /**
-   * generates fraud box for every EWR in the trigger event box
+   * generates fraud box for every RWT in the trigger event box
    *
    * @param ctx blockchain context
    * @param eventBox the trigger event box
@@ -130,19 +130,19 @@ class Procedures(client: Client, transactions: Transactions) extends RosenLoggin
           log.error(s"Aborting process. Reason: ${e.getMessage}")
 
         case e: Throwable =>
-          log.error(s"An error occurred while merging fraud box ${box.getId} to bank ${bankBox.getId}.\n${e.getMessage}")
+          log.error(s"An error occurred while merging fraud box ${box.getId} to repo ${repoBox.getId}.\n${e.getMessage}")
 
           try {
             client.getUnspentBoxById(cleanerBox.getId)
             log.warn(s"No problem found with the cleaner box.")
-            client.getUnspentBoxById(bankBox.getId)
-            log.warn(s"No problem found with the bank box either. Aborting process...")
+            client.getUnspentBoxById(repoBox.getId)
+            log.warn(s"No problem found with the repo box either. Aborting process...")
           }
           catch {
             case _: UnexpectedException =>
-              log.warn(s"It seems cleanerBox or bankBox got forked. Re-initiating the boxes and trying again...")
+              log.warn(s"It seems cleanerBox or repoBox got forked. Re-initiating the boxes and trying again...")
               cleanerBox = new CleanerBox(client.getCleanerBox)
-              bankBox = new BankBox(client.getBankBox)
+              repoBox = new RWTRepoBox(client.getRepoBox)
 
               try {
                 slashFraudBox(ctx, box)
@@ -170,17 +170,17 @@ class Procedures(client: Client, transactions: Transactions) extends RosenLoggin
     val feeBoxes: Seq[InputBox] = getCleanerFeeBoxes
 
     // generate MoveToFraud tx
-    val tx = transactions.slashFraud(ctx, fraudBox, bankBox, cleanerBox, feeBoxes)
+    val tx = transactions.slashFraud(ctx, fraudBox, repoBox, cleanerBox, feeBoxes)
 
     // send tx
     try {
       ctx.sendTransaction(tx)
       log.info(s"SlashFraudBox transaction sent. TxId: ${tx.getId}")
 
-      // update bank box and cleaner box
+      // update repo box and cleaner box
       val txOutputs = tx.getOutputsToSpend
       cleanerBox = new CleanerBox(txOutputs.get(2))
-      bankBox = new BankBox(txOutputs.get(0))
+      repoBox = new RWTRepoBox(txOutputs.get(0))
     }
     catch {
       case e: Throwable =>

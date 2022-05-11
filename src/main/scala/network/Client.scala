@@ -1,6 +1,5 @@
 package network
 
-
 import helpers.{Configs, RosenLogging, Utils}
 import helpers.RosenExceptions._
 import org.ergoplatform.appkit.BoxOperations.ExplorerApiUnspentLoader
@@ -77,30 +76,30 @@ class Client extends RosenLogging {
   /**
    * @return List of trigger event boxes (does not consider mempool)
    */
-  def getEventBoxes: Seq[InputBox] = getUnspentBoxesFor(Utils.generateAddress(Contracts.WatcherTriggerEvent), (1e9 * 1e8).toLong).getBoxes.asScala
+  def getEventBoxes: Seq[InputBox] = getUnspentBoxesFor(Utils.generateAddress(Contracts.EventTrigger), (1e9 * 1e8).toLong).getBoxes.asScala
 
   /**
-   * @return List of fraud lock boxes (does not consider mempool)
+   * @return List of fraud boxes (does not consider mempool)
    */
-  def getFraudBoxes: Seq[InputBox] = getUnspentBoxesFor(Utils.generateAddress(Contracts.WatcherFraudLock), (1e9 * 1e8).toLong).getBoxes.asScala
+  def getFraudBoxes: Seq[InputBox] = getUnspentBoxesFor(Utils.generateAddress(Contracts.Fraud), (1e9 * 1e8).toLong).getBoxes.asScala
 
   /**
    * @return Last cleaner box (consider mempool)
    */
   def getCleanerBox: InputBox = getUnspentBoxesFor(
-    Utils.generateAddress(Contracts.WatcherTriggerEvent),
+    Utils.generateAddress(Contracts.EventTrigger),
     (1e9 * 1e8).toLong,
     Seq(new ErgoToken(Configs.tokens.CleanupNFT, 1)),
     considerMempool = true
   ).getBoxes.asScala.last
 
   /**
-   * @return Last bank box (consider mempool)
+   * @return Last repo box (consider mempool)
    */
-  def getBankBox: InputBox = getUnspentBoxesFor(
-    Utils.generateAddress(Contracts.WatcherBank),
+  def getRepoBox: InputBox = getUnspentBoxesFor(
+    Utils.generateAddress(Contracts.RWTRepo),
     (1e9 * 1e8).toLong,
-    Seq(new ErgoToken(Configs.tokens.BankNft, 1)),
+    Seq(new ErgoToken(Configs.tokens.RepoNFT, 1)),
     considerMempool = true
   ).getBoxes.asScala.last
 

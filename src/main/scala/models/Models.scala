@@ -6,9 +6,7 @@ import org.ergoplatform.appkit.impl.ErgoTreeContract
 import org.ergoplatform.appkit.{ErgoToken, ErgoType, ErgoValue, InputBox, JavaHelpers, OutBox, UnsignedTransactionBuilder}
 import rosen.bridge.Contracts
 import special.collection.Coll
-
 import scala.collection.JavaConverters._
-
 
 class ErgoBox(inBox: InputBox) {
 
@@ -42,26 +40,26 @@ class ErgoBox(inBox: InputBox) {
 class TriggerEventBox(eventBox: InputBox) extends ErgoBox(eventBox) {
 
   /**
-   * returns array of watcher UTPs in register R4 of trigger event box
+   * returns array of watcher WIDs in register R4 of trigger event box
    */
-  def getUTPs: Array[Array[Byte]] = eventBox.getRegisters.get(0).getValue.asInstanceOf[Coll[Coll[Byte]]].toArray.map(item => item.toArray)
+  def getWIDs: Array[Array[Byte]] = eventBox.getRegisters.get(0).getValue.asInstanceOf[Coll[Coll[Byte]]].toArray.map(item => item.toArray)
 
   /**
-   * returns number of watchers (UTPs) in event box
+   * returns number of watchers (WIDs) in event box
    */
-  def getWatchersLen: Int = getUTPs.length
+  def getWatchersLen: Int = getWIDs.length
 
   /**
-   * creates watcher fraud lock boxes
+   * creates watcher fraud boxes
    * @param txB transaction builder
    */
   def createFraudBoxes(txB: UnsignedTransactionBuilder): Seq[OutBox] = {
-    getUTPs.map(UTP => {
+    getWIDs.map(WID => {
       txB.outBoxBuilder()
         .value(Configs.minBoxValue)
-        .contract(Contracts.WatcherFraudLock)
-        .tokens(new ErgoToken(Configs.tokens.EWR, 1))
-        .registers(ErgoValue.of(Seq(UTP).map(item => JavaHelpers.collFrom(item)).toArray, ErgoType.collType(ErgoType.byteType())))
+        .contract(Contracts.Fraud)
+        .tokens(new ErgoToken(Configs.tokens.RWT, 1))
+        .registers(ErgoValue.of(Seq(WID).map(item => JavaHelpers.collFrom(item)).toArray, ErgoType.collType(ErgoType.byteType())))
         .build()
     }).toSeq
   }
@@ -105,9 +103,9 @@ class CleanerBox(cleanerBox: InputBox) extends ErgoBox(cleanerBox) {
 class FraudBox(fraudBox: InputBox) extends ErgoBox(fraudBox) {
 
   /**
-   * returns watcher UTP in register R4 of fraud box
+   * returns watcher WID in register R4 of fraud box
    */
-  def getUTP: Array[Byte] = fraudBox.getRegisters.get(0).getValue.asInstanceOf[Coll[Coll[Byte]]].toArray(0).toArray.clone()
+  def getWID: Array[Byte] = fraudBox.getRegisters.get(0).getValue.asInstanceOf[Coll[Coll[Byte]]].toArray(0).toArray.clone()
 
   /**
    * creates slashed box which contains unlocked RSN
@@ -123,48 +121,48 @@ class FraudBox(fraudBox: InputBox) extends ErgoBox(fraudBox) {
 
 }
 
-class BankBox(bankBox: InputBox) extends ErgoBox(bankBox) {
+class RWTRepoBox(repoBox: InputBox) extends ErgoBox(repoBox) {
 
   /**
-   * returns array of watcher UTPs in register R4 of bank box
+   * returns array of watcher WIDs in register R4 of repo box
    */
-  def getUTPs: Array[Array[Byte]] = bankBox.getRegisters.get(0).getValue.asInstanceOf[Coll[Coll[Byte]]].toArray.map(item => item.toArray)
+  def getWIDs: Array[Array[Byte]] = repoBox.getRegisters.get(0).getValue.asInstanceOf[Coll[Coll[Byte]]].toArray.map(item => item.toArray)
 
   /**
-   * returns the number of EWRs for each UTP in register R5 of bank box
+   * returns the number of RWTs for each WID in register R5 of repo box
    */
-  def getEWRs: Array[Long] = bankBox.getRegisters.get(1).getValue.asInstanceOf[Coll[Long]].toArray.clone()
+  def getRWTs: Array[Long] = repoBox.getRegisters.get(1).getValue.asInstanceOf[Coll[Long]].toArray.clone()
 
   /**
    * returns register R6
    */
-  def getR6Values: Array[Long] = bankBox.getRegisters.get(2).getValue.asInstanceOf[Coll[Long]].toArray.clone()
+  def getR6Values: Array[Long] = repoBox.getRegisters.get(2).getValue.asInstanceOf[Coll[Long]].toArray.clone()
 
   /**
-   * returns price of EWR in RSN (first value of register R6)
+   * returns price of RWT in RSN (first value of register R6)
    */
   def getRSNFactor: Long = getR6Values.head
 
   /**
-   * creates new bank box using current bank box with new UTPs and EWRs passed by as arguments
+   * creates new repo box using current repo box with new WIDs and RWTs passed by as arguments
    * @param txB transaction builder
-   * @param UTPs array of watcher UTPs in register R4
-   * @param EWRs array of watcher EWRs in register R5
-   * @param watcherIndex the slashed UTP index in array of watcher UTPs
+   * @param WIDs array of watchers' WIDs in register R4
+   * @param RWTs array of watchers' RWT count in register R5
+   * @param watcherIndex the slashed WID index in array of watcher WIDs
    */
-  def createBankBox(txB: UnsignedTransactionBuilder, UTPs: Array[Array[Byte]], EWRs: Array[Long], watcherIndex: Int): OutBox = {
-    val R4 = UTPs.map(item => JavaHelpers.SigmaDsl.Colls.fromArray(item))
-    val R5 = JavaHelpers.SigmaDsl.Colls.fromArray(EWRs)
+  def createRepoBox(txB: UnsignedTransactionBuilder, WIDs: Array[Array[Byte]], RWTs: Array[Long], watcherIndex: Int): OutBox = {
+    val R4 = WIDs.map(item => JavaHelpers.SigmaDsl.Colls.fromArray(item))
+    val R5 = JavaHelpers.SigmaDsl.Colls.fromArray(RWTs)
     val R6 = JavaHelpers.SigmaDsl.Colls.fromArray(getR6Values)
 
     txB.outBoxBuilder()
       .value(Configs.minBoxValue)
       .tokens(
-        new ErgoToken(Configs.tokens.BankNft, 1),
-        new ErgoToken(Configs.tokens.EWR, EWRAmount + 1),
+        new ErgoToken(Configs.tokens.RepoNFT, 1),
+        new ErgoToken(Configs.tokens.RWT, RWTAmount + 1),
         new ErgoToken(Configs.tokens.RSN, RSNAmount - this.getRSNFactor)
       )
-      .contract(Contracts.WatcherBank)
+      .contract(Contracts.RWTRepo)
       .registers(
         ErgoValue.of(R4, ErgoType.collType(ErgoType.byteType())),
         ErgoValue.of(R5, ErgoType.longType()),
@@ -174,17 +172,17 @@ class BankBox(bankBox: InputBox) extends ErgoBox(bankBox) {
   }
 
   /**
-   * returns the amount EWR in bank box
+   * returns the amount RWT in repo box
    */
-  private def EWRAmount: Long = bankBox.getTokens.asScala.find(token => token.getId.toString == Configs.tokens.EWR)
-    .getOrElse(throw UnexpectedException(s"Token EWR ${Configs.tokens.EWR} not found in bankBox with Id ${bankBox.getId.toString}"))
+  private def RWTAmount: Long = repoBox.getTokens.asScala.find(token => token.getId.toString == Configs.tokens.RWT)
+    .getOrElse(throw UnexpectedException(s"Token RWT ${Configs.tokens.RWT} not found in repoBox with Id ${repoBox.getId.toString}"))
     .getValue
 
   /**
-   * returns the amount RSN in bank box
+   * returns the amount RSN in repo box
    */
-  private def RSNAmount: Long = bankBox.getTokens.asScala.find(token => token.getId.toString == Configs.tokens.RSN)
-    .getOrElse(throw UnexpectedException(s"Token RSN ${Configs.tokens.RSN} not found in bankBox with Id ${bankBox.getId.toString}"))
+  private def RSNAmount: Long = repoBox.getTokens.asScala.find(token => token.getId.toString == Configs.tokens.RSN)
+    .getOrElse(throw UnexpectedException(s"Token RSN ${Configs.tokens.RSN} not found in repoBox with Id ${repoBox.getId.toString}"))
     .getValue
 
 }

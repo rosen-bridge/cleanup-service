@@ -2,7 +2,7 @@ package rosen.cleanup
 
 import helpers.Configs
 import helpers.RosenExceptions.NotEnoughErgException
-import models.{BankBox, CleanerBox}
+import models.{RWTRepoBox, CleanerBox}
 import network.Client
 import org.ergoplatform.appkit.{BlockchainContext, SignedTransaction}
 import org.mockito.Mockito
@@ -100,27 +100,27 @@ class ProceduresSpec extends TestSuite with PrivateMethodTester  {
   property("processFrauds chains slashFraudBox for two events") {
     // initialize test data
     val cleanerBox = TestBoxes.mockCleanerBox(Configs.minBoxValue + 2 * Configs.fee, (blockchainHeight - 10).toInt)
-    val bankBox = TestBoxes.mockBankBox(5, (blockchainHeight - 20).toInt)
+    val repoBox = TestBoxes.mockRepoBox(5, (blockchainHeight - 20).toInt)
     val fraudBoxes = Seq(
-      TestBoxes.mockFraudBox(bankBox.getUTPs.last, (blockchainHeight - 3).toInt),
-      TestBoxes.mockFraudBox(bankBox.getUTPs.last, (blockchainHeight - 3).toInt)
+      TestBoxes.mockFraudBox(repoBox.getWIDs.last, (blockchainHeight - 3).toInt),
+      TestBoxes.mockFraudBox(repoBox.getWIDs.last, (blockchainHeight - 3).toInt)
     )
-    var bankBoxIds = Seq.empty[String]
+    var repoBoxIds = Seq.empty[String]
     var cleanerBoxIds = Seq.empty[String]
 
     // mock dependencies
     val mockedTransactions = mock(classOf[Transactions])
     when(mockedTransactions.slashFraud(any(), any(), any(), any(), any())).thenAnswer((invocation: InvocationOnMock) => {
-      val bankBoxParameter = invocation.getArgument(2, classOf[BankBox])
+      val repoBoxParameter = invocation.getArgument(2, classOf[RWTRepoBox])
       val cleanerBoxParameter = invocation.getArgument(3, classOf[CleanerBox])
-      bankBoxIds = bankBoxIds :+ bankBoxParameter.getId
+      repoBoxIds = repoBoxIds :+ repoBoxParameter.getId
       cleanerBoxIds = cleanerBoxIds :+ cleanerBoxParameter.getId
-      TestBoxes.mockSlashFraudTransaction(bankBoxParameter, cleanerBoxParameter)
+      TestBoxes.mockSlashFraudTransaction(repoBoxParameter, cleanerBoxParameter)
     })
     val mockedClient = mock(classOf[Client])
     when(mockedClient.getHeight).thenReturn(blockchainHeight)
     when(mockedClient.getCleanerBox).thenReturn(cleanerBox.getBox)
-    when(mockedClient.getBankBox).thenReturn(bankBox.getBox)
+    when(mockedClient.getRepoBox).thenReturn(repoBox.getBox)
     when(mockedClient.getFraudBoxes).thenReturn(fraudBoxes.map(_.getBox))
     val mockedCtx = mock(classOf[BlockchainContext])
     when(mockedCtx.sendTransaction(any()))
@@ -132,7 +132,7 @@ class ProceduresSpec extends TestSuite with PrivateMethodTester  {
 
     // verify slashFraud method calls and different boxes
     verify(mockedTransactions, Mockito.times(2)).slashFraud(any(), any(), any(), any(), any())
-    bankBoxIds.head should not equal(bankBoxIds.last)
+    repoBoxIds.head should not equal(repoBoxIds.last)
     cleanerBoxIds.head should not equal(cleanerBoxIds.last)
   }
 
