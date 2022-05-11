@@ -1,7 +1,7 @@
 package testUtils
 
 import helpers.{Configs, Utils}
-import models.{BankBox, CleanerBox, FraudBox, TriggerEventBox}
+import models.{RWTRepoBox, CleanerBox, FraudBox, TriggerEventBox}
 import network.Client
 import org.ergoplatform.appkit.{ErgoContract, ErgoToken, ErgoType, ErgoValue, InputBox, JavaHelpers, OutBox, SignedTransaction}
 import org.mockito.Mockito.{mock, when}
@@ -63,17 +63,17 @@ object TestBoxes {
 
   /**
    * mocks a trigger event box (without R5 and R6)
-   * @param watchersSize number of watchers (UTPs) in event box
+   * @param watchersSize number of watchers (WIDs) in event box
    * @param creationHeight box creation height
    */
   def mockTriggerEventBox(watchersSize: Int, creationHeight: Int): TriggerEventBox = {
-    val UTPs = generateRandomIds(watchersSize).map(Base16.decode(_).get)
-    val R4 = UTPs.map(item => JavaHelpers.SigmaDsl.Colls.fromArray(item)).toArray
+    val WIDs = generateRandomIds(watchersSize).map(Base16.decode(_).get)
+    val R4 = WIDs.map(item => JavaHelpers.SigmaDsl.Colls.fromArray(item)).toArray
     new TriggerEventBox(createOutBox(
       Configs.minBoxValue * watchersSize,
-      Seq(new ErgoToken(Configs.tokens.EWR, watchersSize)),
+      Seq(new ErgoToken(Configs.tokens.RWT, watchersSize)),
       Seq(ErgoValue.of(R4, ErgoType.collType(ErgoType.byteType()))),
-      Contracts.WatcherTriggerEvent,
+      Contracts.EventTrigger,
       creationHeight
     ).convertToInputWith(generateRandomId, 0))
   }
@@ -130,20 +130,20 @@ object TestBoxes {
   }
 
   /**
-   * mocks a bank box
-   * @param watchersSize number of watchers (UTPs) in bank box
+   * mocks a repo box
+   * @param watchersSize number of watchers (WIDs) in repo box
    * @param creationHeight box creation height
    */
-  def mockBankBox(watchersSize: Int, creationHeight: Int): BankBox = {
-    val UTPs = generateRandomIds(watchersSize).map(Base16.decode(_).get)
-    val R4 = UTPs.map(item => JavaHelpers.SigmaDsl.Colls.fromArray(item)).toArray
-    val EWRs = (1 to watchersSize).map(_.toLong).toArray
-    val R5 = JavaHelpers.SigmaDsl.Colls.fromArray(EWRs)
-    new BankBox(createOutBox(
+  def mockRepoBox(watchersSize: Int, creationHeight: Int): RWTRepoBox = {
+    val WIDs = generateRandomIds(watchersSize).map(Base16.decode(_).get)
+    val R4 = WIDs.map(item => JavaHelpers.SigmaDsl.Colls.fromArray(item)).toArray
+    val RWTs = (1 to watchersSize).map(_.toLong).toArray
+    val R5 = JavaHelpers.SigmaDsl.Colls.fromArray(RWTs)
+    new RWTRepoBox(createOutBox(
       Configs.minBoxValue * watchersSize,
       Seq(
-        new ErgoToken(Configs.tokens.BankNft, 1),
-        new ErgoToken(Configs.tokens.EWR, 100),
+        new ErgoToken(Configs.tokens.RepoNFT, 1),
+        new ErgoToken(Configs.tokens.RWT, 100),
         new ErgoToken(Configs.tokens.RSN, 10000)
       ),
       Seq(
@@ -152,22 +152,22 @@ object TestBoxes {
         ErgoValue.of(JavaHelpers.SigmaDsl.Colls.fromArray(Array(100L, 51L, 0L, 9999L)), ErgoType.longType()),
         ErgoValue.of(watchersSize - 1)
       ),
-      Contracts.WatcherBank,
+      Contracts.RWTRepo,
       creationHeight
     ).convertToInputWith(generateRandomId, 0))
   }
 
   /**
    * mocks a fraud box
-   * @param UTP watcher's UTP
+   * @param WID watcher's WID
    * @param creationHeight box creation height
    */
-  def mockFraudBox(UTP: Array[Byte], creationHeight: Int): FraudBox = {
+  def mockFraudBox(WID: Array[Byte], creationHeight: Int): FraudBox = {
     new FraudBox(createOutBox(
       Configs.minBoxValue,
-      Seq(new ErgoToken(Configs.tokens.EWR, 1)),
-      Seq(ErgoValue.of(Seq(UTP).map(item => JavaHelpers.SigmaDsl.Colls.fromArray(item)).toArray, ErgoType.collType(ErgoType.byteType()))),
-      Contracts.WatcherFraudLock,
+      Seq(new ErgoToken(Configs.tokens.RWT, 1)),
+      Seq(ErgoValue.of(Seq(WID).map(item => JavaHelpers.SigmaDsl.Colls.fromArray(item)).toArray, ErgoType.collType(ErgoType.byteType()))),
+      Contracts.Fraud,
       creationHeight
     ).convertToInputWith(generateRandomId, 0))
   }
@@ -196,10 +196,10 @@ object TestBoxes {
   }
 
   /**
-   * mocks a slashFraud transaction (only cleaner box and bank box are valid, reducing last watcher EWR count)
+   * mocks a slashFraud transaction (only cleaner box and repo box are valid, reducing last watcher RWT count)
    * @param cleanerBox the cleaner box in input
    */
-  def mockSlashFraudTransaction(bankBox: BankBox, cleanerBox: CleanerBox): SignedTransaction = {
+  def mockSlashFraudTransaction(repoBox: RWTRepoBox, cleanerBox: CleanerBox): SignedTransaction = {
     // generate random id for transaction
     val txId = generateRandomId
 
@@ -210,15 +210,15 @@ object TestBoxes {
     }).convertToInputWith(txId, 2)
 
     // creates new cleaner box
-    val newBankBox = client.getClient.execute(ctx => {
+    val newRepoBox = client.getClient.execute(ctx => {
       val txB = ctx.newTxBuilder()
-      val newEWRs = bankBox.getEWRs.slice(0, bankBox.getEWRs.length - 1) :+ (bankBox.getEWRs.last - 1L)
-      bankBox.createBankBox(txB, bankBox.getUTPs, newEWRs, bankBox.getEWRs.length - 1)
+      val newRWTs = repoBox.getRWTs.slice(0, repoBox.getRWTs.length - 1) :+ (repoBox.getRWTs.last - 1L)
+      repoBox.createRepoBox(txB, repoBox.getWIDs, newRWTs, repoBox.getRWTs.length - 1)
     }).convertToInputWith(txId, 0)
 
     // mock transaction and its methods
     val mockedSignedTransaction = mock(classOf[SignedTransaction])
-    val mockedListInputBoxes = Seq(newBankBox) ++ generateMockInputBoxes(1) ++ Seq(newCleanerBox)
+    val mockedListInputBoxes = Seq(newRepoBox) ++ generateMockInputBoxes(1) ++ Seq(newCleanerBox)
     when(mockedSignedTransaction.getOutputsToSpend).thenReturn(mockedListInputBoxes.asJava)
     when(mockedSignedTransaction.getId).thenReturn(txId)
     mockedSignedTransaction

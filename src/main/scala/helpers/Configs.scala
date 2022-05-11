@@ -41,8 +41,8 @@ object Configs extends ConfigHelper {
   lazy val addressEncoder = new ErgoAddressEncoder(node.networkType.networkPrefix)
   object tokens {
     lazy val RSN: String = readKey("tokens.RSN")
-    lazy val EWR: String = readKey("tokens.EWR")
-    lazy val BankNft: String = readKey("tokens.BankNFT")
+    lazy val RWT: String = readKey("tokens.RWT")
+    lazy val RepoNFT: String = readKey("tokens.RepoNFT")
     lazy val GuardNFT: String = readKey("tokens.GuardNFT")
     lazy val CleanupNFT: String = readKey("tokens.CleanupNFT")
   }
