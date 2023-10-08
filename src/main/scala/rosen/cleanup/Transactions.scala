@@ -74,25 +74,20 @@ class Transactions extends RosenLogging {
     val repoWIDs = repoBox.getWIDs
     val repoRWTs = repoBox.getRWTs
     val watcherIndex = repoWIDs.map(item => Base16.encode(item)).indexOf(Base16.encode(WID))
+    val slashedRwtCount = fraudBox.getTokens.head.getValue
     if (watcherIndex == -1) throw UnexpectedException(s"watcher ${Base16.encode(WID)} not found in repo")
-
-    // generate repo box, remove WID if this is the only RWT he has
-    val newRepoBox: OutBox = if (repoRWTs(watcherIndex) == 1) {
-      val newWIDs = repoWIDs.patch(watcherIndex, Nil, 1)
-      val newRWTs = repoRWTs.patch(watcherIndex, Nil, 1)
-      repoBox.createRepoBox(txB, newWIDs, newRWTs, watcherIndex)
-    } // or reduce it by 1 if he has more RWT
-    else if (repoRWTs(watcherIndex) > 1) {
-      val newRWTs = repoRWTs.slice(0, watcherIndex) ++ Seq(repoRWTs(watcherIndex) - 1) ++ repoRWTs.slice(watcherIndex + 1, repoRWTs.length)
-      repoBox.createRepoBox(txB, repoWIDs, newRWTs, watcherIndex)
+    if (repoRWTs(watcherIndex) == slashedRwtCount) throw UnexpectedException(s"Impossible case, fraud RWT is more than total locked RWTs for watcher ${Base16.encode(WID)}")
+    if (repoRWTs(watcherIndex) == slashedRwtCount) {
+      println(s"skipping rsn slash for watcher ${Base16.encode(WID)} since it doesn't posses any other RWTs")
+      return null
     }
-    else throw UnexpectedException(s"Amount of watcher's RWT is ${repoRWTs(watcherIndex)}")
 
+    val newRepoBox = repoBox.createRepoBox(txB, repoBox, watcherIndex, slashedRwtCount)
     // generate cleaner box
     val newCleanerBox = cleanerBox.createCleanerBox(txB, feeBoxes)
 
     // generate slashed boxes, form outputBoxes with new cleaner box and repo box
-    val outputBoxes = Seq(newRepoBox, fraudBox.createSlashedBox(txB, repoBox.getRSNFactor), newCleanerBox)
+    val outputBoxes = Seq(newRepoBox, fraudBox.createSlashedBox(txB, slashedRwtCount), newCleanerBox)
 
     // generate tx
     val unsignedTx = txB.boxesToSpend((Seq(repoBox.getBox, fraudBox.getBox, cleanerBox.getBox) ++ feeBoxes).asJava)
