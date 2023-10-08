@@ -54,11 +54,12 @@ class TriggerEventBox(eventBox: InputBox) extends ErgoBox(eventBox) {
    * @param txB transaction builder
    */
   def createFraudBoxes(txB: UnsignedTransactionBuilder): Seq[OutBox] = {
+    val rwtCountPerFraud = eventBox.getTokens.get(0).getValue / getWatchersLen
     getWIDs.map(WID => {
       txB.outBoxBuilder()
         .value(Configs.minBoxValue)
         .contract(Contracts.Fraud)
-        .tokens(new ErgoToken(Configs.tokens.RWT, 1))
+        .tokens(new ErgoToken(Configs.tokens.RWT, rwtCountPerFraud))
         .registers(ErgoValue.of(Seq(WID).map(item => JavaHelpers.collFrom(item)).toArray, ErgoType.collType(ErgoType.byteType())))
         .build()
     }).toSeq

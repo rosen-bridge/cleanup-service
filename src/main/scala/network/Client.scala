@@ -86,12 +86,15 @@ class Client extends RosenLogging {
   /**
    * @return Last cleaner box (consider mempool)
    */
-  def getCleanerBox: InputBox = getUnspentBoxesFor(
-    Utils.generateAddress(Contracts.EventTrigger),
-    (1e9 * 1e8).toLong,
-    Seq(new ErgoToken(Configs.tokens.CleanupNFT, 1)),
-    considerMempool = true
-  ).getBoxes.asScala.last
+  def getCleanerBox: InputBox = {
+    println(Configs.cleaner.address)
+    getUnspentBoxesFor(
+      new Address(Utils.getAddress(Configs.cleaner.address)),
+      (1e9 * 1e8).toLong,
+      Seq(new ErgoToken(Configs.tokens.CleanupNFT, 1)),
+      considerMempool = true
+    ).getBoxes.asScala.last
+  }
 
   /**
    * @return Last repo box (consider mempool)
