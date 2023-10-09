@@ -76,7 +76,7 @@ class Transactions extends RosenLogging {
     val watcherIndex = repoWIDs.map(item => Base16.encode(item)).indexOf(Base16.encode(WID))
     val slashedRwtCount = fraudBox.getTokens.head.getValue
     if (watcherIndex == -1) throw UnexpectedException(s"watcher ${Base16.encode(WID)} not found in repo")
-    if (repoRWTs(watcherIndex) == slashedRwtCount) throw UnexpectedException(s"Impossible case, fraud RWT is more than total locked RWTs for watcher ${Base16.encode(WID)}")
+    if (repoRWTs(watcherIndex) < slashedRwtCount) throw UnexpectedException(s"Impossible case, fraud RWT is more than total locked RWTs for watcher ${Base16.encode(WID)}")
     if (repoRWTs(watcherIndex) == slashedRwtCount) {
       println(s"skipping rsn slash for watcher ${Base16.encode(WID)} since it doesn't posses any other RWTs")
       return null
