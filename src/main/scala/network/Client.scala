@@ -86,25 +86,24 @@ class Client extends RosenLogging {
   /**
    * @return Last cleaner box (consider mempool)
    */
-  def getCleanerBox: InputBox = {
-    println(Configs.cleaner.address)
+  def getCleanerBox: InputBox =
     getUnspentBoxesFor(
       new Address(Utils.getAddress(Configs.cleaner.address)),
-      (1e9 * 1e8).toLong,
+      0,
       Seq(new ErgoToken(Configs.tokens.CleanupNFT, 1)),
       considerMempool = true
     ).getBoxes.asScala.last
-  }
 
   /**
    * @return Last repo box (consider mempool)
    */
-  def getRepoBox: InputBox = getUnspentBoxesFor(
-    Utils.generateAddress(Contracts.RWTRepo),
-    (1e9 * 1e8).toLong,
-    Seq(new ErgoToken(Configs.tokens.RepoNFT, 1)),
-    considerMempool = true
-  ).getBoxes.asScala.last
+  def getRepoBox: InputBox =
+    getUnspentBoxesFor(
+      Utils.generateAddress(Contracts.RWTRepo),
+      0,
+      Seq(new ErgoToken(Configs.tokens.RepoNFT, 1)),
+      considerMempool = true
+    ).getBoxes.asScala.last
 
   /**
    * @return List of input boxes owned by cleaner and doesn't contain CleanupNFT (does not consider mempool)
