@@ -54,11 +54,12 @@ class TriggerEventBox(eventBox: InputBox) extends ErgoBox(eventBox) {
    * @param txB transaction builder
    */
   def createFraudBoxes(txB: UnsignedTransactionBuilder): Seq[OutBox] = {
+    val rwtCountPerFraud = eventBox.getTokens.get(0).getValue / getWatchersLen
     getWIDs.map(WID => {
       txB.outBoxBuilder()
         .value(Configs.minBoxValue)
         .contract(Contracts.Fraud)
-        .tokens(new ErgoToken(Configs.tokens.RWT, 1))
+        .tokens(new ErgoToken(Configs.tokens.RWT, rwtCountPerFraud))
         .registers(ErgoValue.of(Seq(WID).map(item => JavaHelpers.collFrom(item)).toArray, ErgoType.collType(ErgoType.byteType())))
         .build()
     }).toSeq
@@ -139,28 +140,27 @@ class RWTRepoBox(repoBox: InputBox) extends ErgoBox(repoBox) {
   def getR6Values: Array[Long] = repoBox.getRegisters.get(2).getValue.asInstanceOf[Coll[Long]].toArray.clone()
 
   /**
-   * returns price of RWT in RSN (first value of register R6)
-   */
-  def getRSNFactor: Long = getR6Values.head
-
-  /**
    * creates new repo box using current repo box with new WIDs and RWTs passed by as arguments
    * @param txB transaction builder
-   * @param WIDs array of watchers' WIDs in register R4
-   * @param RWTs array of watchers' RWT count in register R5
+   * @param repoBox old repo box
    * @param watcherIndex the slashed WID index in array of watcher WIDs
+   * @param rwtCount slashed rwt
    */
-  def createRepoBox(txB: UnsignedTransactionBuilder, WIDs: Array[Array[Byte]], RWTs: Array[Long], watcherIndex: Int): OutBox = {
+  def createRepoBox(txB: UnsignedTransactionBuilder, repoBox: RWTRepoBox, watcherIndex: Int, rwtCount: Long): OutBox = {
+    val WIDs = repoBox.getWIDs
+    val oldRWTs = repoBox.getRWTs
+    val RWTs = oldRWTs.slice(0, watcherIndex) ++ Seq(oldRWTs(watcherIndex) - rwtCount) ++ oldRWTs.slice(watcherIndex + 1, oldRWTs.length)
+
     val R4 = WIDs.map(item => JavaHelpers.SigmaDsl.Colls.fromArray(item))
     val R5 = JavaHelpers.SigmaDsl.Colls.fromArray(RWTs)
     val R6 = JavaHelpers.SigmaDsl.Colls.fromArray(getR6Values)
 
     txB.outBoxBuilder()
-      .value(Configs.minBoxValue)
+      .value(repoBox.getErgs)
       .tokens(
         new ErgoToken(Configs.tokens.RepoNFT, 1),
-        new ErgoToken(Configs.tokens.RWT, RWTAmount + 1),
-        new ErgoToken(Configs.tokens.RSN, RSNAmount - this.getRSNFactor)
+        new ErgoToken(Configs.tokens.RWT, RWTAmount + rwtCount),
+        new ErgoToken(Configs.tokens.RSN, RSNAmount - rwtCount)
       )
       .contract(Contracts.RWTRepo)
       .registers(

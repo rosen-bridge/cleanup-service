@@ -71,7 +71,7 @@ object TestBoxes {
     val R4 = WIDs.map(item => JavaHelpers.SigmaDsl.Colls.fromArray(item)).toArray
     new TriggerEventBox(createOutBox(
       Configs.minBoxValue * watchersSize,
-      Seq(new ErgoToken(Configs.tokens.RWT, watchersSize)),
+      Seq(new ErgoToken(Configs.tokens.RWT, watchersSize * 100)),
       Seq(ErgoValue.of(R4, ErgoType.collType(ErgoType.byteType()))),
       Contracts.EventTrigger,
       creationHeight
@@ -137,7 +137,7 @@ object TestBoxes {
   def mockRepoBox(watchersSize: Int, creationHeight: Int): RWTRepoBox = {
     val WIDs = generateRandomIds(watchersSize).map(Base16.decode(_).get)
     val R4 = WIDs.map(item => JavaHelpers.SigmaDsl.Colls.fromArray(item)).toArray
-    val RWTs = (1 to watchersSize).map(_.toLong).toArray
+    val RWTs = (1 to watchersSize).map(_.toLong * 100).toArray
     val R5 = JavaHelpers.SigmaDsl.Colls.fromArray(RWTs)
     new RWTRepoBox(createOutBox(
       Configs.minBoxValue * watchersSize,
@@ -149,7 +149,7 @@ object TestBoxes {
       Seq(
         ErgoValue.of(R4, ErgoType.collType(ErgoType.byteType())),
         ErgoValue.of(R5, ErgoType.longType()),
-        ErgoValue.of(JavaHelpers.SigmaDsl.Colls.fromArray(Array(100L, 51L, 0L, 9999L)), ErgoType.longType()),
+        ErgoValue.of(JavaHelpers.SigmaDsl.Colls.fromArray(Array(100L, 51L, 0L, 9999L, 10L, 10L)), ErgoType.longType()),
         ErgoValue.of(watchersSize - 1)
       ),
       Contracts.RWTRepo,
@@ -165,7 +165,7 @@ object TestBoxes {
   def mockFraudBox(WID: Array[Byte], creationHeight: Int): FraudBox = {
     new FraudBox(createOutBox(
       Configs.minBoxValue,
-      Seq(new ErgoToken(Configs.tokens.RWT, 1)),
+      Seq(new ErgoToken(Configs.tokens.RWT, 100)),
       Seq(ErgoValue.of(Seq(WID).map(item => JavaHelpers.SigmaDsl.Colls.fromArray(item)).toArray, ErgoType.collType(ErgoType.byteType()))),
       Contracts.Fraud,
       creationHeight
@@ -209,11 +209,11 @@ object TestBoxes {
       cleanerBox.createCleanerBox(txB, Seq.empty[InputBox])
     }).convertToInputWith(txId, 2)
 
-    // creates new cleaner box
+    // creates new repo box
     val newRepoBox = client.getClient.execute(ctx => {
       val txB = ctx.newTxBuilder()
       val newRWTs = repoBox.getRWTs.slice(0, repoBox.getRWTs.length - 1) :+ (repoBox.getRWTs.last - 1L)
-      repoBox.createRepoBox(txB, repoBox.getWIDs, newRWTs, repoBox.getRWTs.length - 1)
+      repoBox.createRepoBox(txB, repoBox, repoBox.getRWTs.length - 1, 100)
     }).convertToInputWith(txId, 0)
 
     // mock transaction and its methods

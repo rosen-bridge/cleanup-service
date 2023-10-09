@@ -15,6 +15,8 @@ object Contracts {
   lazy val Commitment: ErgoContract = generateCommitmentContract()
   lazy val EventTrigger: ErgoContract = generateWatcherTriggerEventContract()
   lazy val Fraud: ErgoContract = generateFraudContract()
+  lazy val WatcherCollateral: ErgoContract = generateWatcherCollateralContract()
+  lazy val Lock: ErgoContract = generateLockContract()
 
   def getContractScriptHash(contract: ErgoContract): Digest32 = {
     scorex.crypto.hash.Blake2b256(contract.getErgoTree.bytes)
@@ -23,10 +25,12 @@ object Contracts {
   private def generateRWTRepoContract(): ErgoContract = {
     ergoClient.execute(ctx => {
       val watcherPermitHash = Base64.encode(getContractScriptHash(WatcherPermit))
+      val watcherCollateralHash = Base64.encode(getContractScriptHash(WatcherCollateral))
       val RwtRepoScript = Scripts.RwtRepoScript
         .replace("GUARD_NFT", Base64.encode(Base16.decode(Configs.tokens.GuardNFT).get))
         .replace("RSN_TOKEN", Base64.encode(Base16.decode(Configs.tokens.RSN).get))
         .replace("PERMIT_SCRIPT_HASH", watcherPermitHash)
+        .replace("WATCHER_COLLATERAL_SCRIPT_HASH", watcherCollateralHash)
       ctx.compileContract(ConstantsBuilder.create().build(), RwtRepoScript)
     })
   }
@@ -54,9 +58,10 @@ object Contracts {
   private def generateWatcherTriggerEventContract(): ErgoContract = {
     ergoClient.execute(ctx => {
       val fraud = Base64.encode(getContractScriptHash(Fraud))
+      val lock = Base64.encode(getContractScriptHash(Lock))
       val triggerScript = Scripts.EventTriggerScript
         .replace("CLEANUP_NFT", Base64.encode(Base16.decode(Configs.tokens.CleanupNFT).get))
-        .replace("GUARD_NFT", Base64.encode(Base16.decode(Configs.tokens.GuardNFT).get))
+        .replace("LOCK_SCRIPT_HASH", lock)
         .replace("FRAUD_SCRIPT_HASH", fraud)
         .replace("CLEANUP_CONFIRMATION", Configs.cleanupConfirm.toString)
       ctx.compileContract(ConstantsBuilder.create().build(), triggerScript)
@@ -69,6 +74,22 @@ object Contracts {
         .replace("CLEANUP_NFT", Base64.encode(Base16.decode(Configs.tokens.CleanupNFT).get))
         .replace("REPO_NFT", Base64.encode(Base16.decode(Configs.tokens.RepoNFT).get))
       ctx.compileContract(ConstantsBuilder.create().build(), fraudScript)
+    })
+  }
+
+  private def generateWatcherCollateralContract(): ErgoContract = {
+    ergoClient.execute(ctx => {
+      val watcherCollateralScript = Scripts.watcherCollateral
+        .replace("REPO_NFT", Base64.encode(Base16.decode(Configs.tokens.RepoNFT).get))
+      ctx.compileContract(ConstantsBuilder.create().build(), watcherCollateralScript)
+    })
+  }
+
+  private def generateLockContract(): ErgoContract = {
+    ergoClient.execute(ctx => {
+      val lockScript = Scripts.lockScript
+        .replace("GUARD_NFT", Base64.encode(Base16.decode(Configs.tokens.GuardNFT).get))
+      ctx.compileContract(ConstantsBuilder.create().build(), lockScript)
     })
   }
 }
