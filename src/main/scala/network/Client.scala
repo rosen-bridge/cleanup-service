@@ -91,7 +91,7 @@ class Client extends RosenLogging {
       new Address(Utils.getAddress(Configs.cleaner.address)),
       0,
       Seq(new ErgoToken(Configs.tokens.CleanupNFT, 1)),
-      considerMempool = true
+      considerMempool = false
     ).getBoxes.asScala.last
 
   /**

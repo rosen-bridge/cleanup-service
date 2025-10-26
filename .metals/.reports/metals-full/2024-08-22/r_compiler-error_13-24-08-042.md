@@ -1,3 +1,21 @@
+file://<HOME>/Downloads/Telegram%20Desktop/cleanup-service/src/main/scala/models/Models.scala
+### java.lang.OutOfMemoryError: Java heap space
+
+occurred in the presentation compiler.
+
+presentation compiler configuration:
+Scala version: 3.3.3
+Classpath:
+<HOME>/.cache/coursier/v1/https/repo1.maven.org/maven2/org/scala-lang/scala3-library_3/3.3.3/scala3-library_3-3.3.3.jar [exists ], <HOME>/.cache/coursier/v1/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.13.12/scala-library-2.13.12.jar [exists ]
+Options:
+
+
+
+action parameters:
+offset: 1965
+uri: file://<HOME>/Downloads/Telegram%20Desktop/cleanup-service/src/main/scala/models/Models.scala
+text:
+```scala
 package models
 
 import helpers.RosenExceptions.UnexpectedException
@@ -56,14 +74,17 @@ class TriggerEventBox(eventBox: InputBox) extends ErgoBox(eventBox) {
    * @param txB transaction builder
    */
   def createFraudBoxes(txB: UnsignedTransactionBuilder): Seq[OutBox] = {
-    val rwtCountPerFraud = eventBox.getTokens.get(0).getValue / 6
+    val rwtCountPerFraud = eventBox.getTokens.get(0).getValue / 10
     val hardWids = Seq(
-          "700577946f4334199916bacf1ce3286404acd4f9476876e6ec7d5bf5a2184d3f",
-          "143f7c38a3e10ba24ccb7c4975dd091d0a9b916304c57db6a0534c4b493ce208",
-          "76b4eda1bb0e30d47ad77d0da8889b7dafc3410a430426228abb1230fa1a5f30",
-          "92932311cd5401cd6690b8da274ff937b8f4196eda94fd45f33aca8d7593eb97",
-          "163dd94c65197844769bc5cffbe329a6ca1fef23dcbd2dd0694de846c2094b4b",
-          "a482c6a3fc2ee79314f23dd94060fb7b1996319d7c2587545600752376393115",
+؛@@
+؛
+؛
+؛
+؛
+؛
+؛
+؛
+؛
     ).map(
       Base16.decode(_).get
     )
@@ -197,3 +218,36 @@ class RWTRepoBox(repoBox: InputBox) extends ErgoBox(repoBox) {
     .getValue
 
 }
+
+```
+
+
+
+#### Error stacktrace:
+
+```
+scala.meta.internal.tokenizers.LegacyScanner.reportIllegalCharacter$1(LegacyScanner.scala:237)
+	scala.meta.internal.tokenizers.LegacyScanner.fetchOther$1(LegacyScanner.scala:451)
+	scala.meta.internal.tokenizers.LegacyScanner.fetchToken(LegacyScanner.scala:452)
+	scala.meta.internal.tokenizers.LegacyScanner.scala$meta$internal$tokenizers$LegacyScanner$$nextToken(LegacyScanner.scala:195)
+	scala.meta.internal.tokenizers.LegacyScanner.nextTokenOrEof(LegacyScanner.scala:167)
+	scala.meta.internal.tokenizers.ScalametaTokenizer.loop$1(ScalametaTokenizer.scala:150)
+	scala.meta.internal.tokenizers.ScalametaTokenizer.uncachedTokenize(ScalametaTokenizer.scala:162)
+	scala.meta.internal.tokenizers.ScalametaTokenizer.$anonfun$tokenize$1(ScalametaTokenizer.scala:16)
+	scala.meta.internal.tokenizers.ScalametaTokenizer$$Lambda/0x00007aea64d95ce0.apply(Unknown Source)
+	scala.collection.concurrent.TrieMap.getOrElseUpdate(TrieMap.scala:962)
+	scala.meta.internal.tokenizers.ScalametaTokenizer.tokenize(ScalametaTokenizer.scala:16)
+	scala.meta.internal.tokenizers.ScalametaTokenizer$$anon$1.apply(ScalametaTokenizer.scala:313)
+	scala.meta.tokenizers.Api$XtensionTokenizeDialectInput.tokenize(Api.scala:22)
+	scala.meta.tokenizers.Api$XtensionTokenizeInputLike.tokenize(Api.scala:13)
+	scala.meta.internal.mtags.ScalametaCommonEnrichments$XtensionStringDocMeta.safeTokenize(ScalametaCommonEnrichments.scala:237)
+	scala.meta.internal.pc.completions.KeywordsCompletions$.reverseTokens$lzyINIT1$1(KeywordsCompletions.scala:49)
+	scala.meta.internal.pc.completions.KeywordsCompletions$.reverseTokens$1(KeywordsCompletions.scala:53)
+	scala.meta.internal.pc.completions.KeywordsCompletions$.contribute(KeywordsCompletions.scala:55)
+	scala.meta.internal.pc.completions.Completions.completions(Completions.scala:188)
+	scala.meta.internal.pc.completions.CompletionProvider.completions(CompletionProvider.scala:89)
+	scala.meta.internal.pc.ScalaPresentationCompiler.complete$$anonfun$1(ScalaPresentationCompiler.scala:155)
+```
+#### Short summary: 
+
+java.lang.OutOfMemoryError: Java heap space

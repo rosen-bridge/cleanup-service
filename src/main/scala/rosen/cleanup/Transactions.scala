@@ -2,9 +2,10 @@ package rosen.cleanup
 
 import helpers.{Configs, RosenLogging, Utils}
 import helpers.RosenExceptions.{ProveException, UnexpectedException}
-import org.ergoplatform.appkit.{BlockchainContext, InputBox, OutBox, SignedTransaction, UnsignedTransaction}
+import org.ergoplatform.appkit.{BlockchainContext, InputBox, OutBox, ReducedTransaction, SignedTransaction, UnsignedTransaction}
 import models._
-import scorex.util.encode.Base16
+import rosen.bridge.Contracts
+import scorex.util.encode.{Base16, Base64}
 
 import scala.collection.JavaConverters._
 
@@ -19,8 +20,13 @@ class Transactions extends RosenLogging {
    */
   def signTransaction(ctx: BlockchainContext, unsignedTx: UnsignedTransaction, txName: String): SignedTransaction = {
     val prover = ctx.newProverBuilder().withDLogSecret(Configs.cleaner.secret).build()
+//    println("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%")
+   println(Base16.encode(prover.reduce(unsignedTx, 0).toBytes))
+//    println("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%")
     try {
+      //  println(unsignedTx)
       val tx = prover.sign(unsignedTx)
+      // println(tx.toJson(false))
       log.info(s"$txName tx generated. txId: ${tx.getId}")
       tx
     } catch {
@@ -47,12 +53,30 @@ class Transactions extends RosenLogging {
     // generate fraud boxes, form outputBoxes with new cleaner box
     val outputBoxes = eventBox.createFraudBoxes(txB) :+ newCleanerBox
 
+//    val oldEventBox = eventBox.getBox
+//    val newEvent = txB.outBoxBuilder()
+//      .value(oldEventBox.getValue)
+//      .contract(Contracts.newEventTrigger)
+//      .tokens(oldEventBox.getTokens.get(0))
+//      .registers(
+//        oldEventBox.getRegisters.get(0),
+//        oldEventBox.getRegisters.get(1),
+//        oldEventBox.getRegisters.get(2),
+//        oldEventBox.getRegisters.get(3),
+//      ).build().convertToInputWith("b47db9af87520abd466de82e8d916dae5f862c1c1c2dba218743363bc68aa2f0", 1)
     // generate tx
     val unsignedTx = txB.boxesToSpend((Seq(eventBox.getBox, cleanerBox.getBox) ++ feeBoxes).asJava)
       .fee(Configs.fee)
       .sendChangeTo(Utils.getAddress(Configs.cleaner.address))
       .outputs(outputBoxes: _*)
       .build()
+
+//    println("########################################################")
+//    println(unsignedTx.getInputs.get(0).getId)
+//    println(unsignedTx.getInputs.get(1).getId)
+//
+//    println(unsignedTx.getOutputs.get(0).getTokens.get(0).getId)
+//    println(unsignedTx.getOutputs.get(0).getTokens.get(0).getValue)
 
     signTransaction(ctx, unsignedTx, "MoveToFraud")
   }
