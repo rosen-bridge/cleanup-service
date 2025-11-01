@@ -25,6 +25,9 @@
     "typescript": "^5.0.0",
     "vitest": "^3.2.4"
   },
+  "optionalDependencies": {
+    "@rollup/rollup-linux-x64-gnu": "^4.52.5"
+  },
   "engines": {
     "node": ">=20.10.0"
   },
