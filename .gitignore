@@ -16,6 +16,7 @@ yarn.lock
 # Scala/Metals
 .metals
 *.metals
+.bloop
 
 # TypeScript cache
 *.tsbuildinfo
