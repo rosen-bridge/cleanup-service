@@ -22,23 +22,16 @@ export const bigIntToUint8Array = (value: bigint): Uint8Array => {
 };
 
 /**
- * Converts an ErgoBox iterator to an ErgoBoxProxy iterator
+ * Converts an array of ErgoBox to an ErgoBoxProxy generator
  * for use with '@rosen-bridge/ergo-box-selection' library
- * @param boxIterator - Iterator of ErgoBox objects
- * @returns Iterator of ErgoBoxProxy objects
+ * @param boxes - Array of ErgoBox objects
+ * @returns Generator of ErgoBoxProxy objects
  */
-export const toErgoBoxProxyIterator = (
-  boxIterator: Iterator<ergoLib.ErgoBox, undefined>,
-): Iterator<ErgoBoxProxy, undefined> => {
-  return {
-    next: (): IteratorResult<ErgoBoxProxy, undefined> => {
-      const { value } = boxIterator.next();
-      return value !== undefined
-        ? {
-            value: value.to_js_eip12(),
-            done: false,
-          }
-        : { value: undefined, done: true };
-    },
-  };
-};
+export function* toErgoBoxProxyIterator(
+  boxes: ergoLib.ErgoBox[],
+): Generator<ErgoBoxProxy, undefined> {
+  for (const box of boxes) {
+    yield box.to_js_eip12();
+  }
+  return undefined;
+}

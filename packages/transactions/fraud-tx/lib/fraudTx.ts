@@ -204,15 +204,11 @@ export class FraudTxBuilder {
       return [];
     }
 
-    const feeBoxIterator = toErgoBoxProxyIterator(
-      this.feeBoxes[Symbol.iterator](),
-    );
-
     const { covered, boxes: payProxyBoxes } = await selectErgoBoxes(
       { nativeToken: requiredValue, tokens: [] },
       [],
       new Map(),
-      feeBoxIterator,
+      toErgoBoxProxyIterator(this.feeBoxes),
       this.logger,
     );
 
