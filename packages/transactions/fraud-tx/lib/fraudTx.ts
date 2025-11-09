@@ -2,7 +2,11 @@ import { AbstractLogger } from '@rosen-bridge/abstract-logger';
 import { selectErgoBoxes } from '@rosen-bridge/ergo-box-selection';
 import JsonBigInt from '@rosen-bridge/json-bigint';
 import * as ergoLib from 'ergo-lib-wasm-nodejs';
-import { hexToUint8Array, toErgoBoxProxyIterator } from './utils';
+import {
+  createChangeBox,
+  hexToUint8Array,
+  toErgoBoxProxyIterator,
+} from './utils';
 
 /**
  * Represents a trigger event box containing watcher IDs that need to be frauded
@@ -66,23 +70,13 @@ export class FraudTx {
   /**
    * Creates a new FraudTxBuilder instance
    */
-  newBuilder = (
-    triggerEventData: TriggerEventData,
-    cleanerBox: ergoLib.ErgoBox,
-    height: number,
-    feeBoxes: ergoLib.ErgoBox[],
-    changeAddress?: string,
-  ): FraudTxBuilder => {
+  newBuilder = (): FraudTxBuilder => {
     return new FraudTxBuilder(
       this.fraudAddress,
-      changeAddress || this.cleanerAddress,
+      this.cleanerAddress,
       this.rwtTokenId,
       this.minBoxValue,
       this.txFee,
-      triggerEventData,
-      cleanerBox,
-      height,
-      feeBoxes,
       this.logger,
     );
   };
@@ -93,22 +87,76 @@ export class FraudTx {
  * Equivalent to Scala's generateFrauds method
  */
 export class FraudTxBuilder {
+  private triggerEventData: TriggerEventData;
+  private cleanerBox: ergoLib.ErgoBox;
+  private height: number;
+  private feeBoxes: ergoLib.ErgoBox[];
+  private changeAddress: string;
+
   constructor(
     private fraudAddress: string,
-    private changeAddress: string,
+    private defaultChangeAddress: string,
     private rwtTokenId: string,
     private minBoxValue: bigint,
     private txFee: string,
-    private triggerEventData: TriggerEventData,
-    private cleanerBox: ergoLib.ErgoBox,
-    private height: number,
-    private feeBoxes: ergoLib.ErgoBox[],
     private logger?: AbstractLogger,
   ) {
+    this.changeAddress = defaultChangeAddress;
+  }
+
+  /**
+   * Sets trigger event data for the current instance
+   */
+  setTriggerEventData = (
+    triggerEventData: TriggerEventData,
+  ): FraudTxBuilder => {
+    this.triggerEventData = triggerEventData;
+    this.logger?.debug(
+      `Trigger event data set with ${triggerEventData.wids.length} watcher IDs`,
+    );
+    return this;
+  };
+
+  /**
+   * Sets cleaner box for the current instance
+   */
+  setCleanerBox = (cleanerBox: ergoLib.ErgoBox): FraudTxBuilder => {
+    this.cleanerBox = cleanerBox;
+    this.logger?.debug(
+      `Cleaner box set with id=${cleanerBox.box_id().to_str()}`,
+    );
+    return this;
+  };
+
+  /**
+   * Sets creation height for the current instance
+   */
+  setCreationHeight = (height: number): FraudTxBuilder => {
     if (height < 1) {
       throw new Error('Creation height must be a positive integer');
     }
-  }
+    this.height = height;
+    this.logger?.debug(`Creation height set to ${height}`);
+    return this;
+  };
+
+  /**
+   * Sets fee boxes for the current instance
+   */
+  setFeeBoxes = (feeBoxes: ergoLib.ErgoBox[]): FraudTxBuilder => {
+    this.feeBoxes = feeBoxes;
+    this.logger?.debug(`Fee boxes set: ${feeBoxes.length} boxes available`);
+    return this;
+  };
+
+  /**
+   * Sets change address for the current instance
+   */
+  setChangeAddress = (address: string): FraudTxBuilder => {
+    this.changeAddress = address;
+    this.logger?.debug(`Change address set to ${address}`);
+    return this;
+  };
 
   /**
    * Creates fraud boxes, one for each watcher ID in the trigger event
@@ -160,15 +208,11 @@ export class FraudTxBuilder {
       return [];
     }
 
-    const feeBoxIterator = toErgoBoxProxyIterator(
-      this.feeBoxes[Symbol.iterator](),
-    );
-
     const { covered, boxes: payProxyBoxes } = await selectErgoBoxes(
       { nativeToken: requiredValue, tokens: [] },
       [],
       new Map(),
-      feeBoxIterator,
+      toErgoBoxProxyIterator(this.feeBoxes),
       this.logger,
     );
 
@@ -190,67 +234,20 @@ export class FraudTxBuilder {
   };
 
   /**
-   * Creates the new cleaner box with remaining assets
+   * Creates the new cleaner box preserving the input cleaner box's value and tokens
    */
-  private createCleanerBox = (
-    feeBoxes: ergoLib.ErgoBox[],
-  ): ergoLib.ErgoBoxCandidate => {
-    // Calculate total ERG: trigger event box + cleaner box + fee boxes - tx fee
-    let totalErg =
-      BigInt(this.triggerEventData.box.value().as_i64().to_str()) +
-      BigInt(this.cleanerBox.value().as_i64().to_str());
-
-    // Aggregate tokens from trigger event box, cleaner box, and fee boxes
-    const tokens = new Map<string, bigint>();
-
-    // Add trigger event box tokens (excluding RWT which goes to fraud boxes)
-    for (let i = 0; i < this.triggerEventData.box.tokens().len(); i++) {
-      const token = this.triggerEventData.box.tokens().get(i);
-      const tokenId = token.id().to_str();
-      if (tokenId !== this.rwtTokenId) {
-        const amount = BigInt(token.amount().as_i64().to_str());
-        tokens.set(tokenId, (tokens.get(tokenId) || 0n) + amount);
-      }
-    }
-
-    // Add cleaner box tokens
-    for (let i = 0; i < this.cleanerBox.tokens().len(); i++) {
-      const token = this.cleanerBox.tokens().get(i);
-      const tokenId = token.id().to_str();
-      const amount = BigInt(token.amount().as_i64().to_str());
-      tokens.set(tokenId, (tokens.get(tokenId) || 0n) + amount);
-    }
-
-    // Add fee boxes assets
-    for (const feeBox of feeBoxes) {
-      totalErg += BigInt(feeBox.value().as_i64().to_str());
-
-      for (let i = 0; i < feeBox.tokens().len(); i++) {
-        const token = feeBox.tokens().get(i);
-        const tokenId = token.id().to_str();
-        const amount = BigInt(token.amount().as_i64().to_str());
-        tokens.set(tokenId, (tokens.get(tokenId) || 0n) + amount);
-      }
-    }
-
-    // Subtract fraud boxes value and tx fee
-    const fraudBoxCount = this.triggerEventData.wids.length;
-    const fraudBoxesValue = this.minBoxValue * BigInt(fraudBoxCount);
-    totalErg = totalErg - fraudBoxesValue - BigInt(this.txFee);
-
+  private createCleanerBox = (): ergoLib.ErgoBoxCandidate => {
     const boxBuilder = new ergoLib.ErgoBoxCandidateBuilder(
-      ergoLib.BoxValue.from_i64(ergoLib.I64.from_str(totalErg.toString())),
+      this.cleanerBox.value(),
       ergoLib.Contract.new(this.cleanerBox.ergo_tree()),
       this.height,
     );
 
-    // Add all tokens to the new cleaner box
-    tokens.forEach((amount, tokenId) => {
-      boxBuilder.add_token(
-        ergoLib.TokenId.from_str(tokenId),
-        ergoLib.TokenAmount.from_i64(ergoLib.I64.from_str(amount.toString())),
-      );
-    });
+    // Add all tokens from the input cleaner box
+    for (let i = 0; i < this.cleanerBox.tokens().len(); i++) {
+      const token = this.cleanerBox.tokens().get(i);
+      boxBuilder.add_token(token.id(), token.amount());
+    }
 
     return boxBuilder.build();
   };
@@ -258,7 +255,7 @@ export class FraudTxBuilder {
   /**
    * Builds the unsigned fraud transaction
    * spends trigger event box, cleaner box, and optional fee boxes
-   * creates multiple fraud boxes (one per watcher) and a new cleaner box
+   * creates multiple fraud boxes (one per watcher), a new cleaner box, and a change box
    */
   build = async (): Promise<{
     unsignedTx: ergoLib.UnsignedTransaction;
@@ -274,17 +271,28 @@ export class FraudTxBuilder {
 
     const selectedFeeBoxes = await this.selectFeeBoxes(requiredValue);
 
-    // Create output boxes
-    const fraudBoxes = this.createFraudBoxes();
-    const newCleanerBox = this.createCleanerBox(selectedFeeBoxes);
-    const outputBoxes = [...fraudBoxes, newCleanerBox];
-
     // Create input boxes
     const inputBoxes = [
       this.triggerEventData.box,
       this.cleanerBox,
       ...selectedFeeBoxes,
     ];
+
+    // Create output boxes (fraud boxes + cleaner box)
+    const fraudBoxes = this.createFraudBoxes();
+    const newCleanerBox = this.createCleanerBox();
+    const outputs = [...fraudBoxes, newCleanerBox];
+
+    // Create change box with remaining assets
+    const changeBox = createChangeBox(
+      inputBoxes,
+      outputs,
+      this.changeAddress,
+      this.txFee,
+      this.height,
+    );
+
+    const outputBoxes = [...outputs, changeBox];
 
     // Build transaction
     const inputErgoBoxes = ergoLib.ErgoBoxes.empty();

@@ -87,7 +87,7 @@ describe('FraudTxBuilder', () => {
     FraudTx.init(fraudAddress, cleanerAddress, rwtTokenId, minBoxValue, txFee);
   });
 
-  describe('constructor', () => {
+  describe('setCreationHeight', () => {
     /**
      * @target should throw error when height is invalid
      * @dependencies
@@ -98,19 +98,8 @@ describe('FraudTxBuilder', () => {
      * - Should throw error
      */
     it('should throw error when height is invalid', () => {
-      const triggerEventData: TriggerEventData = {
-        box: {} as ergoLib.ErgoBox, // Mock box
-        wids: mockWids,
-        rwtAmount: 3000000n,
-      };
-
       expect(() =>
-        FraudTx.getInstance().newBuilder(
-          triggerEventData,
-          {} as ergoLib.ErgoBox,
-          0,
-          [],
-        ),
+        FraudTx.getInstance().newBuilder().setCreationHeight(0),
       ).toThrow('Creation height must be a positive integer');
     });
 
@@ -125,18 +114,36 @@ describe('FraudTxBuilder', () => {
      * - Height should be set
      */
     it('should create builder successfully when height is valid', () => {
+      const fraudTxBuilder = FraudTx.getInstance()
+        .newBuilder()
+        .setCreationHeight(1000);
+
+      expect(fraudTxBuilder).toBeDefined();
+      expect(fraudTxBuilder['height']).toBe(1000);
+    });
+
+    /**
+     * @target should support method chaining
+     * @dependencies
+     * - None
+     * @scenario
+     * - Chain multiple setter methods
+     * @expected
+     * - Should return builder instance for chaining
+     */
+    it('should support method chaining', () => {
       const triggerEventData: TriggerEventData = {
-        box: {} as ergoLib.ErgoBox, // Mock box
+        box: {} as ergoLib.ErgoBox,
         wids: mockWids,
         rwtAmount: 3000000n,
       };
 
-      const fraudTxBuilder = FraudTx.getInstance().newBuilder(
-        triggerEventData,
-        {} as ergoLib.ErgoBox,
-        1000,
-        [],
-      );
+      const fraudTxBuilder = FraudTx.getInstance()
+        .newBuilder()
+        .setTriggerEventData(triggerEventData)
+        .setCleanerBox({} as ergoLib.ErgoBox)
+        .setCreationHeight(1000)
+        .setFeeBoxes([]);
 
       expect(fraudTxBuilder).toBeDefined();
       expect(fraudTxBuilder['height']).toBe(1000);
@@ -202,12 +209,14 @@ describe('FraudTx Integration Tests', () => {
     };
 
     // Build transaction
-    const fraudTxBuilder = FraudTx.getInstance().newBuilder(
-      triggerEventData,
-      cleanerBox,
-      1000,
-      feeBoxes,
-    );
+    // Use fraud address as change address (different from cleaner address)
+    const fraudTxBuilder = FraudTx.getInstance()
+      .newBuilder()
+      .setTriggerEventData(triggerEventData)
+      .setCleanerBox(cleanerBox)
+      .setCreationHeight(1000)
+      .setFeeBoxes(feeBoxes)
+      .setChangeAddress(testFraudConfig.fraudAddress);
     const result = await fraudTxBuilder.build();
 
     // Verify transaction was built
@@ -237,37 +246,20 @@ describe('FraudTx Integration Tests', () => {
     const outputs = result.unsignedTx.output_candidates();
     const expectedFraudBoxCount = mockWids.length;
 
-    // Should have: fraud boxes + cleaner box + optional miner fee box
-    expect(outputs.len()).toBeGreaterThanOrEqual(expectedFraudBoxCount + 1);
-
-    // Identify fraud boxes and cleaner box
-    const fraudBoxes: ergoLib.ErgoBoxCandidate[] = [];
-    let cleanerBoxOutput: ergoLib.ErgoBoxCandidate | null = null;
-    let minerFeeBox: ergoLib.ErgoBoxCandidate | null = null;
+    // Output order: fraud boxes (0..n-1), cleaner box (n), change box (n+1), miner fee (n+2)
+    expect(outputs.len()).toBeGreaterThanOrEqual(expectedFraudBoxCount + 2);
 
     const rwtPerFraud = triggerEventData.rwtAmount / BigInt(mockWids.length);
-    const fraudErgoTree = ergoLib.Address.from_base58(
-      testFraudConfig.fraudAddress,
-    )
-      .to_ergo_tree()
-      .to_base16_bytes();
-    const cleanerErgoTree = cleanerBox.ergo_tree().to_base16_bytes();
 
-    for (let i = 0; i < outputs.len(); i++) {
-      const output = outputs.get(i);
-      const outputErgoTree = output.ergo_tree().to_base16_bytes();
-
-      if (outputErgoTree === fraudErgoTree) {
-        fraudBoxes.push(output);
-      } else if (outputErgoTree === cleanerErgoTree) {
-        cleanerBoxOutput = output;
-      } else if (output.tokens().len() === 0) {
-        minerFeeBox = output;
-      }
+    // Verify fraud boxes (first n outputs)
+    const fraudBoxes: ergoLib.ErgoBoxCandidate[] = [];
+    for (let i = 0; i < expectedFraudBoxCount; i++) {
+      fraudBoxes.push(outputs.get(i));
     }
-
-    // Verify fraud boxes
     expect(fraudBoxes.length).toBe(expectedFraudBoxCount);
+
+    // Cleaner box is right after fraud boxes
+    const cleanerBoxOutput = outputs.get(expectedFraudBoxCount);
 
     for (let i = 0; i < fraudBoxes.length; i++) {
       const fraudBox = fraudBoxes[i];
@@ -289,27 +281,32 @@ describe('FraudTx Integration Tests', () => {
       expect(fraudBox.creation_height()).toBe(1000);
     }
 
-    // Verify cleaner box
+    // Verify cleaner box preserves input cleaner box
     expect(cleanerBoxOutput).toBeDefined();
-    const cleanerTokens = cleanerBoxOutput!.tokens();
-
-    // Cleaner should have the cleanup token from original cleaner box
-    let hasCleanupToken = false;
+    expect(cleanerBoxOutput.value().as_i64().to_str()).toBe(
+      cleanerBox.value().as_i64().to_str(),
+    );
+    
+    const cleanerTokens = cleanerBoxOutput.tokens();
+    expect(cleanerTokens.len()).toBe(cleanerBox.tokens().len());
+    
     for (let i = 0; i < cleanerTokens.len(); i++) {
-      const token = cleanerTokens.get(i);
-      if (token.id().to_str() === cleanerBox.tokens().get(0).id().to_str()) {
-        hasCleanupToken = true;
-        expect(token.amount().as_i64().to_str()).toBe(
-          cleanerBox.tokens().get(0).amount().as_i64().to_str(),
-        );
-      }
+      const outputToken = cleanerTokens.get(i);
+      const inputToken = cleanerBox.tokens().get(i);
+      expect(outputToken.id().to_str()).toBe(inputToken.id().to_str());
+      expect(outputToken.amount().as_i64().to_str()).toBe(
+        inputToken.amount().as_i64().to_str(),
+      );
     }
-    expect(hasCleanupToken).toBe(true);
 
-    // Verify miner fee box exists with correct value
-    // TxBuilder creates a separate output for the fee (not implicit)
+    // Change box is after cleaner box
+    const changeBoxOutput = outputs.get(expectedFraudBoxCount + 1);
+    expect(changeBoxOutput).toBeDefined();
+
+    // Miner fee box is last
+    const minerFeeBox = outputs.get(expectedFraudBoxCount + 2);
     expect(minerFeeBox).toBeDefined();
-    expect(minerFeeBox!.value().as_i64().to_str()).toBe(testFraudConfig.txFee);
+    expect(minerFeeBox.value().as_i64().to_str()).toBe(testFraudConfig.txFee);
   });
 
   /**
@@ -337,12 +334,13 @@ describe('FraudTx Integration Tests', () => {
       rwtAmount: BigInt(triggerEventBoxJson.assets[0].amount),
     };
 
-    const fraudTxBuilder = FraudTx.getInstance().newBuilder(
-      triggerEventData,
-      cleanerBox,
-      1000,
-      [], // No fee boxes
-    );
+    const fraudTxBuilder = FraudTx.getInstance()
+      .newBuilder()
+      .setTriggerEventData(triggerEventData)
+      .setCleanerBox(cleanerBox)
+      .setCreationHeight(1000)
+      .setFeeBoxes([]) // No fee boxes
+      .setChangeAddress(testFraudConfig.fraudAddress);
 
     await expect(fraudTxBuilder.build()).rejects.toThrow();
   });
@@ -372,12 +370,13 @@ describe('FraudTx Integration Tests', () => {
       rwtAmount: 0n, // No RWT
     };
 
-    const fraudTxBuilder = FraudTx.getInstance().newBuilder(
-      triggerEventData,
-      cleanerBox,
-      1000,
-      [],
-    );
+    const fraudTxBuilder = FraudTx.getInstance()
+      .newBuilder()
+      .setTriggerEventData(triggerEventData)
+      .setCleanerBox(cleanerBox)
+      .setCreationHeight(1000)
+      .setFeeBoxes([])
+      .setChangeAddress(testFraudConfig.fraudAddress);
 
     await expect(fraudTxBuilder.build()).rejects.toThrow();
   });
@@ -407,12 +406,13 @@ describe('FraudTx Integration Tests', () => {
       rwtAmount: BigInt(triggerEventBoxJson.assets[0].amount),
     };
 
-    const fraudTxBuilder = FraudTx.getInstance().newBuilder(
-      triggerEventData,
-      cleanerBox,
-      1000,
-      [],
-    );
+    const fraudTxBuilder = FraudTx.getInstance()
+      .newBuilder()
+      .setTriggerEventData(triggerEventData)
+      .setCleanerBox(cleanerBox)
+      .setCreationHeight(1000)
+      .setFeeBoxes([])
+      .setChangeAddress(testFraudConfig.fraudAddress);
 
     await expect(fraudTxBuilder.build()).rejects.toThrow();
   });
