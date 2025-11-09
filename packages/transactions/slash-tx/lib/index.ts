@@ -9,4 +9,5 @@ export {
   hexToUint8Array,
   bigIntToUint8Array,
   toErgoBoxProxyIterator,
+  createChangeBox,
 } from './utils';

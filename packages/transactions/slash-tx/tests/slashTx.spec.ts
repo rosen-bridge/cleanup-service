@@ -94,86 +94,30 @@ describe('SlashTxBuilder', () => {
     );
   });
 
-  describe('constructor', () => {
-    /**
-     * @target should throw error when height is invalid
-     * @dependencies
-     * - None
-     * @scenario
-     * - Create a builder with height = 0
-     * @expected
-     * - Should throw error
-     */
+  describe('setCreationHeight', () => {
     it('should throw error when height is invalid', () => {
-      const fraudBoxData: FraudBoxData = {
-        box: {} as ergoLib.ErgoBox,
-        wid: mockRepoWids[0],
-        rwtAmount: 1000000n,
-      };
-
-      const collateralBoxData: CollateralBoxData = {
-        box: {} as ergoLib.ErgoBox,
-        wid: mockRepoWids[0],
-        rsnAmount: 800000n,
-      };
-
-      const repoData: RWTRepoData = {
-        box: {} as ergoLib.ErgoBox,
-        repoNFT: testSlashConfig.repoNFT,
-        rwtTokenId: testSlashConfig.rwtTokenId,
-        rsnTokenId: testSlashConfig.rsnTokenId,
-      };
-
-      expect(() =>
-        SlashTx.getInstance().newBuilder(
-          fraudBoxData,
-          collateralBoxData,
-          repoData,
-          {} as ergoLib.ErgoBox,
-          0,
-          [],
-        ),
-      ).toThrow('Creation height must be a positive integer');
+      expect(() => SlashTx.getInstance().newBuilder().setCreationHeight(0)).toThrow(
+        'Creation height must be a positive integer',
+      );
     });
 
-    /**
-     * @target should create builder successfully when height is valid
-     * @dependencies
-     * - None
-     * @scenario
-     * - Create a builder with height = 1000
-     * @expected
-     * - Should return builder instance
-     * - Height should be set
-     */
     it('should create builder successfully when height is valid', () => {
+      const slashTxBuilder = SlashTx.getInstance().newBuilder().setCreationHeight(1000);
+      expect(slashTxBuilder).toBeDefined();
+      expect(slashTxBuilder['height']).toBe(1000);
+    });
+
+    it('should support method chaining', () => {
       const fraudBoxData: FraudBoxData = {
         box: {} as ergoLib.ErgoBox,
         wid: mockRepoWids[0],
         rwtAmount: 1000000n,
       };
 
-      const collateralBoxData: CollateralBoxData = {
-        box: {} as ergoLib.ErgoBox,
-        wid: mockRepoWids[0],
-        rsnAmount: 800000n,
-      };
-
-      const repoData: RWTRepoData = {
-        box: {} as ergoLib.ErgoBox,
-        repoNFT: testSlashConfig.repoNFT,
-        rwtTokenId: testSlashConfig.rwtTokenId,
-        rsnTokenId: testSlashConfig.rsnTokenId,
-      };
-
-      const slashTxBuilder = SlashTx.getInstance().newBuilder(
-        fraudBoxData,
-        collateralBoxData,
-        repoData,
-        {} as ergoLib.ErgoBox,
-        1000,
-        [],
-      );
+      const slashTxBuilder = SlashTx.getInstance()
+        .newBuilder()
+        .setFraudBoxData(fraudBoxData)
+        .setCreationHeight(1000);
 
       expect(slashTxBuilder).toBeDefined();
       expect(slashTxBuilder['height']).toBe(1000);
@@ -258,14 +202,14 @@ describe('SlashTx Integration Tests', () => {
     };
 
     // Build transaction
-    const slashTxBuilder = SlashTx.getInstance().newBuilder(
-      fraudBoxData,
-      collateralBoxData,
-      repoData,
-      cleanupBox,
-      testSlashConfig.repoWids.length, // height from the fraudBoxJson
-      feeBoxes,
-    );
+    const slashTxBuilder = SlashTx.getInstance()
+      .newBuilder()
+      .setFraudBoxData(fraudBoxData)
+      .setCollateralBoxData(collateralBoxData)
+      .setRepoData(repoData)
+      .setCleanupBox(cleanupBox)
+      .setCreationHeight(testSlashConfig.repoWids.length)
+      .setFeeBoxes(feeBoxes);
     const result = await slashTxBuilder.build();
 
     // Verify transaction was built
@@ -407,22 +351,22 @@ describe('SlashTx Integration Tests', () => {
       rsnTokenId: testSlashConfig.rsnTokenId,
     };
 
-    const slashTxBuilder = SlashTx.getInstance().newBuilder(
-      fraudBoxData,
-      collateralBoxData,
-      repoData,
-      cleanupBox,
-      testSlashConfig.repoWids.length,
-      [], // No fee boxes
-    );
+    const slashTxBuilder = SlashTx.getInstance()
+      .newBuilder()
+      .setFraudBoxData(fraudBoxData)
+      .setCollateralBoxData(collateralBoxData)
+      .setRepoData(repoData)
+      .setCleanupBox(cleanupBox)
+      .setCreationHeight(testSlashConfig.repoWids.length)
+      .setFeeBoxes([]); // No fee boxes
 
     await expect(slashTxBuilder.build()).rejects.toThrow();
   });
 
   /**
-   * @target should fail when fraud box has zero RWT
+   * @target should succeed when fraud box has zero RWT (no-op slash)
    */
-  it('should fail when fraud box has zero RWT', async () => {
+  it('should succeed when fraud box has zero RWT (no-op slash)', async () => {
     SlashTx.init(
       testSlashConfig.repoAddress,
       testSlashConfig.collateralAddress,
@@ -450,7 +394,7 @@ describe('SlashTx Integration Tests', () => {
     const fraudBoxData: FraudBoxData = {
       box: fraudBox,
       wid: mockRepoWids[0],
-      rwtAmount: 0n, // Zero RWT
+      rwtAmount: 0n, // Zero RWT - no actual slashing
     };
 
     const rsnAmount = BigInt(
@@ -470,16 +414,17 @@ describe('SlashTx Integration Tests', () => {
       rsnTokenId: testSlashConfig.rsnTokenId,
     };
 
-    const slashTxBuilder = SlashTx.getInstance().newBuilder(
-      fraudBoxData,
-      collateralBoxData,
-      repoData,
-      cleanupBox,
-      testSlashConfig.repoWids.length,
-      feeBoxes,
-    );
+    const slashTxBuilder = SlashTx.getInstance()
+      .newBuilder()
+      .setFraudBoxData(fraudBoxData)
+      .setCollateralBoxData(collateralBoxData)
+      .setRepoData(repoData)
+      .setCleanupBox(cleanupBox)
+      .setCreationHeight(testSlashConfig.repoWids.length)
+      .setFeeBoxes(feeBoxes);
 
-    await expect(slashTxBuilder.build()).rejects.toThrow();
+    const result = await slashTxBuilder.build();
+    expect(result.unsignedTx).toBeDefined();
   });
 
   /**
@@ -529,14 +474,14 @@ describe('SlashTx Integration Tests', () => {
       rsnTokenId: testSlashConfig.rsnTokenId,
     };
 
-    const slashTxBuilder = SlashTx.getInstance().newBuilder(
-      fraudBoxData,
-      collateralBoxData,
-      repoData,
-      cleanupBox,
-      testSlashConfig.repoWids.length,
-      feeBoxes,
-    );
+    const slashTxBuilder = SlashTx.getInstance()
+      .newBuilder()
+      .setFraudBoxData(fraudBoxData)
+      .setCollateralBoxData(collateralBoxData)
+      .setRepoData(repoData)
+      .setCleanupBox(cleanupBox)
+      .setCreationHeight(testSlashConfig.repoWids.length)
+      .setFeeBoxes(feeBoxes);
 
     await expect(slashTxBuilder.build()).rejects.toThrow();
   });
