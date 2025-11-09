@@ -66,23 +66,13 @@ export class FraudTx {
   /**
    * Creates a new FraudTxBuilder instance
    */
-  newBuilder = (
-    triggerEventData: TriggerEventData,
-    cleanerBox: ergoLib.ErgoBox,
-    height: number,
-    feeBoxes: ergoLib.ErgoBox[],
-    changeAddress?: string,
-  ): FraudTxBuilder => {
+  newBuilder = (): FraudTxBuilder => {
     return new FraudTxBuilder(
       this.fraudAddress,
-      changeAddress || this.cleanerAddress,
+      this.cleanerAddress,
       this.rwtTokenId,
       this.minBoxValue,
       this.txFee,
-      triggerEventData,
-      cleanerBox,
-      height,
-      feeBoxes,
       this.logger,
     );
   };
@@ -93,22 +83,76 @@ export class FraudTx {
  * Equivalent to Scala's generateFrauds method
  */
 export class FraudTxBuilder {
+  private triggerEventData: TriggerEventData;
+  private cleanerBox: ergoLib.ErgoBox;
+  private height: number;
+  private feeBoxes: ergoLib.ErgoBox[];
+  private changeAddress: string;
+
   constructor(
     private fraudAddress: string,
-    private changeAddress: string,
+    private defaultChangeAddress: string,
     private rwtTokenId: string,
     private minBoxValue: bigint,
     private txFee: string,
-    private triggerEventData: TriggerEventData,
-    private cleanerBox: ergoLib.ErgoBox,
-    private height: number,
-    private feeBoxes: ergoLib.ErgoBox[],
     private logger?: AbstractLogger,
   ) {
+    this.changeAddress = defaultChangeAddress;
+  }
+
+  /**
+   * Sets trigger event data for the current instance
+   */
+  setTriggerEventData = (
+    triggerEventData: TriggerEventData,
+  ): FraudTxBuilder => {
+    this.triggerEventData = triggerEventData;
+    this.logger?.debug(
+      `Trigger event data set with ${triggerEventData.wids.length} watcher IDs`,
+    );
+    return this;
+  };
+
+  /**
+   * Sets cleaner box for the current instance
+   */
+  setCleanerBox = (cleanerBox: ergoLib.ErgoBox): FraudTxBuilder => {
+    this.cleanerBox = cleanerBox;
+    this.logger?.debug(
+      `Cleaner box set with id=${cleanerBox.box_id().to_str()}`,
+    );
+    return this;
+  };
+
+  /**
+   * Sets creation height for the current instance
+   */
+  setCreationHeight = (height: number): FraudTxBuilder => {
     if (height < 1) {
       throw new Error('Creation height must be a positive integer');
     }
-  }
+    this.height = height;
+    this.logger?.debug(`Creation height set to ${height}`);
+    return this;
+  };
+
+  /**
+   * Sets fee boxes for the current instance
+   */
+  setFeeBoxes = (feeBoxes: ergoLib.ErgoBox[]): FraudTxBuilder => {
+    this.feeBoxes = feeBoxes;
+    this.logger?.debug(`Fee boxes set: ${feeBoxes.length} boxes available`);
+    return this;
+  };
+
+  /**
+   * Sets change address for the current instance
+   */
+  setChangeAddress = (address: string): FraudTxBuilder => {
+    this.changeAddress = address;
+    this.logger?.debug(`Change address set to ${address}`);
+    return this;
+  };
 
   /**
    * Creates fraud boxes, one for each watcher ID in the trigger event

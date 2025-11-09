@@ -87,7 +87,7 @@ describe('FraudTxBuilder', () => {
     FraudTx.init(fraudAddress, cleanerAddress, rwtTokenId, minBoxValue, txFee);
   });
 
-  describe('constructor', () => {
+  describe('setCreationHeight', () => {
     /**
      * @target should throw error when height is invalid
      * @dependencies
@@ -98,19 +98,8 @@ describe('FraudTxBuilder', () => {
      * - Should throw error
      */
     it('should throw error when height is invalid', () => {
-      const triggerEventData: TriggerEventData = {
-        box: {} as ergoLib.ErgoBox, // Mock box
-        wids: mockWids,
-        rwtAmount: 3000000n,
-      };
-
       expect(() =>
-        FraudTx.getInstance().newBuilder(
-          triggerEventData,
-          {} as ergoLib.ErgoBox,
-          0,
-          [],
-        ),
+        FraudTx.getInstance().newBuilder().setCreationHeight(0),
       ).toThrow('Creation height must be a positive integer');
     });
 
@@ -125,18 +114,36 @@ describe('FraudTxBuilder', () => {
      * - Height should be set
      */
     it('should create builder successfully when height is valid', () => {
+      const fraudTxBuilder = FraudTx.getInstance()
+        .newBuilder()
+        .setCreationHeight(1000);
+
+      expect(fraudTxBuilder).toBeDefined();
+      expect(fraudTxBuilder['height']).toBe(1000);
+    });
+
+    /**
+     * @target should support method chaining
+     * @dependencies
+     * - None
+     * @scenario
+     * - Chain multiple setter methods
+     * @expected
+     * - Should return builder instance for chaining
+     */
+    it('should support method chaining', () => {
       const triggerEventData: TriggerEventData = {
-        box: {} as ergoLib.ErgoBox, // Mock box
+        box: {} as ergoLib.ErgoBox,
         wids: mockWids,
         rwtAmount: 3000000n,
       };
 
-      const fraudTxBuilder = FraudTx.getInstance().newBuilder(
-        triggerEventData,
-        {} as ergoLib.ErgoBox,
-        1000,
-        [],
-      );
+      const fraudTxBuilder = FraudTx.getInstance()
+        .newBuilder()
+        .setTriggerEventData(triggerEventData)
+        .setCleanerBox({} as ergoLib.ErgoBox)
+        .setCreationHeight(1000)
+        .setFeeBoxes([]);
 
       expect(fraudTxBuilder).toBeDefined();
       expect(fraudTxBuilder['height']).toBe(1000);
@@ -202,12 +209,12 @@ describe('FraudTx Integration Tests', () => {
     };
 
     // Build transaction
-    const fraudTxBuilder = FraudTx.getInstance().newBuilder(
-      triggerEventData,
-      cleanerBox,
-      1000,
-      feeBoxes,
-    );
+    const fraudTxBuilder = FraudTx.getInstance()
+      .newBuilder()
+      .setTriggerEventData(triggerEventData)
+      .setCleanerBox(cleanerBox)
+      .setCreationHeight(1000)
+      .setFeeBoxes(feeBoxes);
     const result = await fraudTxBuilder.build();
 
     // Verify transaction was built
@@ -337,12 +344,12 @@ describe('FraudTx Integration Tests', () => {
       rwtAmount: BigInt(triggerEventBoxJson.assets[0].amount),
     };
 
-    const fraudTxBuilder = FraudTx.getInstance().newBuilder(
-      triggerEventData,
-      cleanerBox,
-      1000,
-      [], // No fee boxes
-    );
+    const fraudTxBuilder = FraudTx.getInstance()
+      .newBuilder()
+      .setTriggerEventData(triggerEventData)
+      .setCleanerBox(cleanerBox)
+      .setCreationHeight(1000)
+      .setFeeBoxes([]); // No fee boxes
 
     await expect(fraudTxBuilder.build()).rejects.toThrow();
   });
@@ -372,12 +379,12 @@ describe('FraudTx Integration Tests', () => {
       rwtAmount: 0n, // No RWT
     };
 
-    const fraudTxBuilder = FraudTx.getInstance().newBuilder(
-      triggerEventData,
-      cleanerBox,
-      1000,
-      [],
-    );
+    const fraudTxBuilder = FraudTx.getInstance()
+      .newBuilder()
+      .setTriggerEventData(triggerEventData)
+      .setCleanerBox(cleanerBox)
+      .setCreationHeight(1000)
+      .setFeeBoxes([]);
 
     await expect(fraudTxBuilder.build()).rejects.toThrow();
   });
@@ -407,12 +414,12 @@ describe('FraudTx Integration Tests', () => {
       rwtAmount: BigInt(triggerEventBoxJson.assets[0].amount),
     };
 
-    const fraudTxBuilder = FraudTx.getInstance().newBuilder(
-      triggerEventData,
-      cleanerBox,
-      1000,
-      [],
-    );
+    const fraudTxBuilder = FraudTx.getInstance()
+      .newBuilder()
+      .setTriggerEventData(triggerEventData)
+      .setCleanerBox(cleanerBox)
+      .setCreationHeight(1000)
+      .setFeeBoxes([]);
 
     await expect(fraudTxBuilder.build()).rejects.toThrow();
   });
