@@ -96,13 +96,15 @@ describe('SlashTxBuilder', () => {
 
   describe('setCreationHeight', () => {
     it('should throw error when height is invalid', () => {
-      expect(() => SlashTx.getInstance().newBuilder().setCreationHeight(0)).toThrow(
-        'Creation height must be a positive integer',
-      );
+      expect(() =>
+        SlashTx.getInstance().newBuilder().setCreationHeight(0),
+      ).toThrow('Creation height must be a positive integer');
     });
 
     it('should create builder successfully when height is valid', () => {
-      const slashTxBuilder = SlashTx.getInstance().newBuilder().setCreationHeight(1000);
+      const slashTxBuilder = SlashTx.getInstance()
+        .newBuilder()
+        .setCreationHeight(1000);
       expect(slashTxBuilder).toBeDefined();
       expect(slashTxBuilder['height']).toBe(1000);
     });

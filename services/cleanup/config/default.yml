@@ -1,0 +1,34 @@
+intervals:
+  workflow: 30 # seconds
+
+workflow:
+  contractsPath: '' # path to rosen contracts json
+  ergoNetwork: mainnet # mainnet | testnet
+  cleanupMnemonic: ''
+  minBoxValue: '1100000' # bigint-like string
+  txFee: '1100000' # string (used by tx builders)
+
+database:
+  type: sqlite # sqlite | postgres
+  path: ':memory:'
+  host: ''
+  port: 5432
+  user: ''
+  password: ''
+  name: ''
+
+txpot:
+  updateInterval: 30
+  txRequiredConfirmations: 10
+
+scanner:
+  updateInterval: 30
+  nodeUrl: ''
+  explorerUrl: ''
+  initialHeight: 0
+
+boxLookup:
+  updateInterval: 10
+  nodeUrl: ''
+
+

@@ -142,7 +142,9 @@ export class SlashTxBuilder {
 
   setCleanupBox = (cleanupBox: ergoLib.ErgoBox): SlashTxBuilder => {
     this.cleanupBox = cleanupBox;
-    this.logger?.debug(`Cleanup box set with id=${cleanupBox.box_id().to_str()}`);
+    this.logger?.debug(
+      `Cleanup box set with id=${cleanupBox.box_id().to_str()}`,
+    );
     return this;
   };
 
@@ -309,7 +311,6 @@ export class SlashTxBuilder {
 
     return boxBuilder.build();
   };
-
 
   /**
    * Helper to get token amount from a box

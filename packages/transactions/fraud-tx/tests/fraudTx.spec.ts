@@ -286,10 +286,10 @@ describe('FraudTx Integration Tests', () => {
     expect(cleanerBoxOutput.value().as_i64().to_str()).toBe(
       cleanerBox.value().as_i64().to_str(),
     );
-    
+
     const cleanerTokens = cleanerBoxOutput.tokens();
     expect(cleanerTokens.len()).toBe(cleanerBox.tokens().len());
-    
+
     for (let i = 0; i < cleanerTokens.len(); i++) {
       const outputToken = cleanerTokens.get(i);
       const inputToken = cleanerBox.tokens().get(i);

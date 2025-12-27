@@ -102,9 +102,7 @@ export const createChangeBox = (
   // Build change box
   const boxBuilder = new ergoLib.ErgoBoxCandidateBuilder(
     ergoLib.BoxValue.from_i64(ergoLib.I64.from_str(changeErg.toString())),
-    ergoLib.Contract.pay_to_address(
-      ergoLib.Address.from_base58(changeAddress),
-    ),
+    ergoLib.Contract.pay_to_address(ergoLib.Address.from_base58(changeAddress)),
     height,
   );
 
