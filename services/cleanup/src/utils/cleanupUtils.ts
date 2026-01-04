@@ -1,12 +1,26 @@
 import { OutputBox } from '@ergo-raffle/box-lookup';
 import * as ergoLib from 'ergo-lib-wasm-nodejs';
-import { TriggerEventData } from '@rosen-bridge/fraud-tx';
-import { CollateralBoxData, FraudBoxData, RWTRepoData } from '@rosen-bridge/slash-tx';
-import { CleanupTokenIds } from '../../types/cleanupDomain';
-
+import { RWTRepoData } from '@rosen-bridge/slash-tx';
+import { CleanupTokenIds } from '../types/cleanup';
+import { TransactionEntity } from '@rosen-bridge/tx-pot';
+import { DeserializedTx } from '@ergo-raffle/box-lookup';
+/**
+ * Converts a Uint8Array to a hex string.
+ *
+ * @param bytes - Uint8Array to convert
+ * @returns Hex string
+ */
 const uint8ArrayToHex = (bytes: Uint8Array): string =>
   Buffer.from(bytes).toString('hex');
 
+/**
+ * Extracts a register value from a box.
+ *
+ * @param box - Input box
+ * @param id - Register id
+ * @param name - Register name
+ * @returns Register value
+ */
 const getRequiredRegister = (
   box: ergoLib.ErgoBox,
   id: ergoLib.NonMandatoryRegisterId,
@@ -17,7 +31,15 @@ const getRequiredRegister = (
   return register;
 };
 
-const getRegisterBytesHex = (
+/**
+ * Extracts the bytes of a register as a hex string.
+ *
+ * @param box - Input box
+ * @param id - Register id
+ * @param name - Register name
+ * @returns Register bytes as a hex string
+ */
+export const getRegisterBytesHex = (
   box: ergoLib.ErgoBox,
   id: ergoLib.NonMandatoryRegisterId,
   name: string,
@@ -112,15 +134,16 @@ export const findCollateralBoxByWid = (
   boxes: OutputBox[],
   awcNftTokenId: string,
   wid: string,
-): OutputBox => {
+): OutputBox[] => {
   const candidates = boxes.filter(
-    (b) => b.assets.length > 0 && b.assets[0].tokenId === awcNftTokenId,
+    (b) => b.assets.some((asset) => asset.tokenId === awcNftTokenId),
   );
+  const result = [];
   for (const c of candidates) {
     const parsed = outputBoxToErgoBox(c);
-    if (getWidFromR4Bytes(parsed) === wid) return c;
+    if (getWidFromR4Bytes(parsed) === wid) result.push(c);
   }
-  throw new Error('Collateral box not found for WID');
+  return result;
 };
 
 /**
@@ -146,26 +169,6 @@ export const getRsnAmountFromR5 = (box: ergoLib.ErgoBox): bigint => {
 };
 
 /**
- * Maps a collateral `OutputBox` into `slash-tx` builder input.
- *
- * @param collateralBox - Collateral box
- * @param rsnTokenId - RSN token id (validated to exist in the box)
- * @returns `CollateralBoxData` for slash-tx
- */
-export const toCollateralBoxData = (
-  collateralBox: OutputBox,
-  rsnTokenId: string,
-): CollateralBoxData => {
-  const box = outputBoxToErgoBox(collateralBox);
-  getTokenAmount(box, rsnTokenId);
-  return {
-    box,
-    wid: getWidFromR4Bytes(box),
-    rsnAmount: getRsnAmountFromR5(box),
-  };
-};
-
-/**
  * Maps an RWT repo `OutputBox` into `slash-tx` builder input.
  *
  * @param repoBox - Repo box
@@ -177,11 +180,28 @@ export const toRwtRepoData = (repoBox: OutputBox, tokenIds: CleanupTokenIds): RW
   getTokenAmount(box, tokenIds.repoNftTokenId);
   getTokenAmount(box, tokenIds.rwtTokenId);
   getTokenAmount(box, tokenIds.rsnTokenId);
+  getTokenAmount(box, tokenIds.awcTokenId);
 
   return {
     box,
     repoNFT: tokenIds.repoNftTokenId,
     rwtTokenId: tokenIds.rwtTokenId,
     rsnTokenId: tokenIds.rsnTokenId,
+    awcTokenId: tokenIds.awcTokenId,
   };
 };
+
+/**
+ * Converts base64 sigma-serialized ErgoBox bytes into the plain `box-lookup` `OutputBox` shape.
+ *
+ * @param serialized - Base64 sigma-serialized ErgoBox bytes
+ * @returns OutputBox representation (suitable for box-lookup + tx builders)
+ */
+export const serializedErgoBoxToOutputBox = (
+  serialized: string,
+): OutputBox => {
+  const bytes = new Uint8Array(Buffer.from(serialized, 'base64'));
+  const ergoBox = ergoLib.ErgoBox.sigma_parse_bytes(bytes);
+  return ergoBox.to_js_eip12() as OutputBox;
+};
+

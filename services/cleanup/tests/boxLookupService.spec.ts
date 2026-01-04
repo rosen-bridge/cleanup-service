@@ -1,9 +1,10 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { DataSource } from '@rosen-bridge/extended-typeorm';
+import { DataSource } from 'typeorm';
 import { Request } from '@ergo-raffle/box-lookup';
 
+import '../src/bootstrap';
 import { DBService } from '../src/services/dbService';
-import { TxPotService } from '../src/services/txPotService';
+import { TxPotService } from '../src/services/txPotService/txPotService';
 import { BoxLookupService } from '../src/services/boxLookupService';
 import { mockNodeUrl } from './testData';
 import { resetServiceInstance } from './testUtils';
@@ -13,6 +14,7 @@ import {
   boxLookupServiceRequestsMock,
   boxLookupUnregisterRequestMock,
 } from './mocked/BoxLookup.mock';
+import './mocked/ErgoNodeNetwork.mock';
 
 const createMemoryDataSource = () =>
   new DataSource({

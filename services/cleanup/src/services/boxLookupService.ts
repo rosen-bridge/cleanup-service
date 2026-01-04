@@ -1,10 +1,9 @@
 import { AbstractLogger } from '@rosen-bridge/abstract-logger';
 import { AbstractService, Dependency, ServiceStatus } from '@rosen-bridge/service-manager';
-import { BoxLookup, BoxLookupHooks, Request } from '@ergo-raffle/box-lookup';
+import { BoxLookup, Request } from '@ergo-raffle/box-lookup';
 
-import { TxPotService } from './txPotService';
-import { deserializeTxForBoxLookup } from './boxLookup';
-import { AfterServeHandler } from '../types/boxLookup';
+import { TxPotService } from './txPotService/txPotService';
+import { deserializeTxForBoxLookup } from '../utils/boxLookupUtils';
 
 export class BoxLookupService extends AbstractService {
   static name = 'BoxLookupService';
@@ -21,7 +20,7 @@ export class BoxLookupService extends AbstractService {
   private scheduledJob?: NodeJS.Timeout;
   private shouldStopJob = false;
   private continueStop: () => void = () => undefined;
-  private afterServeHandler: AfterServeHandler = async () => undefined;
+  private afterServeHandler: () => Promise<void> = async () => undefined;
 
   private constructor(updateInterval: number, nodeUrl: string, logger?: AbstractLogger) {
     super(logger);
@@ -109,7 +108,7 @@ export class BoxLookupService extends AbstractService {
   /**
    * Registers a callback to run after each `BoxLookup.serveRequests()` run.
    */
-  onAfterServe = (handler: AfterServeHandler): void => {
+  onAfterServe = (handler: () => Promise<void>): void => {
     this.afterServeHandler = handler;
   };
 

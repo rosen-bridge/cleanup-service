@@ -34,4 +34,5 @@ yarn.lock
 
 # Husky
 .husky/_
-
+contracts/
+sqlite/

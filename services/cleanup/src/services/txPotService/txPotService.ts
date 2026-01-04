@@ -2,10 +2,10 @@ import { AbstractLogger } from '@rosen-bridge/abstract-logger';
 import { AbstractService, Dependency, ServiceStatus } from '@rosen-bridge/service-manager';
 import { TxOptions, TxPot } from '@rosen-bridge/tx-pot';
 import { DataSource } from '@rosen-bridge/extended-typeorm';
-import { DBService } from './dbService';
-import { ERGO_CHAIN_NAME } from '../constants';
-import { ErgoNetworkInterface } from '../txPot/ergoNetworkInterface';
-import { CleanupTxType } from '../types/cleanupTxType';
+import { DBService } from '../dbService';
+import { ERGO_CHAIN_NAME } from '../../config/constants';
+import { ErgoNetworkInterface } from './ergoNetworkInterface';
+import { CleanupTxType } from '../../types'
 
 export class TxPotService extends AbstractService {
   static name = 'TxPotService';
@@ -20,6 +20,7 @@ export class TxPotService extends AbstractService {
   private scheduledJob?: NodeJS.Timeout;
   private shouldStopJob = false;
   private continueStop: () => void = () => undefined;
+  private ergoNetworkInterface?: ErgoNetworkInterface;
 
   private constructor(
     private updateInterval: number,
@@ -28,6 +29,7 @@ export class TxPotService extends AbstractService {
     logger?: AbstractLogger,
   ) {
     super(logger);
+    TxPot.setup(this.dataSource, this.logger);
   }
 
   /**
@@ -69,11 +71,12 @@ export class TxPotService extends AbstractService {
    * @returns True when started
    */
   protected start = async (): Promise<boolean> => {
-    TxPot.setup(this.dataSource, this.logger).registerChain(
+    this.ergoNetworkInterface = new ErgoNetworkInterface(this.txRequiredConfirmations);
+    TxPot.getInstance().registerChain(
       ERGO_CHAIN_NAME,
-      new ErgoNetworkInterface(this.txRequiredConfirmations),
+      this.ergoNetworkInterface,
     );
-    this.job();
+    void this.job();
     this.setStatus(ServiceStatus.running);
     return true;
   };
@@ -123,6 +126,18 @@ export class TxPotService extends AbstractService {
   };
 
   /**
+   * Returns the Ergo network interface.
+   *
+   * @returns Ergo network interface
+   */
+  getErgoNetworkInterface = (): ErgoNetworkInterface => {
+    if (!this.ergoNetworkInterface) {
+      throw new Error('TxPotService not started yet');
+    }
+    return this.ergoNetworkInterface;
+  };
+
+  /**
    * Periodic job that runs `TxPot.update()`.
    */
   private job = async (): Promise<void> => {
@@ -136,5 +151,3 @@ export class TxPotService extends AbstractService {
     }
   };
 }
-
-

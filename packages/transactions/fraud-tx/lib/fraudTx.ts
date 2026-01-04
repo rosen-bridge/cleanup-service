@@ -1,22 +1,11 @@
 import { AbstractLogger } from '@rosen-bridge/abstract-logger';
-import { selectErgoBoxes } from '@rosen-bridge/ergo-box-selection';
-import JsonBigInt from '@rosen-bridge/json-bigint';
-import * as ergoLib from 'ergo-lib-wasm-nodejs';
 import {
-  createChangeBox,
-  hexToUint8Array,
-  toErgoBoxProxyIterator,
-} from './utils';
-
-/**
- * Represents a trigger event box containing watcher IDs that need to be frauded
- */
-export interface TriggerEventData {
-  box: ergoLib.ErgoBox;
-  wids: string[]; // Array of watcher ID hex strings
-  rwtAmount: bigint; // Total RWT tokens in the event box
-}
-
+  ErgoBoxSelection,
+  ErgoChangeBoxBuilder,
+} from '@rosen-bridge/ergo-box-selection';
+import * as ergoLib from 'ergo-lib-wasm-nodejs';
+import { hexToUint8Array } from './utils';
+import { TriggerEventData } from './types';
 /**
  * FraudTx class handles the creation of fraud boxes from trigger event boxes
  * This is the TypeScript equivalent of the Scala generateFrauds transaction
@@ -169,7 +158,7 @@ export class FraudTxBuilder {
       `Creating ${watcherCount} fraud boxes with ${rwtPerFraud} RWT each`,
     );
 
-    return this.triggerEventData.wids.map((wid) => {
+    return this.triggerEventData.wids.map((wid: string) => {
       const boxBuilder = new ergoLib.ErgoBoxCandidateBuilder(
         ergoLib.BoxValue.from_i64(
           ergoLib.I64.from_str(this.minBoxValue.toString()),
@@ -188,10 +177,10 @@ export class FraudTxBuilder {
         ),
       );
 
-      // Set R4 register with WID (as Coll[Coll[Byte]])
+      // Set R4 register with WID
       boxBuilder.set_register_value(
         4,
-        ergoLib.Constant.from_coll_coll_byte([hexToUint8Array(wid)]),
+        ergoLib.Constant.from_byte_array(hexToUint8Array(wid)),
       );
 
       return boxBuilder.build();
@@ -208,12 +197,12 @@ export class FraudTxBuilder {
       return [];
     }
 
-    const { covered, boxes: payProxyBoxes } = await selectErgoBoxes(
+    const selector = new ErgoBoxSelection(this.logger);
+    const { covered, boxes } = await selector.getCoveringBoxes(
       { nativeToken: requiredValue, tokens: [] },
       [],
       new Map(),
-      toErgoBoxProxyIterator(this.feeBoxes),
-      this.logger,
+      this.feeBoxes.values(),
     );
 
     if (!covered) {
@@ -222,15 +211,11 @@ export class FraudTxBuilder {
       );
     }
 
-    const selectedFeeBoxes = payProxyBoxes.map((proxyBox) =>
-      ergoLib.ErgoBox.from_json(JsonBigInt.stringify(proxyBox)),
-    );
-
     this.logger?.debug(
-      `Selected ${selectedFeeBoxes.length} fee boxes: ${selectedFeeBoxes.map((box) => box.box_id().to_str()).join(', ')}`,
+      `Selected ${boxes.length} fee boxes: ${boxes.map((box) => box.box_id().to_str()).join(', ')}`,
     );
 
-    return selectedFeeBoxes;
+    return boxes;
   };
 
   /**
@@ -284,15 +269,14 @@ export class FraudTxBuilder {
     const outputs = [...fraudBoxes, newCleanerBox];
 
     // Create change box with remaining assets
-    const changeBox = createChangeBox(
+    const changeBoxes = ErgoChangeBoxBuilder.fromBoxes(
+      this.changeAddress,
       inputBoxes,
       outputs,
-      this.changeAddress,
-      this.txFee,
-      this.height,
-    );
+      BigInt(this.txFee),
+    ).build({ height: this.height });
 
-    const outputBoxes = [...outputs, changeBox];
+    const outputBoxes = [...outputs, ...changeBoxes];
 
     // Build transaction
     const inputErgoBoxes = ergoLib.ErgoBoxes.empty();

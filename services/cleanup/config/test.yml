@@ -6,6 +6,7 @@ workflow:
   ergoNetwork: mainnet
   cleanupMnemonic: 'abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about'
   minBoxValue: '1100000'
+  minCleanupValue: '500000000'
   txFee: '1100000'
 
 database:

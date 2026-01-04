@@ -1,20 +1,20 @@
 import './bootstrap';
 
-import { CallbackLoggerFactory } from '@rosen-bridge/callback-logger';
 import { ServiceManager } from '@rosen-bridge/service-manager';
 import * as ergoLib from 'ergo-lib-wasm-nodejs';
 
 import { CleanupWorkflowService } from './services/cleanupWorkflowService';
 import { BoxLookupService } from './services/boxLookupService';
 import { DBService } from './services/dbService';
-import { loadRosenContracts } from './services/ergo/contractsConfig';
-import { mnemonicToAddress } from './services/ergo/keys';
+import { loadRosenContracts } from './config/contractsConfig';
+import { mnemonicToAddress } from './utils/ergoUtils';
 import { ScannerService } from './services/scannerService';
-import { TxPotService } from './services/txPotService';
-import dataSource from './db/dataSource';
-import { configs } from './config';
+import { TxPotService } from './services/txPotService/txPotService';
+import dataSource from './database/dataSource';
+import { configs } from './config/config';
+import { getLogger } from './config/loggerConfig';
 
-const logger = CallbackLoggerFactory.getInstance().getLogger(import.meta.url);
+const logger = getLogger(import.meta.url);
 
 const main = async () => {
   const serviceManager = ServiceManager.setup();

@@ -1,7 +1,9 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { DataSource } from '@rosen-bridge/extended-typeorm';
+import { DataSource } from 'typeorm';
+import { ServiceManager } from '@rosen-bridge/service-manager';
 
-import { TxPotService } from '../src/services/txPotService';
+// import '../src/bootstrap';
+import { TxPotService } from '../src/services/txPotService/txPotService';
 import { DBService } from '../src/services/dbService';
 import { resetServiceInstance } from './testUtils';
 import {
@@ -26,9 +28,12 @@ const initServices = async (updateInterval: number) => {
   resetServiceInstance(DBService);
   resetServiceInstance(TxPotService);
 
+  const serviceManager = ServiceManager.setup();
   DBService.init(ds);
+  serviceManager.register(DBService.getInstance());
   await DBService.getInstance().startService();
   TxPotService.init(updateInterval, ds, 10);
+  serviceManager.register(TxPotService.getInstance());
   return ds;
 };
 
@@ -55,7 +60,6 @@ describe('startService', () => {
     vi.advanceTimersByTime(1100);
     await vi.runOnlyPendingTimersAsync();
 
-    // assert
     expect(ok).toBe(true);
     expect(txPotSetupMock).toHaveBeenCalledTimes(1);
     expect(txPotRegisterChainMock).toHaveBeenCalledTimes(1);
@@ -89,7 +93,6 @@ describe('stopService', () => {
     vi.advanceTimersByTime(2000);
     await vi.runOnlyPendingTimersAsync();
 
-    // assert
     expect(ok).toBe(true);
     expect(txPotUpdateMock).toHaveBeenCalledTimes(1);
     await ds.destroy();

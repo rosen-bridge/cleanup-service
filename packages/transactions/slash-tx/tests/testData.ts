@@ -194,6 +194,8 @@ export const testSlashConfig = {
     '34529f875cad2bf58c5ffb4a9056d26c590f0c35f77958a68dcdb4aa39b437aa',
   rsnTokenId:
     'd752bede1a85891fff344604431fd6dc30ba685b382f2e0fe15da8141d36e34e',
+  awcTokenId:
+    'fb2a47295e30289f3748eb35a325c11db5202b7420ee9588c67f7486de2662db',
   minBoxValue: 1100000n,
   txFee: '1100000',
   repoWids: mockRepoWids,

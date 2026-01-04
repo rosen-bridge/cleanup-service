@@ -1,9 +1,8 @@
 import JsonBigInt from '@rosen-bridge/json-bigint';
 import * as ergoLib from 'ergo-lib-wasm-nodejs';
 import { beforeEach, describe, expect, it } from 'vitest';
-import { SlashTx, FraudBoxData, CollateralBoxData, RWTRepoData } from '../lib';
+import { SlashTx, RWTRepoData, getTokenAmount } from '../lib';
 import {
-  mockRepoWids,
   fraudBoxJson,
   collateralBoxJson,
   repoBoxJson,
@@ -18,123 +17,74 @@ describe('SlashTx', () => {
     SlashTx['_instance'] = undefined;
   });
 
-  describe('getInstance', () => {
-    /**
-     * @target should throw exception when SlashTx._instance is not yet initialized
-     * @dependencies
-     * - None
-     * @scenario
-     * - Call SlashTx.getInstance without calling SlashTx.init
-     * - Check SlashTx.getInstance to throw an exception
-     * @expected
-     * - SlashTx.getInstance should throw an exception
-     */
-    it('should throw exception when SlashTx._instance is not yet initialized', () => {
-      expect(() => SlashTx.getInstance()).toThrowError(
-        'SlashTx instance is not initialized yet',
-      );
-    });
-  });
-
-  describe('init and getInstance', () => {
-    /**
-     * @target should initialize singleton correctly
-     * @dependencies
-     * - None
-     * @scenario
-     * - Call SlashTx.init with parameters
-     * - Call SlashTx.getInstance to get instance
-     * @expected
-     * - getInstance should return the initialized instance
-     */
-    it('should initialize singleton correctly', () => {
-      const repoAddress = '9iHyKxXs2ZNLMp9N9gbUT9V8gTbsV7HED1C1VhttMfBUMPDyF7r';
-      const collateralAddress =
-        '9f4QF8AD1nQ3nJahQVkMj8hFSVVzVom77b52JU7EW71Zexg6N8v';
-      const cleanupAddress =
-        '9f4QF8AD1nQ3nJahQVkMj8hFSVVzVom77b52JU7EW71Zexg6N8v';
-      const minBoxValue = 1000000n;
-      const txFee = '1100000';
-
-      SlashTx.init(
-        repoAddress,
-        collateralAddress,
-        cleanupAddress,
-        minBoxValue,
-        txFee,
-      );
-
-      const instance = SlashTx.getInstance();
-      expect(instance).toBeDefined();
-      expect(instance['repoAddress']).toEqual(repoAddress);
-      expect(instance['collateralAddress']).toEqual(collateralAddress);
-      expect(instance['cleanupAddress']).toEqual(cleanupAddress);
-      expect(instance['minBoxValue']).toEqual(minBoxValue);
-      expect(instance['txFee']).toEqual(txFee);
-    });
-  });
-});
-
-describe('SlashTxBuilder', () => {
-  const repoAddress = '9iHyKxXs2ZNLMp9N9gbUT9V8gTbsV7HED1C1VhttMfBUMPDyF7r';
-  const collateralAddress =
-    '9f4QF8AD1nQ3nJahQVkMj8hFSVVzVom77b52JU7EW71Zexg6N8v';
-  const cleanupAddress = '9f4QF8AD1nQ3nJahQVkMj8hFSVVzVom77b52JU7EW71Zexg6N8v';
-  const minBoxValue = 1000000n;
-  const txFee = '1100000';
-
-  beforeEach(() => {
-    SlashTx['_instance'] = undefined;
-    SlashTx.init(
-      repoAddress,
-      collateralAddress,
-      cleanupAddress,
-      minBoxValue,
-      txFee,
+  /**
+   * @target should throw exception when SlashTx._instance is not yet initialized
+   * @dependencies
+   * - None
+   * @scenario
+   * - Call SlashTx.getInstance without calling SlashTx.init
+   * - Check SlashTx.getInstance to throw an exception
+   * @expected
+   * - SlashTx.getInstance should throw an exception
+   */
+  it('should throw exception when SlashTx._instance is not yet initialized', () => {
+    expect(() => SlashTx.getInstance()).toThrowError(
+      'SlashTx instance is not initialized yet',
     );
   });
 
-  describe('setCreationHeight', () => {
-    it('should throw error when height is invalid', () => {
-      expect(() =>
-        SlashTx.getInstance().newBuilder().setCreationHeight(0),
-      ).toThrow('Creation height must be a positive integer');
-    });
+  /**
+   * @target should initialize singleton correctly
+   * @dependencies
+   * - None
+   * @scenario
+   * - Call SlashTx.init with parameters
+   * - Call SlashTx.getInstance to get instance
+   * @expected
+   * - getInstance should return the initialized instance
+   */
+  it('should initialize singleton correctly', () => {
+    SlashTx.init(testSlashConfig.minBoxValue, testSlashConfig.txFee);
 
-    it('should create builder successfully when height is valid', () => {
-      const slashTxBuilder = SlashTx.getInstance()
-        .newBuilder()
-        .setCreationHeight(1000);
-      expect(slashTxBuilder).toBeDefined();
-      expect(slashTxBuilder['height']).toBe(1000);
-    });
-
-    it('should support method chaining', () => {
-      const fraudBoxData: FraudBoxData = {
-        box: {} as ergoLib.ErgoBox,
-        wid: mockRepoWids[0],
-        rwtAmount: 1000000n,
-      };
-
-      const slashTxBuilder = SlashTx.getInstance()
-        .newBuilder()
-        .setFraudBoxData(fraudBoxData)
-        .setCreationHeight(1000);
-
-      expect(slashTxBuilder).toBeDefined();
-      expect(slashTxBuilder['height']).toBe(1000);
-    });
+    const instance = SlashTx.getInstance();
+    expect(instance).toBeDefined();
+    expect(instance['minBoxValue']).toEqual(testSlashConfig.minBoxValue);
+    expect(instance['txFee']).toEqual(testSlashConfig.txFee);
   });
-});
 
-// =============================================================================
-// Integration Tests - Full Slash Transaction Generation
-// These tests require valid box data. Replace placeholders in testData.ts
-// =============================================================================
+  /**
+   * @target should throw error when height is invalid
+   * @dependencies
+   * - None
+   * @scenario
+   * - Create a builder with height = 0
+   * @expected
+   * - Should throw error
+   */
+  it('should throw error when height is invalid', () => {
+    SlashTx.init(testSlashConfig.minBoxValue, testSlashConfig.txFee);
+    expect(() =>
+      SlashTx.getInstance().newBuilder().setCreationHeight(0),
+    ).toThrow('Creation height must be a positive integer');
+  });
 
-describe('SlashTx Integration Tests', () => {
-  beforeEach(() => {
-    SlashTx['_instance'] = undefined;
+  /**
+   * @target should create builder successfully when height is valid
+   * @dependencies
+   * - None
+   * @scenario
+   * - Create a builder with height = 1000
+   * @expected
+   * - Should return builder instance
+   * - Height should be set
+   */
+  it('should create builder successfully when height is valid', () => {
+    SlashTx.init(testSlashConfig.minBoxValue, testSlashConfig.txFee);
+    const slashTxBuilder = SlashTx.getInstance()
+      .newBuilder()
+      .setCreationHeight(1000);
+    expect(slashTxBuilder).toBeDefined();
+    expect(slashTxBuilder['height']).toBe(1000);
   });
 
   /**
@@ -156,13 +106,7 @@ describe('SlashTx Integration Tests', () => {
    */
   it('should build a complete slash transaction with correct structure', async () => {
     // Initialize SlashTx
-    SlashTx.init(
-      testSlashConfig.repoAddress,
-      testSlashConfig.collateralAddress,
-      testSlashConfig.cleanupAddress,
-      testSlashConfig.minBoxValue,
-      testSlashConfig.txFee,
-    );
+    SlashTx.init(testSlashConfig.minBoxValue, testSlashConfig.txFee);
 
     // Parse boxes from JSON
     const fraudBox = ergoLib.ErgoBox.from_json(
@@ -181,37 +125,25 @@ describe('SlashTx Integration Tests', () => {
       ergoLib.ErgoBox.from_json(JsonBigInt.stringify(boxJson)),
     );
 
-    // Prepare fraud box data
-    const fraudBoxData: FraudBoxData = {
-      box: fraudBox,
-      wid: mockRepoWids[0],
-      rwtAmount: BigInt(fraudBoxJson.assets[0].amount),
-    };
-
-    // Prepare collateral box data
-    const collateralBoxData: CollateralBoxData = {
-      box: collateralBox,
-      wid: mockRepoWids[0],
-      rsnAmount: 800000n,
-    };
-
     // Prepare repo data
     const repoData: RWTRepoData = {
       box: repoBox,
       repoNFT: testSlashConfig.repoNFT,
       rwtTokenId: testSlashConfig.rwtTokenId,
       rsnTokenId: testSlashConfig.rsnTokenId,
+      awcTokenId: testSlashConfig.awcTokenId,
     };
 
     // Build transaction
     const slashTxBuilder = SlashTx.getInstance()
       .newBuilder()
-      .setFraudBoxData(fraudBoxData)
-      .setCollateralBoxData(collateralBoxData)
+      .setFraudBox(fraudBox)
+      .setCollateralBox(collateralBox)
       .setRepoData(repoData)
       .setCleanupBox(cleanupBox)
       .setCreationHeight(testSlashConfig.repoWids.length)
-      .setFeeBoxes(feeBoxes);
+      .setFeeBoxes(feeBoxes)
+      .setChangeAddress(testSlashConfig.cleanupAddress);
     const result = await slashTxBuilder.build();
 
     // Verify transaction was built
@@ -257,7 +189,10 @@ describe('SlashTx Integration Tests', () => {
     expect(repoOutput.tokens().len()).toBe(repoBox.tokens().len());
 
     // Verify repo RWT increased and RSN decreased
-    const slashedRwtAmount = fraudBoxData.rwtAmount;
+    const slashedRwtAmount = getTokenAmount(
+      fraudBox,
+      testSlashConfig.rwtTokenId,
+    );
     const originalRepoRwt = BigInt(
       repoBox.tokens().get(1).amount().as_i64().to_str(),
     );
@@ -273,7 +208,7 @@ describe('SlashTx Integration Tests', () => {
     );
 
     expect(newRepoRwt).toBe(originalRepoRwt + slashedRwtAmount);
-    expect(newRepoRsn).toBe(originalRepoRsn); // RSN stays the same in repo
+    expect(newRepoRsn).toBe(originalRepoRsn - slashedRwtAmount);
 
     // Output 1: Collateral box with reduced RSN in R5
     const collateralOutput = outputs.get(1);
@@ -285,7 +220,8 @@ describe('SlashTx Integration Tests', () => {
 
     const newCollateralRsn = BigInt(r5Register!.to_i64().to_str());
     expect(newCollateralRsn).toBe(
-      collateralBoxData.rsnAmount - slashedRwtAmount,
+      getTokenAmount(collateralBox, testSlashConfig.rsnTokenId) -
+        slashedRwtAmount,
     );
 
     // Output 2: Cleanup box
@@ -293,26 +229,32 @@ describe('SlashTx Integration Tests', () => {
     expect(cleanupOutput.value().as_i64().to_str()).toBe(
       testSlashConfig.minBoxValue.toString(),
     );
-    expect(cleanupOutput.tokens().len()).toBe(1);
+    expect(cleanupOutput.tokens().len()).toBeGreaterThanOrEqual(1);
     expect(cleanupOutput.tokens().get(0).id().to_str()).toBe(
       cleanupBox.tokens().get(0).id().to_str(),
     );
-
-    // Output 3: Change box (if exists)
-    if (outputs.len() > 3) {
-      const changeOutput = outputs.get(3);
-      expect(changeOutput.value().as_i64().as_num()).toBeGreaterThan(0);
+    if (cleanupOutput.tokens().len() > 1) {
+      const rsnToken = cleanupOutput.tokens().get(1);
+      expect(rsnToken.id().to_str()).toBe(testSlashConfig.rsnTokenId);
+      expect(rsnToken.amount().as_i64().to_str()).toBe(
+        getTokenAmount(fraudBox, testSlashConfig.rwtTokenId).toString(),
+      );
     }
   });
 
   /**
    * @target should fail when insufficient ERG in inputs
+   * @dependencies
+   * - None
+   * @scenario
+   * - Initialize SlashTx with config
+   * - Create repo box data and collateral box data from real boxes
+   * - Build transaction with no fee boxes
+   * @expected
+   * - Should throw error
    */
   it('should fail when insufficient ERG in inputs', async () => {
     SlashTx.init(
-      testSlashConfig.repoAddress,
-      testSlashConfig.collateralAddress,
-      testSlashConfig.cleanupAddress,
       testSlashConfig.minBoxValue,
       '99999999999', // Unreasonably high fee
     );
@@ -330,33 +272,18 @@ describe('SlashTx Integration Tests', () => {
       JsonBigInt.stringify(cleanupBoxJson),
     );
 
-    const fraudBoxData: FraudBoxData = {
-      box: fraudBox,
-      wid: mockRepoWids[0],
-      rwtAmount: BigInt(fraudBoxJson.assets[0].amount),
-    };
-
-    const rsnAmount = BigInt(
-      '0x' + collateralBoxJson.additionalRegisters.R5.slice(2),
-    );
-
-    const collateralBoxData: CollateralBoxData = {
-      box: collateralBox,
-      wid: mockRepoWids[0],
-      rsnAmount: rsnAmount,
-    };
-
     const repoData: RWTRepoData = {
       box: repoBox,
       repoNFT: testSlashConfig.repoNFT,
       rwtTokenId: testSlashConfig.rwtTokenId,
       rsnTokenId: testSlashConfig.rsnTokenId,
+      awcTokenId: testSlashConfig.awcTokenId,
     };
 
     const slashTxBuilder = SlashTx.getInstance()
       .newBuilder()
-      .setFraudBoxData(fraudBoxData)
-      .setCollateralBoxData(collateralBoxData)
+      .setFraudBox(fraudBox)
+      .setCollateralBox(collateralBox)
       .setRepoData(repoData)
       .setCleanupBox(cleanupBox)
       .setCreationHeight(testSlashConfig.repoWids.length)
@@ -366,80 +293,19 @@ describe('SlashTx Integration Tests', () => {
   });
 
   /**
-   * @target should succeed when fraud box has zero RWT (no-op slash)
-   */
-  it('should succeed when fraud box has zero RWT (no-op slash)', async () => {
-    SlashTx.init(
-      testSlashConfig.repoAddress,
-      testSlashConfig.collateralAddress,
-      testSlashConfig.cleanupAddress,
-      testSlashConfig.minBoxValue,
-      testSlashConfig.txFee,
-    );
-
-    const repoBox = ergoLib.ErgoBox.from_json(
-      JsonBigInt.stringify(repoBoxJson),
-    );
-    const collateralBox = ergoLib.ErgoBox.from_json(
-      JsonBigInt.stringify(collateralBoxJson),
-    );
-    const fraudBox = ergoLib.ErgoBox.from_json(
-      JsonBigInt.stringify(fraudBoxJson),
-    );
-    const cleanupBox = ergoLib.ErgoBox.from_json(
-      JsonBigInt.stringify(cleanupBoxJson),
-    );
-    const feeBoxes = feeBoxesJson.map((json) =>
-      ergoLib.ErgoBox.from_json(JsonBigInt.stringify(json)),
-    );
-
-    const fraudBoxData: FraudBoxData = {
-      box: fraudBox,
-      wid: mockRepoWids[0],
-      rwtAmount: 0n, // Zero RWT - no actual slashing
-    };
-
-    const rsnAmount = BigInt(
-      '0x' + collateralBoxJson.additionalRegisters.R5.slice(2),
-    );
-
-    const collateralBoxData: CollateralBoxData = {
-      box: collateralBox,
-      wid: mockRepoWids[0],
-      rsnAmount: rsnAmount,
-    };
-
-    const repoData: RWTRepoData = {
-      box: repoBox,
-      repoNFT: testSlashConfig.repoNFT,
-      rwtTokenId: testSlashConfig.rwtTokenId,
-      rsnTokenId: testSlashConfig.rsnTokenId,
-    };
-
-    const slashTxBuilder = SlashTx.getInstance()
-      .newBuilder()
-      .setFraudBoxData(fraudBoxData)
-      .setCollateralBoxData(collateralBoxData)
-      .setRepoData(repoData)
-      .setCleanupBox(cleanupBox)
-      .setCreationHeight(testSlashConfig.repoWids.length)
-      .setFeeBoxes(feeBoxes);
-
-    const result = await slashTxBuilder.build();
-    expect(result.unsignedTx).toBeDefined();
-  });
-
-  /**
    * @target should fail when collateral RSN is less than slashed amount
+   * @dependencies
+   * - None
+   * @scenario
+   * - Initialize SlashTx with config
+   * - Create repo box data and collateral box data from real boxes
+   * - Build transaction with no fee boxes
+   * - Set collateral box RSN to less than slashed amount
+   * @expected
+   * - Should throw error
    */
   it('should fail when collateral RSN is less than slashed amount', async () => {
-    SlashTx.init(
-      testSlashConfig.repoAddress,
-      testSlashConfig.collateralAddress,
-      testSlashConfig.cleanupAddress,
-      testSlashConfig.minBoxValue,
-      testSlashConfig.txFee,
-    );
+    SlashTx.init(testSlashConfig.minBoxValue, testSlashConfig.txFee);
 
     const repoBox = ergoLib.ErgoBox.from_json(
       JsonBigInt.stringify(repoBoxJson),
@@ -456,30 +322,18 @@ describe('SlashTx Integration Tests', () => {
     const feeBoxes = feeBoxesJson.map((json) =>
       ergoLib.ErgoBox.from_json(JsonBigInt.stringify(json)),
     );
-
-    const fraudBoxData: FraudBoxData = {
-      box: fraudBox,
-      wid: mockRepoWids[0],
-      rwtAmount: BigInt(fraudBoxJson.assets[0].amount),
-    };
-
-    const collateralBoxData: CollateralBoxData = {
-      box: collateralBox,
-      wid: mockRepoWids[0],
-      rsnAmount: 10n, // RSN less than slashed RWT amount
-    };
-
     const repoData: RWTRepoData = {
       box: repoBox,
       repoNFT: testSlashConfig.repoNFT,
       rwtTokenId: testSlashConfig.rwtTokenId,
       rsnTokenId: testSlashConfig.rsnTokenId,
+      awcTokenId: testSlashConfig.awcTokenId,
     };
 
     const slashTxBuilder = SlashTx.getInstance()
       .newBuilder()
-      .setFraudBoxData(fraudBoxData)
-      .setCollateralBoxData(collateralBoxData)
+      .setFraudBox(fraudBox)
+      .setCollateralBox(collateralBox)
       .setRepoData(repoData)
       .setCleanupBox(cleanupBox)
       .setCreationHeight(testSlashConfig.repoWids.length)

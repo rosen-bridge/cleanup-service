@@ -1,6 +1,6 @@
 import fs from 'fs';
 
-import { RosenContracts } from '../../types/contracts';
+import { RosenContracts } from '../types'
 
 /**
  * Loads a contract config JSON file.

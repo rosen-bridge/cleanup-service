@@ -19,8 +19,8 @@ import { TokenMap } from '@rosen-bridge/tokens';
 import { IsNull } from '@rosen-bridge/extended-typeorm';
 
 import { DBService } from './dbService';
-import { RosenContracts } from '../types/contracts';
-import { serializedErgoBoxToOutputBox } from '../utils/scanner';
+import { RosenContracts } from '../types'
+import { serializedErgoBoxToOutputBox } from '../utils/cleanupUtils';
 
 export class ScannerService extends AbstractService {
   static name = 'ScannerService';
@@ -215,8 +215,9 @@ export class ScannerService extends AbstractService {
    */
   getCurrentHeight = async (): Promise<number> => {
     const repo = DBService.getInstance().dataSource.getRepository(BlockEntity);
-    const row = await repo.findOne({
+    const [row] = await repo.find({
       order: { height: 'DESC' },
+      take: 1,
     });
     return row?.height ?? 0;
   };

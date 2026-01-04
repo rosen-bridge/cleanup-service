@@ -1,3 +1,6 @@
+/**
+ * Rosen contracts.
+ */
 export interface RosenContracts {
   readonly tokens: {
     readonly RWTId: string;

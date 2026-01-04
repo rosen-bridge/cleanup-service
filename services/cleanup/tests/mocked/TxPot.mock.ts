@@ -11,6 +11,7 @@ const txPotMocks = vi.hoisted(() => {
     update: txPotUpdateMock,
     addTx: txPotAddTxMock,
     getTxsQuery: txPotGetTxsQueryMock,
+    registerChain: txPotRegisterChainMock,
   }));
 
   return {

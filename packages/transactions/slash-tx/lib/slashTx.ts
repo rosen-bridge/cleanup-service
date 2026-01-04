@@ -1,36 +1,13 @@
 import { AbstractLogger } from '@rosen-bridge/abstract-logger';
-import { selectErgoBoxes } from '@rosen-bridge/ergo-box-selection';
-import JsonBigInt from '@rosen-bridge/json-bigint';
+import {
+  ErgoBoxSelection,
+  ErgoChangeBoxBuilder,
+} from '@rosen-bridge/ergo-box-selection';
+import { getTokenAmount } from './utils';
 import * as ergoLib from 'ergo-lib-wasm-nodejs';
-import { createChangeBox, toErgoBoxProxyIterator } from './utils';
-
-/**
- * Represents a fraud box containing RWT tokens to be slashed
- */
-export interface FraudBoxData {
-  box: ergoLib.ErgoBox;
-  wid: string; // Watcher ID hex string (from R4 register)
-  rwtAmount: bigint; // RWT tokens in the fraud box
-}
-
-/**
- * Represents a collateral box for a specific watcher
- */
-export interface CollateralBoxData {
-  box: ergoLib.ErgoBox;
-  wid: string; // Watcher ID hex string (from R4 register)
-  rsnAmount: bigint; // RSN amount in R5 register
-}
-
-/**
- * Represents the RWT repository box tracking total RWT and RSN
- */
-export interface RWTRepoData {
-  box: ergoLib.ErgoBox;
-  repoNFT: string; // RepoNFT token ID
-  rwtTokenId: string; // RWT token ID
-  rsnTokenId: string; // RSN token ID
-}
+import { RWTRepoBuilder } from '@rosen-bridge/rwt-repo';
+import { getWidFromR4Bytes } from './utils';
+import { RWTRepoData } from './types';
 
 /**
  * SlashTx class handles slashing transactions for fraudulent watchers
@@ -40,9 +17,6 @@ export class SlashTx {
   private static _instance?: SlashTx;
 
   private constructor(
-    private repoAddress: string,
-    private collateralAddress: string,
-    private cleanupAddress: string,
     private minBoxValue: bigint,
     private txFee: string,
     private logger?: AbstractLogger,
@@ -52,9 +26,6 @@ export class SlashTx {
    * Initializes the singleton instance of SlashTx
    */
   static init = (
-    repoAddress: string,
-    collateralAddress: string,
-    cleanupAddress: string,
     minBoxValue: bigint,
     txFee: string,
     logger?: AbstractLogger,
@@ -62,14 +33,7 @@ export class SlashTx {
     if (SlashTx._instance !== undefined) {
       return;
     }
-    SlashTx._instance = new SlashTx(
-      repoAddress,
-      collateralAddress,
-      cleanupAddress,
-      minBoxValue,
-      txFee,
-      logger,
-    );
+    SlashTx._instance = new SlashTx(minBoxValue, txFee, logger);
   };
 
   /**
@@ -86,14 +50,7 @@ export class SlashTx {
    * Creates a new SlashTxBuilder instance
    */
   newBuilder = (): SlashTxBuilder => {
-    return new SlashTxBuilder(
-      this.repoAddress,
-      this.collateralAddress,
-      this.cleanupAddress,
-      this.minBoxValue,
-      this.txFee,
-      this.logger,
-    );
+    return new SlashTxBuilder(this.minBoxValue, this.txFee, this.logger);
   };
 }
 
@@ -101,36 +58,35 @@ export class SlashTx {
  * Builder class for creating slash transactions
  */
 export class SlashTxBuilder {
-  private fraudBoxData: FraudBoxData;
-  private collateralBoxData: CollateralBoxData;
+  private fraudBox: ergoLib.ErgoBox;
+  private collateralBox: ergoLib.ErgoBox;
   private repoData: RWTRepoData;
   private cleanupBox: ergoLib.ErgoBox;
   private height: number;
   private feeBoxes: ergoLib.ErgoBox[];
   private changeAddress: string;
+  private collateralWid: string;
+  private fraudWid: string;
 
   constructor(
-    private repoAddress: string,
-    private collateralAddress: string,
-    private defaultChangeAddress: string,
     private minBoxValue: bigint,
     private txFee: string,
     private logger?: AbstractLogger,
-  ) {
-    this.changeAddress = defaultChangeAddress;
-  }
+  ) {}
 
-  setFraudBoxData = (fraudBoxData: FraudBoxData): SlashTxBuilder => {
-    this.fraudBoxData = fraudBoxData;
-    this.logger?.debug(`Fraud box set with WID ${fraudBoxData.wid}`);
+  setFraudBox = (fraudBox: ergoLib.ErgoBox): SlashTxBuilder => {
+    this.fraudBox = fraudBox;
+    this.fraudWid = getWidFromR4Bytes(fraudBox);
+    this.logger?.debug(`Fraud box set with id ${fraudBox.box_id().to_str()}`);
     return this;
   };
 
-  setCollateralBoxData = (
-    collateralBoxData: CollateralBoxData,
-  ): SlashTxBuilder => {
-    this.collateralBoxData = collateralBoxData;
-    this.logger?.debug(`Collateral box set with WID ${collateralBoxData.wid}`);
+  setCollateralBox = (collateralBox: ergoLib.ErgoBox): SlashTxBuilder => {
+    this.collateralBox = collateralBox;
+    this.collateralWid = getWidFromR4Bytes(collateralBox);
+    this.logger?.debug(
+      `Collateral box set with id ${collateralBox.box_id().to_str()}`,
+    );
     return this;
   };
 
@@ -173,18 +129,24 @@ export class SlashTxBuilder {
    * Validates that the slash is possible
    */
   private validateSlash = (): void => {
-    const slashedRwtCount = this.fraudBoxData.rwtAmount;
-    const collateralRsnAmount = this.collateralBoxData.rsnAmount;
+    const slashedRwtCount = getTokenAmount(
+      this.fraudBox,
+      this.repoData.rwtTokenId,
+    );
+    const collateralRsnAmount = getTokenAmount(
+      this.collateralBox,
+      this.repoData.rsnTokenId,
+    );
 
     if (collateralRsnAmount < slashedRwtCount) {
       throw new Error(
-        `Impossible case: fraud RWT (${slashedRwtCount}) is more than collateral RSN (${collateralRsnAmount}) for watcher ${this.fraudBoxData.wid}`,
+        `Impossible case: fraud RWT (${slashedRwtCount}) is more than collateral RSN (${collateralRsnAmount}) for watcher ${this.fraudWid}`,
       );
     }
 
-    if (this.fraudBoxData.wid !== this.collateralBoxData.wid) {
+    if (this.fraudWid !== this.collateralWid) {
       throw new Error(
-        `WID mismatch: fraud box WID (${this.fraudBoxData.wid}) != collateral box WID (${this.collateralBoxData.wid})`,
+        `WID mismatch: fraud box WID (${this.fraudWid}) != collateral box WID (${this.collateralWid})`,
       );
     }
   };
@@ -193,97 +155,75 @@ export class SlashTxBuilder {
    * Creates the new repo box with updated RWT and RSN counts
    */
   private createRepoBox = (): ergoLib.ErgoBoxCandidate => {
-    const slashedRwtCount = this.fraudBoxData.rwtAmount;
-
-    // Get current token amounts from repo box
-    const currentRWT = this.getTokenAmount(
-      this.repoData.box,
-      this.repoData.rwtTokenId,
+    const repoBox = this.repoData.box;
+    const chainIdConstant = repoBox.register_value(
+      ergoLib.NonMandatoryRegisterId.R4,
     );
-
-    const boxBuilder = new ergoLib.ErgoBoxCandidateBuilder(
-      ergoLib.BoxValue.from_i64(
-        ergoLib.I64.from_str(this.repoData.box.value().as_i64().to_str()),
-      ),
-      ergoLib.Contract.pay_to_address(
-        ergoLib.Address.from_base58(this.repoAddress),
-      ),
-      this.height,
-    );
-
-    // Add tokens: RepoNFT, RWT (increased), RSN (decreased), and any other tokens
-    for (let i = 0; i < this.repoData.box.tokens().len(); i++) {
-      const token = this.repoData.box.tokens().get(i);
-      const tokenId = token.id().to_str();
-
-      if (tokenId === this.repoData.rwtTokenId) {
-        // Increase RWT by slashed amount
-        boxBuilder.add_token(
-          token.id(),
-          ergoLib.TokenAmount.from_i64(
-            ergoLib.I64.from_str((currentRWT + slashedRwtCount).toString()),
-          ),
-        );
-      } else {
-        // Keep other tokens unchanged (RSN stays the same)
-        boxBuilder.add_token(token.id(), token.amount());
-      }
+    if (!chainIdConstant) {
+      throw new Error('RWT repo box is missing R4 register');
     }
+    const chainId = Buffer.from(chainIdConstant.to_byte_array()).toString();
 
-    // Set registers: R4 (WIDs) and R5 (RWTs) - keep unchanged
-    boxBuilder.set_register_value(4, this.repoData.box.register_value(4)!);
-    boxBuilder.set_register_value(5, this.repoData.box.register_value(5)!);
+    const watcherCountConstant = repoBox.register_value(
+      ergoLib.NonMandatoryRegisterId.R5,
+    );
+    if (!watcherCountConstant) {
+      throw new Error('RWT repo box is missing R5 register');
+    }
+    const watcherCount = Number(watcherCountConstant.to_i64().to_str());
 
-    return boxBuilder.build();
+    const repoBuilder = new RWTRepoBuilder(
+      repoBox.ergo_tree().to_base16_bytes(),
+      this.repoData.repoNFT,
+      this.repoData.awcTokenId,
+      this.getTokenAmount(repoBox, this.repoData.awcTokenId),
+      this.repoData.rwtTokenId,
+      this.getTokenAmount(repoBox, this.repoData.rwtTokenId),
+      this.repoData.rsnTokenId,
+      this.getTokenAmount(repoBox, this.repoData.rsnTokenId),
+      chainId,
+      watcherCount,
+      this.logger,
+    );
+
+    const rwtAmount = getTokenAmount(this.fraudBox, this.repoData.rwtTokenId);
+    repoBuilder.returnPermits(rwtAmount);
+    repoBuilder.setValue(BigInt(repoBox.value().as_i64().to_str()));
+    repoBuilder.setHeight(this.height);
+
+    return repoBuilder.build();
   };
 
   /**
    * Creates the updated collateral box with reduced RSN token and R5
    */
   private createCollateralBox = (): ergoLib.ErgoBoxCandidate => {
-    const slashedRwtCount = this.fraudBoxData.rwtAmount;
-    const newRsnAmount = this.collateralBoxData.rsnAmount - slashedRwtCount;
+    const slashedRwtCount = getTokenAmount(
+      this.fraudBox,
+      this.repoData.rwtTokenId,
+    );
+    const rsnAmount = getTokenAmount(
+      this.collateralBox,
+      this.repoData.rsnTokenId,
+    );
+    const newRsnAmount = rsnAmount - slashedRwtCount;
 
     const boxBuilder = new ergoLib.ErgoBoxCandidateBuilder(
       ergoLib.BoxValue.from_i64(
-        ergoLib.I64.from_str(
-          this.collateralBoxData.box.value().as_i64().to_str(),
-        ),
+        ergoLib.I64.from_str(this.collateralBox.value().as_i64().to_str()),
       ),
-      ergoLib.Contract.pay_to_address(
-        ergoLib.Address.from_base58(this.collateralAddress),
-      ),
+      ergoLib.Contract.new(this.collateralBox.ergo_tree()),
       this.height,
     );
 
-    // Add all tokens from original collateral box, reducing RSN by slashed amount
-    for (let i = 0; i < this.collateralBoxData.box.tokens().len(); i++) {
-      const token = this.collateralBoxData.box.tokens().get(i);
-      const tokenId = token.id().to_str();
-
-      if (tokenId === this.repoData.rsnTokenId) {
-        // Reduce RSN token by slashed amount
-        const currentRsn = BigInt(token.amount().as_i64().to_str());
-        const newRsn = currentRsn - slashedRwtCount;
-        // Only add token if amount is greater than 0
-        if (newRsn > 0n) {
-          boxBuilder.add_token(
-            token.id(),
-            ergoLib.TokenAmount.from_i64(
-              ergoLib.I64.from_str(newRsn.toString()),
-            ),
-          );
-        }
-      } else {
-        boxBuilder.add_token(token.id(), token.amount());
-      }
+    // Keep collateral tokens unchanged.
+    for (let i = 0; i < this.collateralBox.tokens().len(); i++) {
+      const token = this.collateralBox.tokens().get(i);
+      boxBuilder.add_token(token.id(), token.amount());
     }
 
     // Set R4 register (WID) - unchanged
-    boxBuilder.set_register_value(
-      4,
-      this.collateralBoxData.box.register_value(4)!,
-    );
+    boxBuilder.set_register_value(4, this.collateralBox.register_value(4)!);
 
     // Set R5 register (RSN amount) - reduced
     boxBuilder.set_register_value(
@@ -297,17 +237,31 @@ export class SlashTxBuilder {
   /**
    * Creates the new cleanup box preserving input cleanup box
    */
-  private createCleanupBox = (): ergoLib.ErgoBoxCandidate => {
+  private createCleanupBox = (
+    slashedRwtCount: bigint,
+    rsnTokenId: string,
+  ): ergoLib.ErgoBoxCandidate => {
     const boxBuilder = new ergoLib.ErgoBoxCandidateBuilder(
-      this.cleanupBox.value(),
+      ergoLib.BoxValue.from_i64(
+        ergoLib.I64.from_str(this.minBoxValue.toString()),
+      ),
       ergoLib.Contract.new(this.cleanupBox.ergo_tree()),
       this.height,
     );
 
+    let rsnAmount = slashedRwtCount;
     for (let i = 0; i < this.cleanupBox.tokens().len(); i++) {
       const token = this.cleanupBox.tokens().get(i);
-      boxBuilder.add_token(token.id(), token.amount());
+      if (token.id().to_str() === rsnTokenId) {
+        rsnAmount += BigInt(token.amount().as_i64().to_str());
+      } else {
+        boxBuilder.add_token(token.id(), token.amount());
+      }
     }
+    boxBuilder.add_token(
+      ergoLib.TokenId.from_str(rsnTokenId),
+      ergoLib.TokenAmount.from_i64(ergoLib.I64.from_str(rsnAmount.toString())),
+    );
 
     return boxBuilder.build();
   };
@@ -337,12 +291,12 @@ export class SlashTxBuilder {
       return [];
     }
 
-    const { covered, boxes: payProxyBoxes } = await selectErgoBoxes(
+    const selector = new ErgoBoxSelection(this.logger);
+    const { covered, boxes } = await selector.getCoveringBoxes(
       { nativeToken: requiredValue, tokens: [] },
       [],
       new Map(),
-      toErgoBoxProxyIterator(this.feeBoxes),
-      this.logger,
+      this.feeBoxes.values(),
     );
 
     if (!covered) {
@@ -351,15 +305,11 @@ export class SlashTxBuilder {
       );
     }
 
-    const selectedFeeBoxes = payProxyBoxes.map((proxyBox) =>
-      ergoLib.ErgoBox.from_json(JsonBigInt.stringify(proxyBox)),
-    );
-
     this.logger?.debug(
-      `Selected ${selectedFeeBoxes.length} fee boxes: ${selectedFeeBoxes.map((box) => box.box_id().to_str()).join(', ')}`,
+      `Selected ${boxes.length} fee boxes: ${boxes.map((box) => box.box_id().to_str()).join(', ')}`,
     );
 
-    return selectedFeeBoxes;
+    return boxes;
   };
 
   /**
@@ -373,24 +323,21 @@ export class SlashTxBuilder {
   }> => {
     this.validateSlash();
 
-    const repoValue = BigInt(this.repoData.box.value().as_i64().to_str());
-    const collateralValue = BigInt(
-      this.collateralBoxData.box.value().as_i64().to_str(),
-    );
-    const fraudValue = BigInt(this.fraudBoxData.box.value().as_i64().to_str());
+    const fraudValue = BigInt(this.fraudBox.value().as_i64().to_str());
     const cleanupValue = BigInt(this.cleanupBox.value().as_i64().to_str());
-    const inputValue = repoValue + collateralValue + fraudValue + cleanupValue;
 
-    const outputValue = repoValue + collateralValue + cleanupValue;
-    const requiredValue = outputValue + BigInt(this.txFee) - inputValue;
+    // Fraud input plus the cleanup box value can cover the fee.
+    const availableFeeBudget = fraudValue + cleanupValue;
+    const neededOutputValue = BigInt(this.txFee) + this.minBoxValue;
+    let requiredValue = neededOutputValue - availableFeeBudget;
 
     const selectedFeeBoxes = await this.selectFeeBoxes(requiredValue);
 
     // Create input boxes
     const inputBoxes = [
       this.repoData.box,
-      this.collateralBoxData.box,
-      this.fraudBoxData.box,
+      this.collateralBox,
+      this.fraudBox,
       this.cleanupBox,
       ...selectedFeeBoxes,
     ];
@@ -398,19 +345,26 @@ export class SlashTxBuilder {
     // Create output boxes (repo, collateral, cleanup)
     const newRepoBox = this.createRepoBox();
     const newCollateralBox = this.createCollateralBox();
-    const newCleanupBox = this.createCleanupBox();
+    const newCleanupBox = this.createCleanupBox(
+      getTokenAmount(this.fraudBox, this.repoData.rwtTokenId),
+      this.repoData.rsnTokenId,
+    );
     const outputs = [newRepoBox, newCollateralBox, newCleanupBox];
 
     // Create change box with remaining assets (including slashed RSN from fraud box)
-    const changeBox = createChangeBox(
+    const changeBoxes = ErgoChangeBoxBuilder.fromBoxes(
+      this.changeAddress,
       inputBoxes,
       outputs,
-      this.changeAddress,
-      this.txFee,
-      this.height,
-    );
+      BigInt(this.txFee),
+    ).build({ height: this.height });
 
-    const outputBoxes = [...outputs, changeBox];
+    const outputBoxes = [...outputs, ...changeBoxes];
+
+    // Debug: check types
+    outputBoxes.forEach((box, index) => {
+      console.log(`Box at index ${index}: ${box?.constructor?.name}`);
+    });
 
     // Build transaction
     const inputErgoBoxes = ergoLib.ErgoBoxes.empty();

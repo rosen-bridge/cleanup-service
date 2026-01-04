@@ -2,33 +2,40 @@ intervals:
   workflow: 30 # seconds
 
 workflow:
-  contractsPath: '' # path to rosen contracts json
+  contractsPath: '/Users/mehran/work/code/rosen/cleanup-service/contracts/contracts-ergo-pandora-5.1.0.json' # path to rosen contracts json
   ergoNetwork: mainnet # mainnet | testnet
-  cleanupMnemonic: ''
-  minBoxValue: '1100000' # bigint-like string
+  cleanupMnemonic: 'office spare autumn bundle victory company twenty sure gossip wait math mosquito mention can witness'
+  minBoxValue: '100000' # bigint-like string
+  minCleanupValue: '500000000' # to register cleanup request in box-lookup and get at least this value
   txFee: '1100000' # string (used by tx builders)
 
+logs:
+  - type: console
+    level: info
+
 database:
-  type: sqlite # sqlite | postgres
-  path: ':memory:'
-  host: ''
-  port: 5432
-  user: ''
-  password: ''
-  name: ''
+  type: 'sqlite' # options: postgres, sqlite
+  path: './sqlite/cleanup.sqlite' # database path (for sqlite)
+  # type: sqlite # sqlite | postgres
+  # path: ':memory:'
+  # host: ''
+  # port: 5432
+  # user: ''
+  # password: ''
+  # name: ''
 
 txpot:
   updateInterval: 30
-  txRequiredConfirmations: 10
+  txRequiredConfirmations: 2
 
 scanner:
   updateInterval: 30
-  nodeUrl: ''
-  explorerUrl: ''
-  initialHeight: 0
+  nodeUrl: 'http://95.217.180.19:9053/'
+  explorerUrl: 'https://api.ergoplatform.com/'
+  initialHeight: 1685706
 
 boxLookup:
   updateInterval: 10
-  nodeUrl: ''
+  nodeUrl: 'http://95.217.180.19:9053/'
 
 

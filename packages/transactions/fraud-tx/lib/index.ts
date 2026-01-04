@@ -1,7 +1,3 @@
-export { FraudTx, FraudTxBuilder, type TriggerEventData } from './fraudTx';
-export {
-  hexToUint8Array,
-  bigIntToUint8Array,
-  toErgoBoxProxyIterator,
-  createChangeBox,
-} from './utils';
+export { FraudTx, FraudTxBuilder } from './fraudTx';
+export * from './types';
+export * from './utils';

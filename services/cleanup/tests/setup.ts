@@ -4,7 +4,6 @@ import './mocked/TxPot.mock';
 import './mocked/Scanner.mock';
 import './mocked/BoxLookup.mock';
 import './mocked/CleanupTxBuilders.mock';
-import './mocked/ExtractorPackages.mock';
-import './mocked/SignTx.mock';
+import './mocked/ErgoNodeNetwork.mock';
 
 

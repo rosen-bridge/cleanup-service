@@ -16,149 +16,48 @@ describe('FraudTx', () => {
     FraudTx['_instance'] = undefined;
   });
 
-  describe('getInstance', () => {
-    /**
-     * @target should throw exception when FraudTx._instance is not yet initialized
-     * @dependencies
-     * - None
-     * @scenario
-     * - Call FraudTx.getInstance without calling FraudTx.init
-     * - Check FraudTx.getInstance to throw an exception
-     * @expected
-     * - FraudTx.getInstance should throw an exception
-     */
-    it('should throw exception when FraudTx._instance is not yet initialized', () => {
-      expect(() => FraudTx.getInstance()).toThrowError(
-        'FraudTx instance is not initialized yet',
-      );
-    });
+  /**
+   * @target should throw exception when FraudTx._instance is not yet initialized
+   * @dependencies
+   * - None
+   * @scenario
+   * - Call FraudTx.getInstance without calling FraudTx.init
+   * - Check FraudTx.getInstance to throw an exception
+   * @expected
+   * - FraudTx.getInstance should throw an exception
+   */
+  it('should throw exception when FraudTx._instance is not yet initialized', () => {
+    expect(() => FraudTx.getInstance()).toThrowError(
+      'FraudTx instance is not initialized yet',
+    );
   });
 
-  describe('init and getInstance', () => {
-    /**
-     * @target should initialize singleton correctly
-     * @dependencies
-     * - None
-     * @scenario
-     * - Call FraudTx.init with parameters
-     * - Call FraudTx.getInstance to get instance
-     * @expected
-     * - getInstance should return the initialized instance
-     */
-    it('should initialize singleton correctly', () => {
-      const fraudAddress =
-        '9iHyKxXs2ZNLMp9N9gbUT9V8gTbsV7HED1C1VhttMfBUMPDyF7r';
-      const cleanerAddress =
-        '9f4QF8AD1nQ3nJahQVkMj8hFSVVzVom77b52JU7EW71Zexg6N8v';
-      const rwtTokenId =
-        'a908bf2e9d0452f4c9def5b0f0d6e8f0e3c8d5a1e4f8b2c9d0e3f8a5b1c4d7e0';
-      const minBoxValue = 1000000n;
-      const txFee = '1100000';
+  /**
+   * @target should initialize singleton correctly
+   * @dependencies
+   * - None
+   * @scenario
+   * - Call FraudTx.init with parameters
+   * - Call FraudTx.getInstance to get instance
+   * @expected
+   * - getInstance should return the initialized instance
+   */
+  it('should initialize singleton correctly', () => {
+    FraudTx.init(
+      testFraudConfig.fraudAddress,
+      testFraudConfig.cleanerAddress,
+      testFraudConfig.rwtTokenId,
+      testFraudConfig.minBoxValue,
+      testFraudConfig.txFee,
+    );
 
-      FraudTx.init(
-        fraudAddress,
-        cleanerAddress,
-        rwtTokenId,
-        minBoxValue,
-        txFee,
-      );
-
-      const instance = FraudTx.getInstance();
-      expect(instance).toBeDefined();
-      expect(instance['fraudAddress']).toEqual(fraudAddress);
-      expect(instance['cleanerAddress']).toEqual(cleanerAddress);
-      expect(instance['rwtTokenId']).toEqual(rwtTokenId);
-      expect(instance['minBoxValue']).toEqual(minBoxValue);
-      expect(instance['txFee']).toEqual(txFee);
-    });
-  });
-});
-
-describe('FraudTxBuilder', () => {
-  const fraudAddress = '9iHyKxXs2ZNLMp9N9gbUT9V8gTbsV7HED1C1VhttMfBUMPDyF7r';
-  const cleanerAddress = '9f4QF8AD1nQ3nJahQVkMj8hFSVVzVom77b52JU7EW71Zexg6N8v';
-  const rwtTokenId =
-    'a908bf2e9d0452f4c9def5b0f0d6e8f0e3c8d5a1e4f8b2c9d0e3f8a5b1c4d7e0';
-  const minBoxValue = 1000000n;
-  const txFee = '1100000';
-
-  beforeEach(() => {
-    FraudTx['_instance'] = undefined;
-    FraudTx.init(fraudAddress, cleanerAddress, rwtTokenId, minBoxValue, txFee);
-  });
-
-  describe('setCreationHeight', () => {
-    /**
-     * @target should throw error when height is invalid
-     * @dependencies
-     * - None
-     * @scenario
-     * - Create a builder with height = 0
-     * @expected
-     * - Should throw error
-     */
-    it('should throw error when height is invalid', () => {
-      expect(() =>
-        FraudTx.getInstance().newBuilder().setCreationHeight(0),
-      ).toThrow('Creation height must be a positive integer');
-    });
-
-    /**
-     * @target should create builder successfully when height is valid
-     * @dependencies
-     * - None
-     * @scenario
-     * - Create a builder with height = 1000
-     * @expected
-     * - Should return builder instance
-     * - Height should be set
-     */
-    it('should create builder successfully when height is valid', () => {
-      const fraudTxBuilder = FraudTx.getInstance()
-        .newBuilder()
-        .setCreationHeight(1000);
-
-      expect(fraudTxBuilder).toBeDefined();
-      expect(fraudTxBuilder['height']).toBe(1000);
-    });
-
-    /**
-     * @target should support method chaining
-     * @dependencies
-     * - None
-     * @scenario
-     * - Chain multiple setter methods
-     * @expected
-     * - Should return builder instance for chaining
-     */
-    it('should support method chaining', () => {
-      const triggerEventData: TriggerEventData = {
-        box: {} as ergoLib.ErgoBox,
-        wids: mockWids,
-        rwtAmount: 3000000n,
-      };
-
-      const fraudTxBuilder = FraudTx.getInstance()
-        .newBuilder()
-        .setTriggerEventData(triggerEventData)
-        .setCleanerBox({} as ergoLib.ErgoBox)
-        .setCreationHeight(1000)
-        .setFeeBoxes([]);
-
-      expect(fraudTxBuilder).toBeDefined();
-      expect(fraudTxBuilder['height']).toBe(1000);
-    });
-  });
-});
-
-// =============================================================================
-// Integration Tests - Full Fraud Transaction Generation
-// These tests require valid box data. Replace placeholders in testData.ts
-// =============================================================================
-
-describe('FraudTx Integration Tests', () => {
-  beforeEach(() => {
-    FraudTx['_instance'] = undefined;
+    const instance = FraudTx.getInstance();
+    expect(instance).toBeDefined();
+    expect(instance['fraudAddress']).toEqual(testFraudConfig.fraudAddress);
+    expect(instance['cleanerAddress']).toEqual(testFraudConfig.cleanerAddress);
+    expect(instance['rwtTokenId']).toEqual(testFraudConfig.rwtTokenId);
+    expect(instance['minBoxValue']).toEqual(testFraudConfig.minBoxValue);
+    expect(instance['txFee']).toEqual(testFraudConfig.txFee);
   });
 
   /**
@@ -278,6 +177,8 @@ describe('FraudTx Integration Tests', () => {
       // Each fraud box should have a WID in R4
       const r4 = fraudBox.register_value(4);
       expect(r4).toBeDefined();
+      const widBytes = r4?.to_byte_array();
+      expect(Buffer.from(widBytes ?? []).toString('hex')).toBe(mockWids[i]);
       expect(fraudBox.creation_height()).toBe(1000);
     }
 

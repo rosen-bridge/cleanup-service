@@ -3,8 +3,8 @@ import { DataSource } from '@rosen-bridge/extended-typeorm';
 
 import '../src/bootstrap';
 import { DBService } from '../src/services/dbService';
-import entities from '../src/db/entities';
-import migrations from '../src/db/migrations';
+import entities from '../src/database/entities';
+import migrations from '../src/database/migrations';
 import { resetServiceInstance } from './testUtils';
 
 describe('startService', () => {

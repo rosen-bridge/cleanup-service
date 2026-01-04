@@ -1,3 +1,0 @@
-export { serializedErgoBoxToOutputBox } from './serializedBox';
-
-

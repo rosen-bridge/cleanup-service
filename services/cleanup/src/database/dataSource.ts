@@ -1,6 +1,6 @@
 import { DataSource } from '@rosen-bridge/extended-typeorm';
 
-import { configs } from '../config';
+import { configs } from '../config/config';
 import entities from './entities';
 import migrations from './migrations';
 
