@@ -2,7 +2,6 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import { DataSource } from 'typeorm';
 import { ServiceManager } from '@rosen-bridge/service-manager';
 
-// import '../src/bootstrap';
 import { TxPotService } from '../src/services/txPotService/txPotService';
 import { DBService } from '../src/services/dbService';
 import { resetServiceInstance } from './testUtils';

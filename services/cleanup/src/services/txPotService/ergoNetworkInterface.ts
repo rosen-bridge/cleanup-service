@@ -2,13 +2,14 @@ import { AbstractPotChainManager, SigningStatus } from '@rosen-bridge/tx-pot';
 import * as ergoLib from 'ergo-lib-wasm-nodejs';
 import ErgoNodeNetwork from '../../network/ergoNodeNetwork';
 import { configs } from '../../config/config';
+import { AbstractLogger } from '@rosen-bridge/abstract-logger';
 
 export class ErgoNetworkInterface extends AbstractPotChainManager {
   readonly network: ErgoNodeNetwork;
 
-  constructor(private txRequiredConfirmations: number) {
+  constructor(private txRequiredConfirmations: number, logger?: AbstractLogger) {
     super();
-    this.network = new ErgoNodeNetwork(configs.scanner.nodeUrl);
+    this.network = new ErgoNodeNetwork(configs.scanner.nodeUrl, logger);
   }
 
   /**

@@ -291,14 +291,16 @@ export class CleanupWorkflowService extends AbstractService {
   /**
    * Box-lookup callback for repo address: caches the repo box.
    */
-  private onRepoSuffice: Request['onSuffice'] = async (boxes) => {
+  private onRepoSuffice: Request['onSuffice'] = async (boxes: OutputBox[]) => {
     if (!this.contracts) {
       throw new Error('CleanupWorkflowService is not prepared');
     }
     this.logger.info(`onRepoSuffice: got ${boxes.length} repo boxes`);
 
     const contracts = this.contracts;
-    const candidate = boxes.find((b) => hasToken(outputBoxToErgoBox(b), contracts.tokens.RepoNFT));
+    const candidate = boxes.find((b: OutputBox) =>
+      hasToken(outputBoxToErgoBox(b), contracts.tokens.RepoNFT),
+    );
     if (!candidate) return;
 
     this.repoBoxCache = candidate;
@@ -307,7 +309,7 @@ export class CleanupWorkflowService extends AbstractService {
   /**
    * Box-lookup callback for trigger-event boxes: builds and enqueues a fraud tx.
    */
-  private onTriggerEventSuffice: Request['onSuffice'] = async (boxes) => {
+  private onTriggerEventSuffice: Request['onSuffice'] = async (boxes: OutputBox[]) => {
     if (!this.contracts || !this.cleanupAddress) {
       throw new Error('CleanupWorkflowService is not prepared');
     }

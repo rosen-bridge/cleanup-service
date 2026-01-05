@@ -259,7 +259,7 @@ export class ScannerService extends AbstractService {
       ),
     );
     this.ergoScanner.registerExtractor(
-      new FraudExtractor(
+      new FraudExtractorCompat(
         extractorDataSource,
         'fraud-extractor',
         this.explorerUrl,
@@ -315,6 +315,10 @@ export class ScannerService extends AbstractService {
 
     this.scheduledJob = setTimeout(this.job, this.updateInterval * 1000);
   };
+}
+
+class FraudExtractorCompat extends FraudExtractor {
+  initializeBoxes = this.initializeData;
 }
 
 

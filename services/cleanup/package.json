@@ -23,7 +23,7 @@
     "@rosen-bridge/callback-logger": "^2.0.0",
     "@rosen-bridge/ergo-scanner": "^0.1.4",
     "@rosen-bridge/extended-typeorm": "1.0.1",
-    "@rosen-bridge/fraud-extractor": "^2.2.3",
+    "@rosen-bridge/fraud-extractor": "file:/Users/mehran/work/code/rosen/scanner/packages/fraud-extractor",
     "@rosen-bridge/fraud-tx": "0.1.0",
     "@rosen-bridge/json-bigint": "^1.0.0",
     "@rosen-bridge/rwt-repo": "^4.0.0",

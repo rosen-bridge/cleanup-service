@@ -71,7 +71,7 @@ export class TxPotService extends AbstractService {
    * @returns True when started
    */
   protected start = async (): Promise<boolean> => {
-    this.ergoNetworkInterface = new ErgoNetworkInterface(this.txRequiredConfirmations);
+    this.ergoNetworkInterface = new ErgoNetworkInterface(this.txRequiredConfirmations, this.logger);
     TxPot.getInstance().registerChain(
       ERGO_CHAIN_NAME,
       this.ergoNetworkInterface,

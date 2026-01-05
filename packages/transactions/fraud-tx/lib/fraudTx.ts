@@ -248,13 +248,9 @@ export class FraudTxBuilder {
   }> => {
     // Calculate how much ERG we need
     const fraudBoxCount = this.triggerEventData.wids.length;
-    const outputValue = this.minBoxValue * BigInt(fraudBoxCount + 1); // fraud boxes + cleaner box
-    const inputValue =
-      BigInt(this.triggerEventData.box.value().as_i64().to_str()) +
-      BigInt(this.cleanerBox.value().as_i64().to_str());
-    const requiredValue = outputValue - inputValue + BigInt(this.txFee);
-
-    const selectedFeeBoxes = await this.selectFeeBoxes(requiredValue);
+    const triggerBoxValue = BigInt(this.triggerEventData.box.value().as_i64().to_str());
+    const requiredFee = BigInt(this.txFee) + this.minBoxValue * BigInt(fraudBoxCount) - triggerBoxValue;
+    const selectedFeeBoxes = await this.selectFeeBoxes(requiredFee);
 
     // Create input boxes
     const inputBoxes = [

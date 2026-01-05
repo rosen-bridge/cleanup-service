@@ -3,7 +3,7 @@ import {
   ErgoBoxSelection,
   ErgoChangeBoxBuilder,
 } from '@rosen-bridge/ergo-box-selection';
-import { getTokenAmount } from './utils';
+import { getLockedRsnFromR5, getTokenAmount } from './utils';
 import * as ergoLib from 'ergo-lib-wasm-nodejs';
 import { RWTRepoBuilder } from '@rosen-bridge/rwt-repo';
 import { getWidFromR4Bytes } from './utils';
@@ -202,11 +202,7 @@ export class SlashTxBuilder {
       this.fraudBox,
       this.repoData.rwtTokenId,
     );
-    const rsnAmount = getTokenAmount(
-      this.collateralBox,
-      this.repoData.rsnTokenId,
-    );
-    const newRsnAmount = rsnAmount - slashedRwtCount;
+    const lockedRsn = getLockedRsnFromR5(this.collateralBox);
 
     const boxBuilder = new ergoLib.ErgoBoxCandidateBuilder(
       ergoLib.BoxValue.from_i64(
@@ -225,10 +221,11 @@ export class SlashTxBuilder {
     // Set R4 register (WID) - unchanged
     boxBuilder.set_register_value(4, this.collateralBox.register_value(4)!);
 
-    // Set R5 register (RSN amount) - reduced
+    // Set R5 register (locked RSN) - reduced
+    const newLockedRsn = lockedRsn - slashedRwtCount;
     boxBuilder.set_register_value(
       5,
-      ergoLib.Constant.from_i64(ergoLib.I64.from_str(newRsnAmount.toString())),
+      ergoLib.Constant.from_i64(ergoLib.I64.from_str(newLockedRsn.toString())),
     );
 
     return boxBuilder.build();
@@ -243,7 +240,7 @@ export class SlashTxBuilder {
   ): ergoLib.ErgoBoxCandidate => {
     const boxBuilder = new ergoLib.ErgoBoxCandidateBuilder(
       ergoLib.BoxValue.from_i64(
-        ergoLib.I64.from_str(this.minBoxValue.toString()),
+        ergoLib.I64.from_str(this.cleanupBox.value().as_i64().to_str()),
       ),
       ergoLib.Contract.new(this.cleanupBox.ergo_tree()),
       this.height,
@@ -327,11 +324,8 @@ export class SlashTxBuilder {
     const cleanupValue = BigInt(this.cleanupBox.value().as_i64().to_str());
 
     // Fraud input plus the cleanup box value can cover the fee.
-    const availableFeeBudget = fraudValue + cleanupValue;
-    const neededOutputValue = BigInt(this.txFee) + this.minBoxValue;
-    let requiredValue = neededOutputValue - availableFeeBudget;
-
-    const selectedFeeBoxes = await this.selectFeeBoxes(requiredValue);
+    const requiredFee = BigInt(this.txFee) + this.minBoxValue - fraudValue;
+    const selectedFeeBoxes = await this.selectFeeBoxes(requiredFee);
 
     // Create input boxes
     const inputBoxes = [
@@ -360,11 +354,6 @@ export class SlashTxBuilder {
     ).build({ height: this.height });
 
     const outputBoxes = [...outputs, ...changeBoxes];
-
-    // Debug: check types
-    outputBoxes.forEach((box, index) => {
-      console.log(`Box at index ${index}: ${box?.constructor?.name}`);
-    });
 
     // Build transaction
     const inputErgoBoxes = ergoLib.ErgoBoxes.empty();

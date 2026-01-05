@@ -39,7 +39,6 @@ import {
   spyOnSignAndEnqueueTx,
 } from './mocked/CleanupWorkflowService.mock';
 import './mocked/ErgoNodeNetwork.mock';
-import './mocked/CleanupTxBuilders.mock';
 import { CleanupTxType } from '../src/types';
 import { TransactionStatus } from '@rosen-bridge/tx-pot';
 import { dummyUnsignedTx, mkCandidate } from './utils/testUtils';
@@ -48,7 +47,6 @@ import {
   workflowCollateralOutputBox,
   workflowCleanupAddress,
   workflowFraudCleanerErgoBoxJson,
-  workflowFraudFeeErgoBoxesJson,
   workflowFraudOutputBox,
   workflowContracts,
   workflowMockRepoWids,

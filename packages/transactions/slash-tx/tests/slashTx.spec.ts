@@ -219,9 +219,14 @@ describe('SlashTx', () => {
     expect(r5Register).toBeDefined();
 
     const newCollateralRsn = BigInt(r5Register!.to_i64().to_str());
+    const originalLockedRsn = BigInt(
+      collateralBox
+        .register_value(5)!
+        .to_i64()
+        .to_str(),
+    );
     expect(newCollateralRsn).toBe(
-      getTokenAmount(collateralBox, testSlashConfig.rsnTokenId) -
-        slashedRwtAmount,
+      originalLockedRsn - slashedRwtAmount,
     );
 
     // Output 2: Cleanup box
