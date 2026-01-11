@@ -48,11 +48,15 @@ export class ErgoNetworkInterface extends AbstractPotChainManager {
     serializedTx: string,
     _signingStatus: SigningStatus,
   ): Promise<boolean> => {
-    // For now, just check if the transaction is not in mempool (basic validity check)
     const txBytes = Uint8Array.from(Buffer.from(serializedTx, 'base64'));
     const parsedTx = ergoLib.Transaction.sigma_parse_bytes(txBytes);
-    const txId = parsedTx.id().to_str();
-    return !(await this.network.isTxInMempool(txId));
+    const inputs = parsedTx.inputs();
+    for (let i = 0; i < inputs.len(); i++) {
+      const inputBoxId = inputs.get(i).box_id().to_str();
+      const isInputValid = await this.network.isBoxUnspentAndValid(inputBoxId);
+      if (!isInputValid) return false;
+    }
+    return true;
   };
 
   /**

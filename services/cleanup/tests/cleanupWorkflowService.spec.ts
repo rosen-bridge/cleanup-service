@@ -420,15 +420,16 @@ describe('cleanupWorkflowService', () => {
         await serviceInstance['onFraudBoxSuffice']([workflowFraudOutputBox], [], 0);
 
         expect(registerSpy).toHaveBeenCalledTimes(1);
-        const [fraudArg, fraudBoxArg, contractsArg, cleanupAddressArg] =
-          registerSpy.mock.calls[0] as unknown as [OutputBox, ergoLib.ErgoBox, unknown, string];
+        const [fraudArg, fraudBoxArg, widArg, contractsArg, cleanupAddressArg] =
+          registerSpy.mock.calls[0] as unknown as [OutputBox, ergoLib.ErgoBox, string, unknown, string];
         expect(fraudArg).toEqual(workflowFraudOutputBox);
         expect(fraudBoxArg.box_id().to_str()).toEqual(workflowFraudOutputBox.boxId);
+        expect(typeof widArg).toBe('string');
         expect(contractsArg).toEqual(getWorkflowContracts(serviceInstance));
         expect(cleanupAddressArg).toEqual(getCleanupAddress(serviceInstance));
 
         const pending = getPendingCollateralRequests(serviceInstance);
-        expect(pending.get(workflowFraudOutputBox.boxId)).toEqual(requestId);
+        expect(pending.get(widArg)).toEqual(requestId);
 
       });
     });
@@ -462,6 +463,7 @@ describe('cleanupWorkflowService', () => {
           serviceInstance,
           workflowFraudOutputBox,
           fraudBox,
+          workflowMockRepoWids[0]!,
           contracts!,
           cleanupAddress!,
         );
@@ -500,7 +502,7 @@ describe('cleanupWorkflowService', () => {
 
         const pending = getPendingCollateralRequests(serviceInstance);
         const requestId = 999;
-        pending.set(workflowFraudOutputBox.boxId, requestId);
+        pending.set(workflowMockRepoWids[0]!, requestId);
 
         const isEnqueuedSpy = vi.spyOn(TxPotService.getInstance(), 'isEnqueued');
         const signSpy = spyOnSignAndEnqueueTx(serviceInstance);
@@ -518,7 +520,7 @@ describe('cleanupWorkflowService', () => {
         expect(signSpy).not.toHaveBeenCalled();
         expect(isEnqueuedSpy).not.toHaveBeenCalled();
         expect(boxLookupUnregisterRequestMock).not.toHaveBeenCalled();
-        expect(pending.get(workflowFraudOutputBox.boxId)).toEqual(requestId);
+        expect(pending.get(workflowMockRepoWids[0]!)).toEqual(requestId);
 
       });
 
@@ -544,7 +546,7 @@ describe('cleanupWorkflowService', () => {
 
         const pending = getPendingCollateralRequests(serviceInstance);
         const requestId = 1001;
-        pending.set(workflowFraudOutputBox.boxId, requestId);
+        pending.set(workflowMockRepoWids[0]!, requestId);
 
         const cleanupBox = outputBoxToErgoBox(workflowSlashCleanupErgoBoxJson as unknown as OutputBox);
         const feeBoxes = workflowSlashFeeErgoBoxesJson.map((b) =>
@@ -569,7 +571,7 @@ describe('cleanupWorkflowService', () => {
 
         expect(signSpy).toHaveBeenCalled();
         expect(boxLookupUnregisterRequestMock).toHaveBeenCalledWith(requestId);
-        expect(pending.has(workflowFraudOutputBox.boxId)).toBe(false);
+        expect(pending.has(workflowMockRepoWids[0]!)).toBe(false);
 
       });
 

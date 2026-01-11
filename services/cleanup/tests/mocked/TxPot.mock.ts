@@ -7,11 +7,13 @@ const txPotMocks = vi.hoisted(() => {
   const txPotUpdateMock = vi.fn().mockResolvedValue(undefined);
   const txPotAddTxMock = vi.fn().mockResolvedValue(undefined);
   const txPotGetTxsQueryMock = vi.fn().mockResolvedValue([]);
+  const txPotRegisterCallbackMock = vi.fn();
   const txPotGetInstanceMock = vi.fn(() => ({
     update: txPotUpdateMock,
     addTx: txPotAddTxMock,
     getTxsQuery: txPotGetTxsQueryMock,
     registerChain: txPotRegisterChainMock,
+    registerCallback: txPotRegisterCallbackMock,
   }));
 
   return {
@@ -20,6 +22,7 @@ const txPotMocks = vi.hoisted(() => {
     txPotUpdateMock,
     txPotAddTxMock,
     txPotGetTxsQueryMock,
+    txPotRegisterCallbackMock,
     txPotGetInstanceMock,
   };
 });
@@ -29,6 +32,7 @@ export const txPotSetupMock = txPotMocks.txPotSetupMock;
 export const txPotUpdateMock = txPotMocks.txPotUpdateMock;
 export const txPotAddTxMock = txPotMocks.txPotAddTxMock;
 export const txPotGetTxsQueryMock = txPotMocks.txPotGetTxsQueryMock;
+export const txPotRegisterCallbackMock = txPotMocks.txPotRegisterCallbackMock;
 export const txPotGetInstanceMock = txPotMocks.txPotGetInstanceMock;
 
 vi.mock('@rosen-bridge/tx-pot', async (importOriginal) => {

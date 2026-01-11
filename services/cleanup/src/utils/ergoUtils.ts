@@ -106,3 +106,22 @@ export const getNextRepoFromTx = (
   if (!repo) throw new Error('repo box not found in tx outputs');
   return repo.to_js_eip12() as OutputBox;
 };
+
+
+/**
+ * Returns the collateral box from a signed transaction outputs.
+ *
+ * @param tx - Signed transaction
+ * @param awcNftTokenId - AWC NFT token id
+ * @returns Collateral box
+ * @throws When collateral box is not found in outputs
+ */
+export const getCollateralFromTx = (
+  tx: ergoLib.Transaction,
+  awcNftTokenId: string,
+): OutputBox => {
+  const outputs = getOutputs(tx);
+  const collateral = outputs.find((b) => hasToken(b, awcNftTokenId));
+  if (!collateral) throw new Error('collateral box not found in tx outputs');
+  return collateral.to_js_eip12() as OutputBox;
+};

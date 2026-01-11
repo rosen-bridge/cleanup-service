@@ -5,7 +5,12 @@ import { OutputBox } from '@ergo-raffle/box-lookup';
 import { CleanupTxType, RosenContracts } from '../../src/types';
 
 export const spyOnSignAndEnqueueTx = (serviceInstance: CleanupWorkflowService) => {
-  return vi.spyOn(serviceInstance as unknown as Record<string, () => Promise<void>>, 'signAndEnqueueTx').mockResolvedValue(undefined);
+  return vi
+    .spyOn(
+      serviceInstance as unknown as Record<string, () => Promise<ergoLib.Transaction>>,
+      'signAndEnqueueTx',
+    )
+    .mockResolvedValue({} as unknown as ergoLib.Transaction);
 };
 
 type CleanupWorkflowServicePrivates = {
@@ -16,7 +21,7 @@ type CleanupWorkflowServicePrivates = {
     height: number,
     extra: string,
     extra2: string,
-  ) => Promise<void>;
+  ) => Promise<ergoLib.Transaction>;
   onCollateralSuffice: (
     fraud: OutputBox,
     fraudBox: ergoLib.ErgoBox,
@@ -28,10 +33,11 @@ type CleanupWorkflowServicePrivates = {
   registerCollateralRequest: (
     fraud: OutputBox,
     fraudBox: ergoLib.ErgoBox,
+    wid: string,
     contracts: RosenContracts,
     cleanupAddress: string,
   ) => number;
-  pendingCollateralRequests: Map<string, number>;
+  pendingCollateralRequestsByWid: Map<string, number>;
   cleanupCache?: { cleanupBox: ergoLib.ErgoBox; feeBoxes: ergoLib.ErgoBox[] };
   repoBoxCache?: OutputBox;
   contracts?: RosenContracts;
@@ -46,7 +52,8 @@ export const spyOnRegisterCollateralRequest = (serviceInstance: CleanupWorkflowS
 };
 
 export const getPendingCollateralRequests = (serviceInstance: CleanupWorkflowService) => {
-  return (serviceInstance as unknown as CleanupWorkflowServicePrivates).pendingCollateralRequests;
+  return (serviceInstance as unknown as CleanupWorkflowServicePrivates)
+    .pendingCollateralRequestsByWid;
 };
 
 export const getWorkflowContracts = (serviceInstance: CleanupWorkflowService) => {
@@ -69,12 +76,14 @@ export const callRegisterCollateralRequest = (
   serviceInstance: CleanupWorkflowService,
   fraud: OutputBox,
   fraudBox: ergoLib.ErgoBox,
+  wid: string,
   contracts: RosenContracts,
   cleanupAddress: string,
 ) => {
   return (serviceInstance as unknown as CleanupWorkflowServicePrivates).registerCollateralRequest(
     fraud,
     fraudBox,
+    wid,
     contracts,
     cleanupAddress,
   );

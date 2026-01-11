@@ -8,7 +8,7 @@ import { DBService } from './dbService';
 import { ScannerService } from './scannerService';
 import { TxPotService } from './txPotService/txPotService';
 import { loadRosenContracts } from '../config/contractsConfig';
-import { mnemonicToAddress, signTx, getNextCleanupFromTx, getNextRepoFromTx } from '../utils/ergoUtils';
+import { mnemonicToAddress, signTx, getNextCleanupFromTx, getNextRepoFromTx, getCollateralFromTx } from '../utils/ergoUtils';
 import { CleanupTxType } from '../types'
 import {
   createCollateralRequest,
@@ -59,7 +59,13 @@ export class CleanupWorkflowService extends AbstractService {
 
   private cleanupCache?: { cleanupBox: ergoLib.ErgoBox; feeBoxes: ergoLib.ErgoBox[] };
   private repoBoxCache?: OutputBox;
-  private pendingCollateralRequests = new Map<string, number>();
+  // wid -> requestId (per-round de-dupe: only one collateral fetch request per watcher)
+  private pendingCollateralRequestsByWid = new Map<string, number>();
+  // wid -> frauds to be slashed in this round
+  private fraudQueueByWid = new Map<string, OutputBox[]>();
+  // wid -> latest collateral box to use within this round
+  private collateralBoxByWid = new Map<string, OutputBox>();
+
   private collateralTree?: string;
 
   private constructor(logger?: AbstractLogger) {
@@ -124,10 +130,10 @@ export class CleanupWorkflowService extends AbstractService {
     BoxLookupService.getInstance().removeRequest(this.repoRequestId);
     this.repoRequestId = undefined;
 
-    for (const requestId of this.pendingCollateralRequests.values()) {
+    for (const requestId of this.pendingCollateralRequestsByWid.values()) {
       BoxLookupService.getInstance().removeRequest(requestId);
     }
-    this.pendingCollateralRequests.clear();
+    this.pendingCollateralRequestsByWid.clear();
     clearTimeout(this.scheduledJob);
     this.shouldStopJob = false;
     this.setStatus(ServiceStatus.dormant);
@@ -143,6 +149,9 @@ export class CleanupWorkflowService extends AbstractService {
   private onBoxLookupRoundEnd = async (): Promise<void> => {
     this.cleanupCache = undefined;
     this.repoBoxCache = undefined;
+    this.pendingCollateralRequestsByWid.clear();
+    this.fraudQueueByWid.clear();
+    this.collateralBoxByWid.clear();
   };
 
   /**
@@ -229,7 +238,7 @@ export class CleanupWorkflowService extends AbstractService {
     height: number,
     extra: string,
     extra2: string,
-  ): Promise<void> => {
+  ): Promise<ergoLib.Transaction> => {
     if (!this.contracts) {
       throw new Error('CleanupWorkflowService is not prepared');
     }
@@ -254,13 +263,7 @@ export class CleanupWorkflowService extends AbstractService {
       extra2,
     );
 
-    const nextCleanup = getNextCleanupFromTx(signed, this.contracts.tokens.CleanupNFT);
-
-    this.cleanupCache = nextCleanup;
-
-    if (txType === CleanupTxType.slash) {
-      this.repoBoxCache = getNextRepoFromTx(signed, this.contracts.tokens.RepoNFT);
-    }
+    return signed;
   };
 
 
@@ -373,7 +376,8 @@ export class CleanupWorkflowService extends AbstractService {
         .build();
       
       
-      await this.signAndEnqueueTx(
+      const signed = await this.signAndEnqueueTx(
+
         CleanupTxType.fraud,
         result.unsignedTx,
         result.inputBoxes,
@@ -381,6 +385,7 @@ export class CleanupWorkflowService extends AbstractService {
         trigger.boxId,
         trigger.transactionId,
       );
+      this.cleanupCache = getNextCleanupFromTx(signed, this.contracts.tokens.CleanupNFT);
     }
   };
 
@@ -396,19 +401,32 @@ export class CleanupWorkflowService extends AbstractService {
     const contracts = this.contracts;
     const cleanupAddress = this.cleanupAddress;
 
+    // Queue all new frauds by wid (some wids may have multiple fraud boxes that must be slashed sequentially).
     for (const fraud of boxes) {
-      // if a "valid" tx with the same boxId is already enqueued, we don't need to try to build a new one
-      const isAlreadyEnqueued = await TxPotService.getInstance().isEnqueued(CleanupTxType.slash, fraud.boxId);
+      const isAlreadyEnqueued = await TxPotService.getInstance().isEnqueued(
+        CleanupTxType.slash,
+        fraud.boxId,
+      );
       if (isAlreadyEnqueued) {
-        this.logger.info(`skipping fraud tx build for fraud box [${fraud.boxId}]: already enqueued`);
+        this.logger.info(
+          `skipping fraud tx build for fraud box [${fraud.boxId}]: already enqueued`,
+        );
         continue;
       }
-      const fraudBox = outputBoxToErgoBox(fraud);
 
-      // De-duplicate: create one collateral request per fraud box id.
-      if (this.pendingCollateralRequests.has(fraud.boxId)) continue;
-      const requestId = this.registerCollateralRequest(fraud, fraudBox, contracts, cleanupAddress);
-      this.pendingCollateralRequests.set(fraud.boxId, requestId);
+      const wid = getWidFromR4Bytes(outputBoxToErgoBox(fraud));
+      const q = this.fraudQueueByWid.get(wid) ?? [];
+      q.push(fraud);
+      this.fraudQueueByWid.set(wid, q);
+    }
+
+    // Register at most one collateral request per wid in this round.
+    for (const [wid, q] of this.fraudQueueByWid.entries()) {
+      if (this.pendingCollateralRequestsByWid.has(wid)) {
+        continue;
+      }
+      const requestId = this.registerCollateralRequest(wid, contracts, cleanupAddress);
+      this.pendingCollateralRequestsByWid.set(wid, requestId);
     }
   };
 
@@ -422,15 +440,13 @@ export class CleanupWorkflowService extends AbstractService {
    * @returns Registered request id
    */
   private registerCollateralRequest = (
-    fraud: OutputBox,
-    fraudBox: ergoLib.ErgoBox,
+    wid: string,
     contracts: RosenContracts,
     cleanupAddress: string,
   ): number => {
     if (!this.collateralTree) {
       throw new Error('CleanupWorkflowService is not prepared');
     }
-    const wid = getWidFromR4Bytes(fraudBox);
     return BoxLookupService.getInstance().addRequest(
       createCollateralRequest(
         this.collateralTree,
@@ -444,7 +460,7 @@ export class CleanupWorkflowService extends AbstractService {
             return [];
           }
         },
-        async (boxes: OutputBox[]) => await this.onCollateralSuffice(fraud, fraudBox, wid, contracts, cleanupAddress, boxes),
+        async (boxes: OutputBox[]) => await this.onCollateralSuffice(wid, contracts, cleanupAddress, boxes),
 
       ),
     );
@@ -462,8 +478,6 @@ export class CleanupWorkflowService extends AbstractService {
    * @param boxes - Selected boxes for the request (collateral candidates)
    */
   private onCollateralSuffice = async (
-    fraud: OutputBox,
-    fraudBox: ergoLib.ErgoBox,
     wid: string,
     contracts: RosenContracts,
     cleanupAddress: string,
@@ -475,49 +489,68 @@ export class CleanupWorkflowService extends AbstractService {
       return;
     }
     try {
-      if (await TxPotService.getInstance().isEnqueued(CleanupTxType.slash, fraud.boxId)) return;
-      if (!this.cleanupCache || !this.repoBoxCache) return;
 
-      const height = await ScannerService.getInstance().getCurrentHeight();
-      const { cleanupBox, feeBoxes } = this.cleanupCache;
-      const repoBox = this.repoBoxCache;
+      if (!this.cleanupCache || !this.repoBoxCache) {
+        this.logger.warn('cleanup cache or repo box cache is not initialized in onCollateralSuffice');
+        return;
+      }
 
-      SlashTx.init(
-        configs.workflow.minBoxValue,
-        configs.workflow.txFee,
-        this.logger,
-      );
-      const collateralBox = outputBoxToErgoBox(collateralBoxes[0]);
-      const result = await SlashTx.getInstance()
-        .newBuilder()
-        .setFraudBox(fraudBox)
-        .setCollateralBox(collateralBox)
-        .setRepoData(
-          toRwtRepoData(repoBox, {
-            repoNftTokenId: contracts.tokens.RepoNFT,
-            rwtTokenId: contracts.tokens.RWTId,
-            rsnTokenId: contracts.tokens.RSN,
-            awcTokenId: contracts.tokens.AwcNFT,
-          }),
-        )
-        .setCleanupBox(cleanupBox)
-        .setCreationHeight(height)
-        .setFeeBoxes(feeBoxes)
-        .setChangeAddress(cleanupAddress)
-        .build();
-      await this.signAndEnqueueTx(
-        CleanupTxType.slash,
-        result.unsignedTx,
-        result.inputBoxes,
-        height,
-        fraud.boxId,
-        fraud.transactionId,
-      );
+      // Initialize starting collateral for this wid in this round (chain/mempool aware).
+      let currentCollateral = this.collateralBoxByWid.get(wid) ?? collateralBoxes[0];
+      this.collateralBoxByWid.set(wid, currentCollateral);
+
+      const q = this.fraudQueueByWid.get(wid) ?? [];
+
+      while (q.length > 0) {
+        const nextFraud = q.shift()!;
+        // if a "valid" tx with the same boxId is already enqueued, skip it
+        if (await TxPotService.getInstance().isEnqueued(CleanupTxType.slash, nextFraud.boxId)) {
+          this.logger.info(`skipping fraud tx build for fraud box [${nextFraud.boxId}]: already enqueued`);
+          continue;
+        }
+        const height = await ScannerService.getInstance().getCurrentHeight();
+        const { cleanupBox, feeBoxes } = this.cleanupCache;
+        const repoBox = this.repoBoxCache;
+        const collateralBox = this.collateralBoxByWid.get(wid)!;
+
+        SlashTx.init(configs.workflow.minBoxValue, configs.workflow.txFee, this.logger);
+
+        const result = await SlashTx.getInstance()
+          .newBuilder()
+          .setFraudBox(outputBoxToErgoBox(nextFraud))
+          .setCollateralBox(outputBoxToErgoBox(collateralBox))
+          .setRepoData(
+            toRwtRepoData(repoBox, {
+              repoNftTokenId: contracts.tokens.RepoNFT,
+              rwtTokenId: contracts.tokens.RWTId,
+              rsnTokenId: contracts.tokens.RSN,
+              awcTokenId: contracts.tokens.AwcNFT,
+            }),
+          )
+          .setCleanupBox(cleanupBox)
+          .setCreationHeight(height)
+          .setFeeBoxes(feeBoxes)
+          .setChangeAddress(cleanupAddress)
+          .build();
+
+        const signedTx = await this.signAndEnqueueTx(
+          CleanupTxType.slash,
+          result.unsignedTx,
+          result.inputBoxes,
+          height,
+          nextFraud.boxId,
+          nextFraud.transactionId,
+        );
+        this.cleanupCache = getNextCleanupFromTx(signedTx, contracts.tokens.CleanupNFT);
+        this.repoBoxCache = getNextRepoFromTx(signedTx, contracts.tokens.RepoNFT);
+        this.collateralBoxByWid.set(wid, getCollateralFromTx(signedTx, contracts.tokens.AwcNFT));
+      }
+
     } finally {
-      const requestId = this.pendingCollateralRequests.get(fraud.boxId);
+      const requestId = this.pendingCollateralRequestsByWid.get(wid);
       if (requestId) {
         BoxLookupService.getInstance().removeRequest(requestId);
-        this.pendingCollateralRequests.delete(fraud.boxId);
+        this.pendingCollateralRequestsByWid.delete(wid);
       }
     }
   };
@@ -555,5 +588,6 @@ export class CleanupWorkflowService extends AbstractService {
     }
   };
 }
+
 
 

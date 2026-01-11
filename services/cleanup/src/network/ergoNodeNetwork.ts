@@ -2,7 +2,7 @@ import { AbstractLogger, DummyLogger } from '@rosen-bridge/abstract-logger';
 import ergoNodeClientFactory from '@rosen-clients/ergo-node';
 import * as ergoLib from 'ergo-lib-wasm-nodejs';
 import JsonBigInt from '@rosen-bridge/json-bigint';
-import { AxiosError } from 'axios';
+import { AxiosError, isAxiosError } from 'axios';
 
 const TX_FETCHING_PAGE_SIZE = 50;
 

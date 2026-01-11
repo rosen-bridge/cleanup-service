@@ -6,8 +6,8 @@ workflow:
   ergoNetwork: mainnet # mainnet | testnet
   cleanupMnemonic: 'office spare autumn bundle victory company twenty sure gossip wait math mosquito mention can witness'
   minBoxValue: '1000000' # bigint-like string
-  minCleanupValue: '500000000' # to register cleanup request in box-lookup and get at least this value
-  txFee: '1100000' # string (used by tx builders)
+  minCleanupValue: '700000000' # to register cleanup request in box-lookup and get at least this value
+  txFee: '1500000' # string (used by tx builders)
 
 logs:
   - type: console
@@ -30,12 +30,12 @@ txpot:
 
 scanner:
   updateInterval: 30
-  nodeUrl: 'http://95.217.180.19:9053/'
+  nodeUrl: 'http://191.101.234.147:9053/'
   explorerUrl: 'https://api.ergoplatform.com/'
   initialHeight: 1685706
 
 boxLookup:
   updateInterval: 10
-  nodeUrl: 'http://95.217.180.19:9053/'
+  nodeUrl: 'http://191.101.234.147:9053/'
 
 
