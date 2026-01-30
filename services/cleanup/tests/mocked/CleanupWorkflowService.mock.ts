@@ -51,11 +51,6 @@ export const spyOnRegisterCollateralRequest = (serviceInstance: CleanupWorkflowS
   );
 };
 
-export const getPendingCollateralRequests = (serviceInstance: CleanupWorkflowService) => {
-  return (serviceInstance as unknown as CleanupWorkflowServicePrivates)
-    .pendingCollateralRequestsByWid;
-};
-
 export const getWorkflowContracts = (serviceInstance: CleanupWorkflowService) => {
   return (serviceInstance as unknown as CleanupWorkflowServicePrivates).contracts;
 };
@@ -70,42 +65,6 @@ export const getCleanupCache = (serviceInstance: CleanupWorkflowService) => {
 
 export const getRepoBoxCache = (serviceInstance: CleanupWorkflowService) => {
   return (serviceInstance as unknown as CleanupWorkflowServicePrivates).repoBoxCache;
-};
-
-export const callRegisterCollateralRequest = (
-  serviceInstance: CleanupWorkflowService,
-  fraud: OutputBox,
-  fraudBox: ergoLib.ErgoBox,
-  wid: string,
-  contracts: RosenContracts,
-  cleanupAddress: string,
-) => {
-  return (serviceInstance as unknown as CleanupWorkflowServicePrivates).registerCollateralRequest(
-    fraud,
-    fraudBox,
-    wid,
-    contracts,
-    cleanupAddress,
-  );
-};
-
-export const callOnCollateralSuffice = async (
-  serviceInstance: CleanupWorkflowService,
-  fraud: OutputBox,
-  fraudBox: ergoLib.ErgoBox,
-  wid: string,
-  contracts: RosenContracts,
-  cleanupAddress: string,
-  boxes: OutputBox[],
-) => {
-  return (serviceInstance as unknown as CleanupWorkflowServicePrivates).onCollateralSuffice(
-    fraud,
-    fraudBox,
-    wid,
-    contracts,
-    cleanupAddress,
-    boxes,
-  );
 };
 
 export const callSignAndEnqueueTx = async (
@@ -133,6 +92,10 @@ export const setCleanupCache = (
   feeBoxes: ergoLib.ErgoBox[],
 ) => {
   (serviceInstance as unknown as CleanupWorkflowServicePrivates).cleanupCache = { cleanupBox, feeBoxes };
+};
+
+export const setFraudQueueByWid = (serviceInstance: CleanupWorkflowService, wid: string, frauds: OutputBox[]) => {
+  (serviceInstance as unknown as CleanupWorkflowServicePrivates)['fraudQueueByWid'].set(wid, frauds);
 };
 
 export const setRepoBoxCache = (serviceInstance: CleanupWorkflowService, repoBox: OutputBox) => {
