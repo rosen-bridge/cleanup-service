@@ -1,7 +1,0 @@
-{
-  "vitest.nodeEnv": {
-    "NODE_OPTIONS": "--import tsx",
-    "NODE_ENV": "test"
-  },
-  "sqltools.useNodeRuntime": true
-}
