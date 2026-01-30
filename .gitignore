@@ -11,6 +11,7 @@ out
 bin
 .DS_Store
 .env
+services/cleanup/config/local.yml
 yarn.lock
 
 # Scala/Metals

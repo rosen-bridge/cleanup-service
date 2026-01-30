@@ -5,8 +5,8 @@ workflow:
   contractsPath: './tests/resources/contracts.json'
   ergoNetwork: mainnet
   cleanupMnemonic: 'abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about'
-  minBoxValue: '1100000'
-  minCleanupValue: '500000000'
+  minBoxValue: 1100000
+  minCleanupValue: 500000000
   txFee: '1100000'
 
 database:
@@ -26,5 +26,9 @@ scanner:
 boxLookup:
   updateInterval: 1
   nodeUrl: 'http://127.0.0.1:9052'
+
+logs:
+  - type: console
+    level: info
 
 
