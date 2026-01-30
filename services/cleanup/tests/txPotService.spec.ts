@@ -69,35 +69,6 @@ describe('startService', () => {
   });
 });
 
-describe('stopService', () => {
-  /**
-   * @target should stop cleanly and cancel scheduled updates
-   * @dependencies
-   * - DBService started
-   * @scenario
-   * - Start TxPotService
-   * - Stop it
-   * @expected
-   * - stopService resolves true
-   * - update does not run again after stop
-   */
-  it('should stop cleanly and cancel scheduled updates', async () => {
-    vi.useFakeTimers();
-    const ds = await initServices(1);
-
-    await TxPotService.getInstance().startService();
-
-    // act
-    const ok = await TxPotService.getInstance().stopService();
-    vi.advanceTimersByTime(2000);
-    await vi.runOnlyPendingTimersAsync();
-
-    expect(ok).toBe(true);
-    expect(txPotUpdateMock).toHaveBeenCalledTimes(1);
-    await ds.destroy();
-  });
-});
-
 afterEach(() => {
   vi.clearAllMocks();
   vi.useRealTimers();

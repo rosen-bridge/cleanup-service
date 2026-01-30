@@ -1,22 +1,24 @@
 import config from 'config';
 
-import { BoxLookupConfig } from '../types'
-import { DatabaseConfig } from '../types'
-import { LogConfig } from '../types'
-import { ScannerConfig } from '../types'
-import { TxPotConfig } from '../types'
-import { WorkflowConfig } from '../types'
+import {
+  BoxLookup,
+  Database,
+  Logs,
+  Scanner,
+  Txpot,
+  Workflow,
+} from '../types';
 
 export interface CleanupServiceConfig {
   readonly intervals: {
     readonly workflow: number; // seconds
   };
-  readonly workflow: WorkflowConfig;
-  readonly database: DatabaseConfig;
-  readonly txpot: TxPotConfig;
-  readonly scanner: ScannerConfig;
-  readonly boxLookup: BoxLookupConfig;
-  readonly logs: LogConfig[];
+  readonly workflow: Workflow;
+  readonly database: Database;
+  readonly txpot: Txpot;
+  readonly scanner: Scanner;
+  readonly boxLookup: BoxLookup;
+  readonly logs: Logs[];
 }
 
 const getBigInt = (key: string): bigint => {
@@ -79,7 +81,7 @@ export const configs: CleanupServiceConfig = {
     updateInterval: config.get<number>('boxLookup.updateInterval'),
     nodeUrl: getRequiredString('boxLookup.nodeUrl'),
   },
-  logs: config.has('logs') ? config.get<LogConfig[]>('logs') : [],
+  logs: config.has('logs') ? config.get<Logs[]>('logs') : [],
 };
 
 

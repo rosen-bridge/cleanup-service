@@ -1,5 +1,5 @@
 import { AbstractLogger } from '@rosen-bridge/abstract-logger';
-import { AbstractService, Dependency, ServiceStatus } from '@rosen-bridge/service-manager';
+import { Dependency, PeriodicTaskService, ServiceStatus } from '@rosen-bridge/service-manager';
 import { OutputBox, Request } from '@ergo-raffle/box-lookup';
 import * as ergoLib from 'ergo-lib-wasm-nodejs';
 import { configs } from '../config/config';
@@ -33,9 +33,10 @@ import { RosenContracts } from '../types'
 import { ERGO_CHAIN_NAME } from '../config/constants';
 import { TransactionStatus } from '@rosen-bridge/tx-pot';
 
-export class CleanupWorkflowService extends AbstractService {
+export class CleanupWorkflowService extends PeriodicTaskService {
   static name = 'CleanupWorkflowService';
-  name = CleanupWorkflowService.name;
+  protected name = CleanupWorkflowService.name;
+  taskName = 'CleanupWorkflowTask';
   private static instance?: CleanupWorkflowService;
 
   protected dependencies: Dependency[] = [
@@ -44,11 +45,6 @@ export class CleanupWorkflowService extends AbstractService {
     { serviceName: TxPotService.name, allowedStatuses: [ServiceStatus.running] },
     { serviceName: BoxLookupService.name, allowedStatuses: [ServiceStatus.running] },
   ];
-
-  private isJobRunning = false;
-  private scheduledJob?: NodeJS.Timeout;
-  private shouldStopJob = false;
-  private continueStop: () => void = () => undefined;
 
   private contracts?: RosenContracts;
   private cleanupAddress?: string;
@@ -93,31 +89,19 @@ export class CleanupWorkflowService extends AbstractService {
   };
 
   /**
-   * Starts the periodic workflow loop.
-   *
-   * @returns True when started
+   * Initializes runtime requirements before periodic tasks start.
    */
-  protected start = async (): Promise<boolean> => {
+  protected preStart = async (): Promise<void> => {
     this.prepareRuntime();
     this.registerRequests();
     BoxLookupService.getInstance().onAfterServe(this.onBoxLookupRoundEnd);
-    this.job();
-    this.setStatus(ServiceStatus.running);
-    return true;
   };
 
   /**
-   * Stops the periodic workflow loop.
-   *
-   * @returns True when stopped
+   * Cleans up requests after periodic tasks stop.
    */
-  protected stop = async (): Promise<boolean> => {
-    if (this.isJobRunning) {
-      await new Promise<void>((resolve) => {
-        this.continueStop = resolve;
-        this.shouldStopJob = true;
-      });
-    }
+  protected postStop = async (): Promise<void> => {
+    BoxLookupService.getInstance().onAfterServe(async () => undefined);
     BoxLookupService.getInstance().removeRequest(this.triggerRequestId);
     this.triggerRequestId = undefined;
 
@@ -134,10 +118,10 @@ export class CleanupWorkflowService extends AbstractService {
       BoxLookupService.getInstance().removeRequest(requestId);
     }
     this.pendingCollateralRequestsByWid.clear();
-    clearTimeout(this.scheduledJob);
-    this.shouldStopJob = false;
-    this.setStatus(ServiceStatus.dormant);
-    return true;
+    this.fraudQueueByWid.clear();
+    this.collateralBoxByWid.clear();
+    this.cleanupCache = undefined;
+    this.repoBoxCache = undefined;
   };
 
   /**
@@ -573,19 +557,19 @@ export class CleanupWorkflowService extends AbstractService {
   };
 
   /**
-   * Periodic job that will coordinate cleanup work items.
+   * Periodic job that keeps the workflow alive.
    */
-  private job = async (): Promise<void> => {
-    this.isJobRunning = true;
-    try {
-    } finally {
-      this.scheduledJob = setTimeout(this.job, configs.intervals.workflow * 1000);
-      this.isJobRunning = false;
-      if (this.shouldStopJob) {
-        this.shouldStopJob = false;
-        this.continueStop();
-      }
-    }
+  protected getTasks = () => {
+    return [
+      {
+        fn: this.workflowTick,
+        interval: configs.intervals.workflow * 1000,
+      },
+    ];
+  };
+
+  private workflowTick = async (): Promise<void> => {
+    // No-op: all work is triggered by box-lookup callbacks.
   };
 }
 

@@ -1,13 +1,14 @@
 import { AbstractLogger } from '@rosen-bridge/abstract-logger';
-import { AbstractService, Dependency, ServiceStatus } from '@rosen-bridge/service-manager';
+import { Dependency, PeriodicTaskService, ServiceStatus } from '@rosen-bridge/service-manager';
 import { BoxLookup, Request } from '@ergo-raffle/box-lookup';
 
 import { TxPotService } from './txPotService/txPotService';
 import { deserializeTxForBoxLookup } from '../utils/boxLookupUtils';
 
-export class BoxLookupService extends AbstractService {
+export class BoxLookupService extends PeriodicTaskService {
   static name = 'BoxLookupService';
-  name = BoxLookupService.name;
+  protected name = BoxLookupService.name;
+  taskName = 'BoxLookupServiceTask';
   private static instance?: BoxLookupService;
 
   protected dependencies: Dependency[] = [
@@ -16,10 +17,6 @@ export class BoxLookupService extends AbstractService {
 
   private boxLookup: BoxLookup;
   private readonly updateInterval: number;
-  private isJobRunning = false;
-  private scheduledJob?: NodeJS.Timeout;
-  private shouldStopJob = false;
-  private continueStop: () => void = () => undefined;
   private afterServeHandler: () => Promise<void> = async () => undefined;
 
   private constructor(updateInterval: number, nodeUrl: string, logger?: AbstractLogger) {
@@ -56,33 +53,21 @@ export class BoxLookupService extends AbstractService {
     return this.instance;
   };
 
-  /**
-   * Starts the periodic request serving loop.
-   *
-   * @returns True when started
-   */
-  protected start = async (): Promise<boolean> => {
-    this.job();
-    this.setStatus(ServiceStatus.running);
-    return true;
+  protected preStart = async (): Promise<void> => {
+    return;
   };
 
-  /**
-   * Stops the periodic request serving loop.
-   *
-   * @returns True when stopped
-   */
-  protected stop = async (): Promise<boolean> => {
-    if (this.isJobRunning) {
-      await new Promise<void>((resolve) => {
-        this.continueStop = resolve;
-        this.shouldStopJob = true;
-      });
-    }
-    clearTimeout(this.scheduledJob);
-    this.shouldStopJob = false;
-    this.setStatus(ServiceStatus.dormant);
-    return true;
+  protected postStop = async (): Promise<void> => {
+    return;
+  };
+
+  protected getTasks = () => {
+    return [
+      {
+        fn: this.serveRequests,
+        interval: this.updateInterval * 1000,
+      },
+    ];
   };
 
   /**
@@ -112,21 +97,11 @@ export class BoxLookupService extends AbstractService {
     this.afterServeHandler = handler;
   };
 
-  /**
-   * Periodic job that serves BoxLookup requests.
-   */
-  private job = async (): Promise<void> => {
-    this.isJobRunning = true;
+  private serveRequests = async (): Promise<void> => {
     try {
       await this.boxLookup.serveRequests();
     } catch (e) {
       this.logger.error(e instanceof Error ? e.message : String(e));
-    }
-    this.scheduledJob = setTimeout(this.job, this.updateInterval * 1000);
-    this.isJobRunning = false;
-    if (this.shouldStopJob) {
-      this.shouldStopJob = false;
-      this.continueStop();
     }
   };
 }

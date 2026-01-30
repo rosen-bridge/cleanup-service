@@ -4,11 +4,11 @@ import WinstonLogger, {
 } from '@rosen-bridge/winston-logger';
 
 import { configs } from './config';
-import { LogConfig } from '../types'
+import { Logs } from '../types'
 
 let rootLogger: CallbackLogger | undefined;
 
-export const getLogOptions = (logConfigs: LogConfig[] = []): TransportOptions[] => {
+export const getLogOptions = (logConfigs: Logs[] = []): TransportOptions[] => {
   const logOptions: TransportOptions[] = [];
   for (const log of logConfigs) {
     switch (log.type) {

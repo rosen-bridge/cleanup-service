@@ -3,7 +3,7 @@ import { BlockEntity } from '@rosen-bridge/abstract-scanner';
 import { BoxEntity, ErgoUTXOExtractor } from '@rosen-bridge/address-extractor';
 import { ErgoNodeNetwork, ErgoScanner } from '@rosen-bridge/ergo-scanner';
 import { FraudExtractor, FraudEntity } from '@rosen-bridge/fraud-extractor';
-import { AbstractService, Dependency, ServiceStatus } from '@rosen-bridge/service-manager';
+import { Dependency, PeriodicTaskService, ServiceStatus } from '@rosen-bridge/service-manager';
 import { ErgoNetworkType } from '@rosen-bridge/scanner-interfaces';
 import {
   CollateralEntity,
@@ -22,17 +22,14 @@ import { DBService } from './dbService';
 import { RosenContracts } from '../types'
 import { serializedErgoBoxToOutputBox } from '../utils/cleanupUtils';
 
-export class ScannerService extends AbstractService {
+export class ScannerService extends PeriodicTaskService {
   static name = 'ScannerService';
-  name = ScannerService.name;
+  protected name = ScannerService.name;
+  taskName = 'ScannerServiceTask';
   private static instance?: ScannerService;
   private ergoScanner: ErgoScanner;
   private extractorsRegistered = false;
   private readonly nodeUrl: string;
-  private isJobRunning = false;
-  private scheduledJob?: NodeJS.Timeout;
-  private shouldStopJob = false;
-  private continueStop: () => void = () => undefined;
   private readonly updateInterval: number;
 
   protected dependencies: Dependency[] = [
@@ -105,34 +102,12 @@ export class ScannerService extends AbstractService {
     return this.instance;
   };
 
-  /**
-   * Starts the periodic scanner update loop.
-   *
-   * @returns True when started
-   */
-  protected start = async (): Promise<boolean> => {
+  protected preStart = async (): Promise<void> => {
     this.registerExtractorsIfNeeded();
-    this.job();
-    this.setStatus(ServiceStatus.running);
-    return true;
   };
 
-  /**
-   * Stops the periodic scanner update loop.
-   *
-   * @returns True when stopped
-   */
-  protected stop = async (): Promise<boolean> => {
-    if (this.isJobRunning) {
-      await new Promise<void>((resolve) => {
-        this.continueStop = resolve;
-        this.shouldStopJob = true;
-      });
-    }
-    clearTimeout(this.scheduledJob);
-    this.shouldStopJob = false;
-    this.setStatus(ServiceStatus.dormant);
-    return true;
+  protected postStop = async (): Promise<void> => {
+    return;
   };
 
   /**
@@ -293,27 +268,22 @@ export class ScannerService extends AbstractService {
     this.extractorsRegistered = true;
   };
 
-  /**
-   * Periodic job that runs `scanner.update()`.
-   */
-  private job = async (): Promise<void> => {
-    this.isJobRunning = true;
+  protected getTasks = () => {
+    return [
+      {
+        fn: this.updateScanner,
+        interval: this.updateInterval * 1000,
+      },
+    ];
+  };
+
+  private updateScanner = async (): Promise<void> => {
     try {
       await this.ergoScanner.update();
     } catch (e) {
       this.logger.warn(`Scanner update failed: ${e}`);
       if (e instanceof Error && e.stack) this.logger.warn(e.stack);
-    } finally {
-      this.isJobRunning = false;
     }
-
-    if (this.shouldStopJob) {
-      this.shouldStopJob = false;
-      this.continueStop();
-      return;
-    }
-
-    this.scheduledJob = setTimeout(this.job, this.updateInterval * 1000);
   };
 }
 

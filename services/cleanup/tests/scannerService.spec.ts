@@ -44,37 +44,6 @@ describe('scannerService', () => {
     });
   });
 
-  describe('stopService', () => {
-    /**
-     * @target should stop cleanly and cancel scheduled updates
-     * @dependencies
-     * - DBService started
-     * @scenario
-     * - Start scanner service
-     * - Stop it
-     * @expected
-     * - stopService resolves true
-     * - update does not run again after stop
-     */
-    it('should stop cleanly and cancel scheduled updates', async () => {
-      vi.useFakeTimers();
-      const ds = await initServices(1);
-      await ScannerService.getInstance().startService();
-      await Promise.resolve();
-
-      // act
-      const ok = await ScannerService.getInstance().stopService();
-      vi.advanceTimersByTime(2000);
-      await vi.runOnlyPendingTimersAsync();
-
-      // assert
-      expect(ok).toBe(true);
-      expect(ergoScannerUpdateMock).toHaveBeenCalledTimes(1);
-
-      await ds.destroy();
-    });
-  });
-
   afterEach(() => {
     vi.clearAllMocks();
     vi.useRealTimers();

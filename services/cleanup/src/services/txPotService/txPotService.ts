@@ -1,5 +1,5 @@
 import { AbstractLogger } from '@rosen-bridge/abstract-logger';
-import { AbstractService, Dependency, ServiceStatus } from '@rosen-bridge/service-manager';
+import { Dependency, PeriodicTaskService, ServiceStatus } from '@rosen-bridge/service-manager';
 import { TxOptions, TxPot } from '@rosen-bridge/tx-pot';
 import { DataSource } from '@rosen-bridge/extended-typeorm';
 import { DBService } from '../dbService';
@@ -7,19 +7,16 @@ import { ERGO_CHAIN_NAME } from '../../config/constants';
 import { ErgoNetworkInterface } from './ergoNetworkInterface';
 import { CleanupTxType } from '../../types'
 
-export class TxPotService extends AbstractService {
+export class TxPotService extends PeriodicTaskService {
   static name = 'TxPotService';
-  name = TxPotService.name;
+  protected name = TxPotService.name;
+  taskName = 'TxPotServiceTask';
   private static instance?: TxPotService;
 
   protected dependencies: Dependency[] = [
     { serviceName: DBService.name, allowedStatuses: [ServiceStatus.running] },
   ];
 
-  private isJobRunning = false;
-  private scheduledJob?: NodeJS.Timeout;
-  private shouldStopJob = false;
-  private continueStop: () => void = () => undefined;
   private ergoNetworkInterface?: ErgoNetworkInterface;
 
   private constructor(
@@ -66,37 +63,18 @@ export class TxPotService extends AbstractService {
   };
 
   /**
-   * Sets up tx-pot, registers the Ergo chain manager, and starts the update loop.
-   *
-   * @returns True when started
+   * Sets up tx-pot and registers the Ergo chain manager.
    */
-  protected start = async (): Promise<boolean> => {
+  protected preStart = async (): Promise<void> => {
     this.ergoNetworkInterface = new ErgoNetworkInterface(this.txRequiredConfirmations, this.logger);
     TxPot.getInstance().registerChain(
       ERGO_CHAIN_NAME,
       this.ergoNetworkInterface,
     );
-    void this.job();
-    this.setStatus(ServiceStatus.running);
-    return true;
   };
 
-  /**
-   * Stops the periodic tx-pot update loop.
-   *
-   * @returns True when stopped
-   */
-  protected stop = async (): Promise<boolean> => {
-    if (this.isJobRunning) {
-      await new Promise<void>((resolve) => {
-        this.continueStop = resolve;
-        this.shouldStopJob = true;
-      });
-    }
-    clearTimeout(this.scheduledJob);
-    this.shouldStopJob = false;
-    this.setStatus(ServiceStatus.dormant);
-    return true;
+  protected postStop = async (): Promise<void> => {
+    this.ergoNetworkInterface = undefined;
   };
 
   /**
@@ -137,17 +115,16 @@ export class TxPotService extends AbstractService {
     return this.ergoNetworkInterface;
   };
 
-  /**
-   * Periodic job that runs `TxPot.update()`.
-   */
-  private job = async (): Promise<void> => {
-    this.isJobRunning = true;
+  protected getTasks = () => {
+    return [
+      {
+        fn: this.updateTxPot,
+        interval: this.updateInterval * 1000,
+      },
+    ];
+  };
+
+  private updateTxPot = async (): Promise<void> => {
     await TxPot.getInstance().update();
-    this.scheduledJob = setTimeout(this.job, this.updateInterval * 1000);
-    this.isJobRunning = false;
-    if (this.shouldStopJob) {
-      this.shouldStopJob = false;
-      this.continueStop();
-    }
   };
 }
