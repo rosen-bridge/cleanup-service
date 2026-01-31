@@ -18,14 +18,14 @@
     "ergo-lib-wasm-nodejs": "^0.24.1"
   },
   "dependencies": {
-    "@ergo-raffle/box-lookup": "file:../../../raffle-v2/packages/box-lookup",
+    "@ergo-raffle/box-lookup": "0.1.0",
     "@rosen-bridge/abstract-logger": "^4.0.0",
     "@rosen-bridge/abstract-scanner": "^0.2.3",
     "@rosen-bridge/address-extractor": "^6.3.0",
     "@rosen-bridge/callback-logger": "^2.0.0",
     "@rosen-bridge/ergo-scanner": "^0.1.4",
     "@rosen-bridge/extended-typeorm": "1.0.1",
-    "@rosen-bridge/fraud-extractor": "file:/Users/mehran/work/code/rosen/scanner/packages/fraud-extractor",
+    "@rosen-bridge/fraud-extractor": "2.2.3",
     "@rosen-bridge/fraud-tx": "0.1.0",
     "@rosen-bridge/json-bigint": "^1.0.0",
     "@rosen-bridge/rwt-repo": "^4.0.0",
