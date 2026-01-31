@@ -1,4 +1,7 @@
-image: node:20.11
+image: node:22.18
+
+before_script:
+  - npm install -g npm@11.6.2
 
 stages:
   - installation
