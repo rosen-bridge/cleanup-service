@@ -220,14 +220,9 @@ describe('SlashTx', () => {
 
     const newCollateralRsn = BigInt(r5Register!.to_i64().to_str());
     const originalLockedRsn = BigInt(
-      collateralBox
-        .register_value(5)!
-        .to_i64()
-        .to_str(),
+      collateralBox.register_value(5)!.to_i64().to_str(),
     );
-    expect(newCollateralRsn).toBe(
-      originalLockedRsn - slashedRwtAmount,
-    );
+    expect(newCollateralRsn).toBe(originalLockedRsn - slashedRwtAmount);
 
     // Output 2: Cleanup box
     const cleanupOutput = outputs.get(2);

@@ -52,7 +52,11 @@ export const getWidFromR4Bytes = (box: ergoLib.ErgoBox): string => {
  * @returns Locked RSN amount
  */
 export const getLockedRsnFromR5 = (box: ergoLib.ErgoBox): bigint => {
-  return BigInt(getRequiredRegister(box, ergoLib.NonMandatoryRegisterId.R5, 'R5').to_i64().to_str());
+  return BigInt(
+    getRequiredRegister(box, ergoLib.NonMandatoryRegisterId.R5, 'R5')
+      .to_i64()
+      .to_str(),
+  );
 };
 
 /**
