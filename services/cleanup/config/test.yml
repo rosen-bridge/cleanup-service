@@ -1,0 +1,34 @@
+intervals:
+  workflow: 1
+
+workflow:
+  contractsPath: './tests/resources/contracts.json'
+  ergoNetwork: mainnet
+  cleanupMnemonic: 'abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about'
+  minBoxValue: 1100000
+  minCleanupValue: 500000000
+  txFee: '1100000'
+
+database:
+  type: sqlite
+  path: ':memory:'
+
+txpot:
+  updateInterval: 1
+  txRequiredConfirmations: 1
+
+scanner:
+  updateInterval: 1
+  nodeUrl: 'http://127.0.0.1:9052'
+  explorerUrl: 'http://explorer'
+  initialHeight: 0
+
+boxLookup:
+  updateInterval: 1
+  nodeUrl: 'http://127.0.0.1:9052'
+
+logs:
+  - type: console
+    level: info
+
+

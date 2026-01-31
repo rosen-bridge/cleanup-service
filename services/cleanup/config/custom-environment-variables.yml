@@ -1,0 +1,34 @@
+intervals:
+  workflow: CLEANUP_WORKFLOW_INTERVAL
+
+workflow:
+  contractsPath: CLEANUP_CONTRACTS_PATH
+  ergoNetwork: CLEANUP_ERGO_NETWORK
+  cleanupMnemonic: CLEANUP_MNEMONIC
+  minBoxValue: CLEANUP_MIN_BOX_VALUE
+  txFee: CLEANUP_TX_FEE
+
+database:
+  type: CLEANUP_DB_TYPE
+  path: CLEANUP_DB_PATH
+  host: CLEANUP_DB_HOST
+  port: CLEANUP_DB_PORT
+  user: CLEANUP_DB_USER
+  password: CLEANUP_DB_PASSWORD
+  name: CLEANUP_DB_NAME
+
+txpot:
+  updateInterval: CLEANUP_TXPOT_INTERVAL
+  txRequiredConfirmations: CLEANUP_TX_CONFIRMATIONS
+
+scanner:
+  updateInterval: CLEANUP_SCANNER_INTERVAL
+  nodeUrl: CLEANUP_SCANNER_NODE_URL
+  explorerUrl: CLEANUP_SCANNER_EXPLORER_URL
+  initialHeight: CLEANUP_SCANNER_INITIAL_HEIGHT
+
+boxLookup:
+  updateInterval: CLEANUP_BOXLOOKUP_INTERVAL
+  nodeUrl: CLEANUP_BOXLOOKUP_NODE_URL
+
+

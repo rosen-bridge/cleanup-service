@@ -1,0 +1,52 @@
+{
+  "name": "@rosen-bridge/cleanup-service",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "start": "NODE_OPTIONS='--import tsx' tsx ./src/index.ts",
+    "build": "tsc --build tsconfig.build.json",
+    "type-check": "tsc --noEmit",
+    "test": "NODE_OPTIONS='--import tsx' vitest",
+    "lint": "node -e \"process.exit(0)\"",
+    "gen-config-types": "NODE_OPTIONS='--import tsx' npx @rosen-bridge/config generate-ts-types --schema ./config/schema.json --output ./src/types/configs.ts --root-type CleanupServiceConfig",
+    "gen-config-defaults": "NODE_OPTIONS='--import tsx' npx @rosen-bridge/config generate-default --schema ./config/schema.json --output ./config/default.yml --format yaml"
+  },
+  "peerDependencies": {
+    "ergo-lib-wasm-nodejs": "^0.24.1"
+  },
+  "dependencies": {
+    "@ergo-raffle/box-lookup": "file:../../../raffle-v2/packages/box-lookup",
+    "@rosen-bridge/abstract-logger": "^4.0.0",
+    "@rosen-bridge/abstract-scanner": "^0.2.3",
+    "@rosen-bridge/address-extractor": "^6.3.0",
+    "@rosen-bridge/callback-logger": "^2.0.0",
+    "@rosen-bridge/ergo-scanner": "^0.1.4",
+    "@rosen-bridge/extended-typeorm": "1.0.1",
+    "@rosen-bridge/fraud-extractor": "file:/Users/mehran/work/code/rosen/scanner/packages/fraud-extractor",
+    "@rosen-bridge/fraud-tx": "0.1.0",
+    "@rosen-bridge/json-bigint": "^1.0.0",
+    "@rosen-bridge/rwt-repo": "^4.0.0",
+    "@rosen-bridge/scanner-interfaces": "^0.2.1",
+    "@rosen-bridge/service-manager": "^1.0.2",
+    "@rosen-bridge/slash-tx": "0.1.0",
+    "@rosen-bridge/tokens": "^4.0.1",
+    "@rosen-bridge/tx-pot": "^2.0.2",
+    "@rosen-bridge/watcher-data-extractor": "^12.3.0",
+    "@rosen-bridge/winston-logger": "^3.0.0",
+    "@rosen-clients/ergo-node": "^1.2.3",
+    "axios": "^1.13.2",
+    "config": "^3.3.7",
+    "reflect-metadata": "^0.2.2"
+  },
+  "devDependencies": {
+    "@rosen-bridge/config": "^0.4.0",
+    "@types/config": "^0.0.41",
+    "sqlite3": "^5.1.7",
+    "tsx": "^4.20.5",
+    "typescript": "^5.3.3",
+    "vitest": "^3.2.4"
+  }
+}
