@@ -31,7 +31,7 @@ import {
   spyOnSignAndEnqueueTx,
 } from './mocked/CleanupWorkflowService.mock';
 import './mocked/ErgoNodeNetwork.mock';
-import { CleanupTxType, RosenContracts } from '../src/types';
+import { RosenContracts } from '../src/types';
 import {
   workflowCollateralOutputBox,
   workflowFraudOutputBox,
@@ -361,34 +361,6 @@ describe('cleanupWorkflowService', () => {
 
     describe('onFraudBoxSuffice', () => {
       /**
-       * @target should skip enqueued fraud boxes
-       * @dependencies
-       * - CleanupWorkflowService started
-       * @scenario
-       * - Mock isEnqueued=true
-       * - Call onFraudBoxSuffice with a fraud box
-       * @expected
-       * - registerCollateralRequest not called
-       * - pendingCollateralRequests unchanged
-       */
-      it('should skip enqueued fraud boxes', async () => {
-        vi.useFakeTimers();
-
-        const serviceInstance = CleanupWorkflowService.getInstance();
-        const isEnqueuedSpy = vi
-          .spyOn(TxPotService.getInstance(), 'isEnqueued')
-          .mockResolvedValue(true);
-        const registerSpy = spyOnRegisterCollateralRequest(serviceInstance);
-
-        await serviceInstance['onFraudBoxSuffice']([workflowFraudOutputBox], [], 0);
-
-        expect(isEnqueuedSpy).toHaveBeenCalledWith(CleanupTxType.slash, workflowFraudOutputBox.boxId);
-        expect(registerSpy).not.toHaveBeenCalled();
-        expect(serviceInstance['pendingCollateralRequestsByWid'].size).toBe(0);
-
-      });
-
-      /**
        * @target should register collateral request for new fraud boxes
        * @dependencies
        * - CleanupWorkflowService started
@@ -403,7 +375,6 @@ describe('cleanupWorkflowService', () => {
         vi.useFakeTimers();
 
         const serviceInstance = CleanupWorkflowService.getInstance();
-        vi.spyOn(TxPotService.getInstance(), 'isEnqueued').mockResolvedValue(false);
 
         const requestId = 101;
         const registerSpy = spyOnRegisterCollateralRequest(serviceInstance).mockReturnValue(requestId);
@@ -489,7 +460,6 @@ describe('cleanupWorkflowService', () => {
         const requestId = 999;
         pending.set(workflowMockRepoWids[0]!, requestId);
 
-        const isEnqueuedSpy = vi.spyOn(TxPotService.getInstance(), 'isEnqueued');
         const signSpy = spyOnSignAndEnqueueTx(serviceInstance);
 
         await serviceInstance['onCollateralSuffice'](
@@ -500,7 +470,6 @@ describe('cleanupWorkflowService', () => {
         );
 
         expect(signSpy).not.toHaveBeenCalled();
-        expect(isEnqueuedSpy).not.toHaveBeenCalled();
         expect(boxLookupUnregisterRequestMock).not.toHaveBeenCalled();
         expect(pending.get(workflowMockRepoWids[0]!)).toEqual(requestId);
 
@@ -539,7 +508,6 @@ describe('cleanupWorkflowService', () => {
         setRepoBoxCache(serviceInstance, workflowRepoOutputBox);
         setFraudQueueByWid(serviceInstance, wid, [workflowFraudOutputBox]);
 
-        vi.spyOn(TxPotService.getInstance(), 'isEnqueued').mockResolvedValue(false);
         vi.spyOn(ScannerService.getInstance(), 'getCurrentHeight').mockResolvedValue(123);
         const signSpy = spyOnSignAndEnqueueTx(serviceInstance);
         const slashTx = ergoLib.Transaction.from_json(JsonBigInt.stringify(signedSlashTxJson));

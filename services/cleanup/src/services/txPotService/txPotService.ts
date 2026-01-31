@@ -87,23 +87,6 @@ export class TxPotService extends PeriodicTaskService {
   };
 
   /**
-   * Checks whether a work-item (identified by `extra`) is already enqueued in TxPot.
-   *
-   * @param txType - Cleanup tx type
-   * @param extra - Unique work id (boxId)
-   * @returns True when already enqueued
-   */
-  isEnqueued = async (txType: CleanupTxType, extra: string): Promise<boolean> => {
-    const opts: TxOptions = {
-      chain: ERGO_CHAIN_NAME,
-      txType,
-      extra,
-    };
-    const existing = await this.getTxPot().getTxsQuery([opts]);
-    return existing.length > 0;
-  };
-
-  /**
    * Returns the Ergo network interface.
    *
    * @returns Ergo network interface

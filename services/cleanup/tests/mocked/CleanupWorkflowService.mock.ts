@@ -19,8 +19,6 @@ type CleanupWorkflowServicePrivates = {
     unsignedTx: ergoLib.UnsignedTransaction,
     inputBoxes: ergoLib.ErgoBox[],
     height: number,
-    extra: string,
-    extra2: string,
   ) => Promise<ergoLib.Transaction>;
   onCollateralSuffice: (
     fraud: OutputBox,
@@ -73,16 +71,12 @@ export const callSignAndEnqueueTx = async (
   unsignedTx: ergoLib.UnsignedTransaction,
   inputBoxes: ergoLib.ErgoBox[],
   height: number,
-  extra: string,
-  extra2: string,
 ) => {
   return (serviceInstance as unknown as CleanupWorkflowServicePrivates).signAndEnqueueTx(
     txType,
     unsignedTx,
     inputBoxes,
     height,
-    extra,
-    extra2,
   );
 };
 

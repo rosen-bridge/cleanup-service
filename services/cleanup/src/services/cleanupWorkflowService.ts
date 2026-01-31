@@ -219,9 +219,7 @@ export class CleanupWorkflowService extends PeriodicTaskService {
     txType: CleanupTxType,
     unsignedTx: ergoLib.UnsignedTransaction,
     inputBoxes: ergoLib.ErgoBox[],
-    height: number,
-    extra: string,
-    extra2: string,
+    height: number
   ): Promise<ergoLib.Transaction> => {
     if (!this.contracts) {
       throw new Error('CleanupWorkflowService is not prepared');
@@ -242,9 +240,7 @@ export class CleanupWorkflowService extends PeriodicTaskService {
       0,
       serializedTx,
       TransactionStatus.SIGNED,
-      height,
-      extra,
-      extra2,
+      height
     );
 
     return signed;
@@ -316,13 +312,6 @@ export class CleanupWorkflowService extends PeriodicTaskService {
       };
       const { cleanupBox, feeBoxes } = this.cleanupCache;
 
-
-      const isAlreadyEnqueued = await TxPotService.getInstance().isEnqueued(CleanupTxType.fraud, trigger.boxId);
-      if (isAlreadyEnqueued) {
-        this.logger.info(`skipping fraud tx build for trigger [${trigger.boxId}]: already enqueued`);
-        continue;
-      }
-
       const triggerBox = outputBoxToErgoBox(trigger);
       const digest = getWidListDigestFromR4(triggerBox);
       const commitmentCount = getCommitmentCountFromR7(triggerBox);
@@ -366,8 +355,6 @@ export class CleanupWorkflowService extends PeriodicTaskService {
         result.unsignedTx,
         result.inputBoxes,
         height,
-        trigger.boxId,
-        trigger.transactionId,
       );
       this.cleanupCache = getNextCleanupFromTx(signed, this.contracts.tokens.CleanupNFT);
     }
@@ -387,17 +374,6 @@ export class CleanupWorkflowService extends PeriodicTaskService {
 
     // Queue all new frauds by wid (some wids may have multiple fraud boxes that must be slashed sequentially).
     for (const fraud of boxes) {
-      const isAlreadyEnqueued = await TxPotService.getInstance().isEnqueued(
-        CleanupTxType.slash,
-        fraud.boxId,
-      );
-      if (isAlreadyEnqueued) {
-        this.logger.info(
-          `skipping fraud tx build for fraud box [${fraud.boxId}]: already enqueued`,
-        );
-        continue;
-      }
-
       const wid = getWidFromR4Bytes(outputBoxToErgoBox(fraud));
       const q = this.fraudQueueByWid.get(wid) ?? [];
       q.push(fraud);
@@ -487,11 +463,6 @@ export class CleanupWorkflowService extends PeriodicTaskService {
 
       while (q.length > 0) {
         const nextFraud = q.shift()!;
-        // if a "valid" tx with the same boxId is already enqueued, skip it
-        if (await TxPotService.getInstance().isEnqueued(CleanupTxType.slash, nextFraud.boxId)) {
-          this.logger.info(`skipping fraud tx build for fraud box [${nextFraud.boxId}]: already enqueued`);
-          continue;
-        }
         const height = await ScannerService.getInstance().getCurrentHeight();
         const { cleanupBox, feeBoxes } = this.cleanupCache;
         const repoBox = this.repoBoxCache;
@@ -522,8 +493,6 @@ export class CleanupWorkflowService extends PeriodicTaskService {
           result.unsignedTx,
           result.inputBoxes,
           height,
-          nextFraud.boxId,
-          nextFraud.transactionId,
         );
         this.cleanupCache = getNextCleanupFromTx(signedTx, contracts.tokens.CleanupNFT);
         this.repoBoxCache = getNextRepoFromTx(signedTx, contracts.tokens.RepoNFT);
