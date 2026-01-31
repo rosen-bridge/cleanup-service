@@ -300,7 +300,6 @@ export class SlashTxBuilder {
     this.validateSlash();
 
     const fraudValue = BigInt(this.fraudBox.value().as_i64().to_str());
-    const cleanupValue = BigInt(this.cleanupBox.value().as_i64().to_str());
 
     // Fraud input plus the cleanup box value can cover the fee.
     const requiredFee = BigInt(this.txFee) + this.minBoxValue - fraudValue;
