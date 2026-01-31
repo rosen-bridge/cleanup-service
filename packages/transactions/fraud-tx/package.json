@@ -1,0 +1,42 @@
+{
+  "name": "@rosen-bridge/fraud-tx",
+  "version": "0.1.0",
+  "description": "Transaction builder for creating fraud boxes from trigger events",
+  "repository": "git+https://github.com/rosen-bridge/cleanup-service.git",
+  "license": "GPL-3.0",
+  "author": "Rosen Team",
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc --build tsconfig.build.json",
+    "coverage": "npm run test -- --coverage",
+    "lint": "eslint --fix . && npm run prettify",
+    "prettify": "prettier --write . --ignore-path ../../../.gitignore",
+    "release": "npm run build && npm publish --access public",
+    "test": "NODE_OPTIONS='--import tsx' vitest",
+    "type-check": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@types/node": "^20.10.6",
+    "@vitest/coverage-istanbul": "^3.2.4",
+    "prettier": "^3.5.3",
+    "tsx": "^4.19.2",
+    "typescript": "^5.0.0",
+    "vitest": "^3.2.4"
+  },
+  "optionalDependencies": {
+    "@rollup/rollup-linux-x64-gnu": "^4.52.5"
+  },
+  "engines": {
+    "node": ">=20.10.0"
+  },
+  "peerDependencies": {
+    "ergo-lib-wasm-nodejs": "^0.24.1"
+  },
+  "dependencies": {
+    "@rosen-bridge/abstract-logger": "^4.0.0",
+    "@rosen-bridge/ergo-box-selection": "^2.1.0",
+    "@rosen-bridge/json-bigint": "^0.1.0"
+  }
+}
