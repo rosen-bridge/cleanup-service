@@ -3,9 +3,10 @@ import {
   ErgoBoxSelection,
   ErgoChangeBoxBuilder,
 } from '@rosen-bridge/ergo-box-selection';
-import { getLockedRsnFromR5, getTokenAmount } from './utils';
+import { getTokenAmount } from './utils';
 import * as ergoLib from 'ergo-lib-wasm-nodejs';
 import { RWTRepoBuilder } from '@rosen-bridge/rwt-repo';
+import { CollateralBox } from '@rosen-bridge/collateral';
 import { getWidFromR4Bytes } from './utils';
 import { RWTRepoData } from './types';
 
@@ -202,33 +203,11 @@ export class SlashTxBuilder {
       this.fraudBox,
       this.repoData.rwtTokenId,
     );
-    const lockedRsn = getLockedRsnFromR5(this.collateralBox);
-
-    const boxBuilder = new ergoLib.ErgoBoxCandidateBuilder(
-      ergoLib.BoxValue.from_i64(
-        ergoLib.I64.from_str(this.collateralBox.value().as_i64().to_str()),
-      ),
-      ergoLib.Contract.new(this.collateralBox.ergo_tree()),
-      this.height,
-    );
-
-    // Keep collateral tokens unchanged.
-    for (let i = 0; i < this.collateralBox.tokens().len(); i++) {
-      const token = this.collateralBox.tokens().get(i);
-      boxBuilder.add_token(token.id(), token.amount());
-    }
-
-    // Set R4 register (WID) - unchanged
-    boxBuilder.set_register_value(4, this.collateralBox.register_value(4)!);
-
-    // Set R5 register (locked RSN) - reduced
-    const newLockedRsn = lockedRsn - slashedRwtCount;
-    boxBuilder.set_register_value(
-      5,
-      ergoLib.Constant.from_i64(ergoLib.I64.from_str(newLockedRsn.toString())),
-    );
-
-    return boxBuilder.build();
+    const collateral = new CollateralBox(this.collateralBox, this.logger);
+    const collateralBuilder = collateral.toBuilder();
+    collateralBuilder.unlockRsn(slashedRwtCount);
+    collateralBuilder.setHeight(this.height);
+    return collateralBuilder.build();
   };
 
   /**
