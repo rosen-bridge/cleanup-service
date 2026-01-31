@@ -466,6 +466,9 @@ export class CleanupWorkflowService extends PeriodicTaskService {
     ];
   };
 
+  /**
+   * Periodic tick used to keep the service active.
+   */
   private workflowTick = async (): Promise<void> => {
     // No-op: all work is triggered by box-lookup callbacks.
   };
