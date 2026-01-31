@@ -10,13 +10,7 @@ import { TxPotService } from './txPotService/txPotService';
 import { loadRosenContracts } from '../config/contractsConfig';
 import { mnemonicToAddress, signTx, getNextCleanupFromTx, getNextRepoFromTx, getCollateralFromTx } from '../utils/ergoUtils';
 import { CleanupTxType } from '../types'
-import {
-  createCollateralRequest,
-  createCleanupRequest,
-  createFraudBoxRequest,
-  createRepoRequest,
-  createTriggerEventRequest,
-} from '../utils/boxLookupUtils';
+import { createCollateralRequest } from '../utils/boxLookupUtils';
 import {
   outputBoxToErgoBox,
   getCommitmentCountFromR7,
@@ -32,6 +26,7 @@ import { SlashTx } from '@rosen-bridge/slash-tx';
 import { RosenContracts } from '../types'
 import { ERGO_CHAIN_NAME } from '../config/constants';
 import { TransactionStatus } from '@rosen-bridge/tx-pot';
+import { CleanupWorkflowState, registerCleanupRequests } from './cleanupWorkflow';
 
 export class CleanupWorkflowService extends PeriodicTaskService {
   static name = 'CleanupWorkflowService';
@@ -48,19 +43,7 @@ export class CleanupWorkflowService extends PeriodicTaskService {
 
   private contracts?: RosenContracts;
   private cleanupAddress?: string;
-  private triggerRequestId?: number;
-  private fraudRequestId?: number;
-  private cleanupRequestId?: number;
-  private repoRequestId?: number;
-
-  private cleanupCache?: { cleanupBox: ergoLib.ErgoBox; feeBoxes: ergoLib.ErgoBox[] };
-  private repoBoxCache?: OutputBox;
-  // wid -> requestId (per-round de-dupe: only one collateral fetch request per watcher)
-  private pendingCollateralRequestsByWid = new Map<string, number>();
-  // wid -> frauds to be slashed in this round
-  private fraudQueueByWid = new Map<string, OutputBox[]>();
-  // wid -> latest collateral box to use within this round
-  private collateralBoxByWid = new Map<string, OutputBox>();
+  private readonly state = new CleanupWorkflowState();
 
   private collateralTree?: string;
 
@@ -102,26 +85,15 @@ export class CleanupWorkflowService extends PeriodicTaskService {
    */
   protected postStop = async (): Promise<void> => {
     BoxLookupService.getInstance().onAfterServe(async () => undefined);
-    BoxLookupService.getInstance().removeRequest(this.triggerRequestId);
-    this.triggerRequestId = undefined;
+    BoxLookupService.getInstance().removeRequest(this.state.requestIds.trigger);
+    BoxLookupService.getInstance().removeRequest(this.state.requestIds.fraud);
+    BoxLookupService.getInstance().removeRequest(this.state.requestIds.cleanup);
+    BoxLookupService.getInstance().removeRequest(this.state.requestIds.repo);
 
-    BoxLookupService.getInstance().removeRequest(this.fraudRequestId);
-    this.fraudRequestId = undefined;
-
-    BoxLookupService.getInstance().removeRequest(this.cleanupRequestId);
-    this.cleanupRequestId = undefined;
-
-    BoxLookupService.getInstance().removeRequest(this.repoRequestId);
-    this.repoRequestId = undefined;
-
-    for (const requestId of this.pendingCollateralRequestsByWid.values()) {
+    for (const requestId of this.state.pendingCollateralRequestsByWid.values()) {
       BoxLookupService.getInstance().removeRequest(requestId);
     }
-    this.pendingCollateralRequestsByWid.clear();
-    this.fraudQueueByWid.clear();
-    this.collateralBoxByWid.clear();
-    this.cleanupCache = undefined;
-    this.repoBoxCache = undefined;
+    this.state.resetAll();
   };
 
   /**
@@ -131,11 +103,7 @@ export class CleanupWorkflowService extends PeriodicTaskService {
    * @returns void
    */
   private onBoxLookupRoundEnd = async (): Promise<void> => {
-    this.cleanupCache = undefined;
-    this.repoBoxCache = undefined;
-    this.pendingCollateralRequestsByWid.clear();
-    this.fraudQueueByWid.clear();
-    this.collateralBoxByWid.clear();
+    this.state.resetRound();
   };
 
   /**
@@ -149,60 +117,22 @@ export class CleanupWorkflowService extends PeriodicTaskService {
     const cleanupAddress = this.cleanupAddress;
 
     if (
-      this.triggerRequestId !== undefined ||
-      this.fraudRequestId !== undefined ||
-      this.cleanupRequestId !== undefined ||
-      this.repoRequestId !== undefined
+      this.state.requestIds.trigger !== undefined ||
+      this.state.requestIds.fraud !== undefined ||
+      this.state.requestIds.cleanup !== undefined ||
+      this.state.requestIds.repo !== undefined
     ) {
       return;
     }
 
-    this.cleanupRequestId = BoxLookupService.getInstance().addRequest(
-      createCleanupRequest(
-        ergoLib.Address.from_base58(cleanupAddress).to_ergo_tree().to_base16_bytes(),
-        BigInt(configs.workflow.txFee) + BigInt(configs.workflow.minCleanupValue),  // could be improved
-        [{ tokenId: contracts.tokens.CleanupNFT, amount: 1n }],
-        async () => ScannerService.getInstance().getUnspentBoxesByAddress(cleanupAddress),
-        this.onCleanupSuffice,
-      ),
-    );
-
-    this.repoRequestId = BoxLookupService.getInstance().addRequest(
-      createRepoRequest(
-        ergoLib.Address.from_base58(contracts.addresses.RWTRepo).to_ergo_tree().to_base16_bytes(),
-        undefined,
-        [{ tokenId: contracts.tokens.RepoNFT, amount: 1n }],
-        async () => ScannerService.getInstance().getUnspentBoxesByAddress(contracts.addresses.RWTRepo),
-        this.onRepoSuffice,
-      ),
-    );
-
-    this.triggerRequestId = BoxLookupService.getInstance().addRequest(
-      createTriggerEventRequest(
-        ergoLib.Address.from_base58(contracts.addresses.WatcherTriggerEvent)
-          .to_ergo_tree()
-          .to_base16_bytes(),
-        undefined,
-        [{ tokenId: contracts.tokens.RWTId, amount: 1n }],
-        async () => {
-          const height = await ScannerService.getInstance().getCurrentHeight();
-          const expiredBefore = height - contracts.cleanupConfirm;
-          const confirmed = await ScannerService.getInstance().getUnspentTriggerBoxes();
-          return confirmed.filter((b) => b.creationHeight <= expiredBefore);
-        },
-        this.onTriggerEventSuffice,
-      ),
-    );
-
-    this.fraudRequestId = BoxLookupService.getInstance().addRequest(
-      createFraudBoxRequest(
-        ergoLib.Address.from_base58(contracts.addresses.Fraud).to_ergo_tree().to_base16_bytes(),
-        undefined,
-        [{ tokenId: contracts.tokens.RWTId, amount: 1n }],
-        async () => ScannerService.getInstance().getUnspentFraudBoxes(),
-        this.onFraudBoxSuffice,
-      ),
-    );
+    this.state.requestIds = registerCleanupRequests({
+      contracts,
+      cleanupAddress,
+      onCleanupSuffice: this.onCleanupSuffice,
+      onRepoSuffice: this.onRepoSuffice,
+      onTriggerEventSuffice: this.onTriggerEventSuffice,
+      onFraudBoxSuffice: this.onFraudBoxSuffice,
+    });
   };
 
   /**
@@ -246,7 +176,6 @@ export class CleanupWorkflowService extends PeriodicTaskService {
     return signed;
   };
 
-
   /**
    * Box-lookup callback for cleanup address: caches cleanup box and fee boxes.
    */
@@ -268,7 +197,7 @@ export class CleanupWorkflowService extends PeriodicTaskService {
       }
     }
     if (!cleanupBox) return;
-    this.cleanupCache = { cleanupBox, feeBoxes };
+    this.state.cleanupCache = { cleanupBox, feeBoxes };
   };
 
   /**
@@ -286,7 +215,7 @@ export class CleanupWorkflowService extends PeriodicTaskService {
     );
     if (!candidate) return;
 
-    this.repoBoxCache = candidate;
+    this.state.repoBoxCache = candidate;
   };
 
   /**
@@ -301,7 +230,7 @@ export class CleanupWorkflowService extends PeriodicTaskService {
     const height = await ScannerService.getInstance().getCurrentHeight();
 
     for (const trigger of boxes) {
-      if (!this.cleanupCache) {
+      if (!this.state.cleanupCache) {
         this.logger.warn('cleanup cache is not initialized in onTriggerEventSuffice');
         return;
       };
@@ -310,7 +239,7 @@ export class CleanupWorkflowService extends PeriodicTaskService {
         this.logger.info(`skipping fraud tx build for trigger [${trigger.boxId}]: creationHeight (${trigger.creationHeight}) > height (${height}) - cleanupConfirm (${this.contracts.cleanupConfirm})`);
         continue;
       };
-      const { cleanupBox, feeBoxes } = this.cleanupCache;
+      const { cleanupBox, feeBoxes } = this.state.cleanupCache;
 
       const triggerBox = outputBoxToErgoBox(trigger);
       const digest = getWidListDigestFromR4(triggerBox);
@@ -356,7 +285,7 @@ export class CleanupWorkflowService extends PeriodicTaskService {
         result.inputBoxes,
         height,
       );
-      this.cleanupCache = getNextCleanupFromTx(signed, this.contracts.tokens.CleanupNFT);
+      this.state.cleanupCache = getNextCleanupFromTx(signed, this.contracts.tokens.CleanupNFT);
     }
   };
 
@@ -375,18 +304,18 @@ export class CleanupWorkflowService extends PeriodicTaskService {
     // Queue all new frauds by wid (some wids may have multiple fraud boxes that must be slashed sequentially).
     for (const fraud of boxes) {
       const wid = getWidFromR4Bytes(outputBoxToErgoBox(fraud));
-      const q = this.fraudQueueByWid.get(wid) ?? [];
+      const q = this.state.fraudQueueByWid.get(wid) ?? [];
       q.push(fraud);
-      this.fraudQueueByWid.set(wid, q);
+      this.state.fraudQueueByWid.set(wid, q);
     }
 
     // Register at most one collateral request per wid in this round.
-    for (const [wid, q] of this.fraudQueueByWid.entries()) {
-      if (this.pendingCollateralRequestsByWid.has(wid)) {
+    for (const [wid, q] of this.state.fraudQueueByWid.entries()) {
+      if (this.state.pendingCollateralRequestsByWid.has(wid)) {
         continue;
       }
       const requestId = this.registerCollateralRequest(wid, contracts, cleanupAddress);
-      this.pendingCollateralRequestsByWid.set(wid, requestId);
+      this.state.pendingCollateralRequestsByWid.set(wid, requestId);
     }
   };
 
@@ -450,23 +379,23 @@ export class CleanupWorkflowService extends PeriodicTaskService {
     }
     try {
 
-      if (!this.cleanupCache || !this.repoBoxCache) {
+      if (!this.state.cleanupCache || !this.state.repoBoxCache) {
         this.logger.warn('cleanup cache or repo box cache is not initialized in onCollateralSuffice');
         return;
       }
 
       // Initialize starting collateral for this wid in this round (chain/mempool aware).
-      let currentCollateral = this.collateralBoxByWid.get(wid) ?? collateralBoxes[0];
-      this.collateralBoxByWid.set(wid, currentCollateral);
+      let currentCollateral = this.state.collateralBoxByWid.get(wid) ?? collateralBoxes[0];
+      this.state.collateralBoxByWid.set(wid, currentCollateral);
 
-      const q = this.fraudQueueByWid.get(wid) ?? [];
+      const q = this.state.fraudQueueByWid.get(wid) ?? [];
 
       while (q.length > 0) {
         const nextFraud = q.shift()!;
         const height = await ScannerService.getInstance().getCurrentHeight();
-        const { cleanupBox, feeBoxes } = this.cleanupCache;
-        const repoBox = this.repoBoxCache;
-        const collateralBox = this.collateralBoxByWid.get(wid)!;
+        const { cleanupBox, feeBoxes } = this.state.cleanupCache;
+        const repoBox = this.state.repoBoxCache;
+        const collateralBox = this.state.collateralBoxByWid.get(wid)!;
 
         SlashTx.init(configs.workflow.minBoxValue, configs.workflow.txFee, this.logger);
 
@@ -494,16 +423,16 @@ export class CleanupWorkflowService extends PeriodicTaskService {
           result.inputBoxes,
           height,
         );
-        this.cleanupCache = getNextCleanupFromTx(signedTx, contracts.tokens.CleanupNFT);
-        this.repoBoxCache = getNextRepoFromTx(signedTx, contracts.tokens.RepoNFT);
-        this.collateralBoxByWid.set(wid, getCollateralFromTx(signedTx, contracts.tokens.AwcNFT));
+        this.state.cleanupCache = getNextCleanupFromTx(signedTx, contracts.tokens.CleanupNFT);
+        this.state.repoBoxCache = getNextRepoFromTx(signedTx, contracts.tokens.RepoNFT);
+        this.state.collateralBoxByWid.set(wid, getCollateralFromTx(signedTx, contracts.tokens.AwcNFT));
       }
 
     } finally {
-      const requestId = this.pendingCollateralRequestsByWid.get(wid);
+      const requestId = this.state.pendingCollateralRequestsByWid.get(wid);
       if (requestId) {
         BoxLookupService.getInstance().removeRequest(requestId);
-        this.pendingCollateralRequestsByWid.delete(wid);
+        this.state.pendingCollateralRequestsByWid.delete(wid);
       }
     }
   };

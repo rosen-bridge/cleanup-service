@@ -270,7 +270,7 @@ describe('cleanupWorkflowService', () => {
         txPotAddTxMock.mockClear();
 
         const serviceInstance = CleanupWorkflowService.getInstance();
-        serviceInstance['cleanupCache'] = {
+        serviceInstance['state'].cleanupCache = {
           cleanupBox: outputBoxToErgoBox(workflowCleanerBoxJson as OutputBox),
           feeBoxes: [],
         };
@@ -307,7 +307,7 @@ describe('cleanupWorkflowService', () => {
         txPotAddTxMock.mockClear();
 
         const serviceInstance = CleanupWorkflowService.getInstance();
-        serviceInstance['cleanupCache'] = {
+        serviceInstance['state'].cleanupCache = {
           cleanupBox: outputBoxToErgoBox(workflowCleanerBoxJson as OutputBox),
           feeBoxes: [],
         };
@@ -347,7 +347,7 @@ describe('cleanupWorkflowService', () => {
         const signSpy = spyOnSignAndEnqueueTx(serviceInstance);
         signSpy.mockResolvedValue(slashTx);
 
-        serviceInstance['cleanupCache'] = {
+        serviceInstance['state'].cleanupCache = {
           cleanupBox: outputBoxToErgoBox(workflowCleanerBoxJson as OutputBox),
           feeBoxes: workflowFeeBoxesJson.map((b) => outputBoxToErgoBox(b as unknown as OutputBox)),
         };
@@ -388,7 +388,7 @@ describe('cleanupWorkflowService', () => {
         expect(contractsArg).toEqual(getWorkflowContracts(serviceInstance)! as RosenContracts);
         expect(cleanupAddressArg).toEqual(getCleanupAddress(serviceInstance)!);
 
-        const pending = serviceInstance['pendingCollateralRequestsByWid'];
+        const pending = serviceInstance['state'].pendingCollateralRequestsByWid;
         expect(pending.get(widArg)).toEqual(requestId);
 
       });
@@ -456,7 +456,7 @@ describe('cleanupWorkflowService', () => {
         const contracts = getWorkflowContracts(serviceInstance);
         const cleanupAddress = getCleanupAddress(serviceInstance);
 
-        const pending = serviceInstance['pendingCollateralRequestsByWid'];
+        const pending = serviceInstance['state'].pendingCollateralRequestsByWid;
         const requestId = 999;
         pending.set(workflowMockRepoWids[0]!, requestId);
 
@@ -495,10 +495,10 @@ describe('cleanupWorkflowService', () => {
         const contracts = getWorkflowContracts(serviceInstance);
         const cleanupAddress = getCleanupAddress(serviceInstance);
 
-        const pending = serviceInstance['pendingCollateralRequestsByWid'];
+        const pending = serviceInstance['state'].pendingCollateralRequestsByWid;
         const requestId = 1001;
         const wid = workflowMockRepoWids[1]!;
-        serviceInstance['pendingCollateralRequestsByWid'].set(wid, requestId);
+        serviceInstance['state'].pendingCollateralRequestsByWid.set(wid, requestId);
 
         const cleanupBox = outputBoxToErgoBox(workflowCleanerBoxJson as unknown as OutputBox);
         const feeBoxes = workflowFeeBoxesJson.map((b) =>

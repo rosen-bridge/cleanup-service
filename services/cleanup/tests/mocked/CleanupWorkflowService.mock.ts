@@ -35,9 +35,12 @@ type CleanupWorkflowServicePrivates = {
     contracts: RosenContracts,
     cleanupAddress: string,
   ) => number;
-  pendingCollateralRequestsByWid: Map<string, number>;
-  cleanupCache?: { cleanupBox: ergoLib.ErgoBox; feeBoxes: ergoLib.ErgoBox[] };
-  repoBoxCache?: OutputBox;
+  state: {
+    pendingCollateralRequestsByWid: Map<string, number>;
+    fraudQueueByWid: Map<string, OutputBox[]>;
+    cleanupCache?: { cleanupBox: ergoLib.ErgoBox; feeBoxes: ergoLib.ErgoBox[] };
+    repoBoxCache?: OutputBox;
+  };
   contracts?: RosenContracts;
   cleanupAddress?: string;
 };
@@ -58,11 +61,11 @@ export const getCleanupAddress = (serviceInstance: CleanupWorkflowService) => {
 };
 
 export const getCleanupCache = (serviceInstance: CleanupWorkflowService) => {
-  return (serviceInstance as unknown as CleanupWorkflowServicePrivates).cleanupCache;
+  return (serviceInstance as unknown as CleanupWorkflowServicePrivates).state.cleanupCache;
 };
 
 export const getRepoBoxCache = (serviceInstance: CleanupWorkflowService) => {
-  return (serviceInstance as unknown as CleanupWorkflowServicePrivates).repoBoxCache;
+  return (serviceInstance as unknown as CleanupWorkflowServicePrivates).state.repoBoxCache;
 };
 
 export const callSignAndEnqueueTx = async (
@@ -85,13 +88,13 @@ export const setCleanupCache = (
   cleanupBox: ergoLib.ErgoBox,
   feeBoxes: ergoLib.ErgoBox[],
 ) => {
-  (serviceInstance as unknown as CleanupWorkflowServicePrivates).cleanupCache = { cleanupBox, feeBoxes };
+  (serviceInstance as unknown as CleanupWorkflowServicePrivates).state.cleanupCache = { cleanupBox, feeBoxes };
 };
 
 export const setFraudQueueByWid = (serviceInstance: CleanupWorkflowService, wid: string, frauds: OutputBox[]) => {
-  (serviceInstance as unknown as CleanupWorkflowServicePrivates)['fraudQueueByWid'].set(wid, frauds);
+  (serviceInstance as unknown as CleanupWorkflowServicePrivates).state.fraudQueueByWid.set(wid, frauds);
 };
 
 export const setRepoBoxCache = (serviceInstance: CleanupWorkflowService, repoBox: OutputBox) => {
-  (serviceInstance as unknown as CleanupWorkflowServicePrivates).repoBoxCache = repoBox;
+  (serviceInstance as unknown as CleanupWorkflowServicePrivates).state.repoBoxCache = repoBox;
 };
