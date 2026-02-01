@@ -17,7 +17,7 @@
     "children": {
       "contractsPath": {
         "type": "string",
-        "default": "/Users/mehran/work/code/rosen/cleanup-service/contracts/contracts-ergo-pandora-5.1.0.json",
+        "default": "./contracts/contracts-ergo-pandora-5.1.0.json",
         "validations": [
           { "required": true, "error": "workflow.contractsPath must be specified" }
         ]

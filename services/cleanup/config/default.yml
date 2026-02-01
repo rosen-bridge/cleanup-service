@@ -1,8 +1,7 @@
 intervals:
   workflow: 30
 workflow:
-  contractsPath: >-
-    /Users/mehran/work/code/rosen/cleanup-service/contracts/contracts-ergo-pandora-5.1.0.json
+  contractsPath: ./contracts/contracts-ergo-pandora-5.1.0.json
   ergoNetwork: mainnet
   cleanupMnemonic: >-
     abandon abandon abandon abandon abandon abandon abandon abandon abandon
