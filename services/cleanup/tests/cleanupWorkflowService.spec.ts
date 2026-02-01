@@ -14,7 +14,7 @@ import { OutputBox } from '@ergo-raffle/box-lookup';
 import { DBService } from '../src/services/dbService';
 import { TxPotService } from '../src/services/txPotService/txPotService';
 import { BoxLookupService } from '../src/services/boxLookupService';
-import { CleanupWorkflowService } from '../src/services/cleanupWorkflowService';
+import { CleanupWorkflowService } from '../src/services/cleanupWorkflowService/cleanupWorkflowService';
 import { ScannerService } from '../src/services/scannerService';
 import { getLogger } from '../src/config/loggerConfig';
 import { outputBoxToErgoBox } from '../src/utils/cleanupUtils';

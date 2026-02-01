@@ -102,9 +102,6 @@ export const hasToken = (box: ergoLib.ErgoBox, tokenId: string): boolean => {
 /**
  * Extracts trigger WID-list digest from R4 where it is encoded as `Coll[Byte]`.
  *
- * Canonical format (watcher / contracts repo):
- * - Trigger R4: `Coll[Byte]` = blake2b256(concat(WIDs))
- *
  * @param box - Input box
  * @returns WID list digest as hex string
  */
@@ -148,9 +145,9 @@ export const findCollateralBoxByWid = (
 
 /**
  * Extracts commitment count from R7 where it is encoded as `Int`.
- *
- * Canonical format (watcher / contracts repo):
- * - Trigger R7: `Int` = number of commitments consumed for trigger creation
+ * 
+ * @param box - Input box
+ * @returns Commitment count
  */
 export const getCommitmentCountFromR7 = (box: ergoLib.ErgoBox): number => {
   return getRequiredRegister(box, ergoLib.NonMandatoryRegisterId.R7, 'R7').to_i32();
@@ -195,7 +192,7 @@ export const toRwtRepoData = (repoBox: OutputBox, tokenIds: CleanupTokenIds): RW
  * Converts base64 sigma-serialized ErgoBox bytes into the plain `box-lookup` `OutputBox` shape.
  *
  * @param serialized - Base64 sigma-serialized ErgoBox bytes
- * @returns OutputBox representation (suitable for box-lookup + tx builders)
+ * @returns OutputBox representation
  */
 export const serializedErgoBoxToOutputBox = (
   serialized: string,

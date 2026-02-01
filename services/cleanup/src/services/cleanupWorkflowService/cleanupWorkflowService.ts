@@ -2,15 +2,15 @@ import { AbstractLogger } from '@rosen-bridge/abstract-logger';
 import { Dependency, PeriodicTaskService, ServiceStatus } from '@rosen-bridge/service-manager';
 import { OutputBox, Request } from '@ergo-raffle/box-lookup';
 import * as ergoLib from 'ergo-lib-wasm-nodejs';
-import { configs } from '../config/config';
-import { BoxLookupService } from './boxLookupService';
-import { DBService } from './dbService';
-import { ScannerService } from './scannerService';
-import { TxPotService } from './txPotService/txPotService';
-import { loadRosenContracts } from '../config/contractsConfig';
-import { mnemonicToAddress, signTx, getNextCleanupFromTx, getNextRepoFromTx, getCollateralFromTx } from '../utils/ergoUtils';
-import { CleanupTxType } from '../types'
-import { createCollateralRequest } from '../utils/boxLookupUtils';
+import { configs } from '../../config/config';
+import { BoxLookupService } from '../boxLookupService';
+import { DBService } from '../dbService';
+import { ScannerService } from '../scannerService';
+import { TxPotService } from '../txPotService';
+import { loadRosenContracts } from '../../config/contractsConfig';
+import { mnemonicToAddress, signTx, getNextCleanupFromTx, getNextRepoFromTx, getCollateralFromTx } from '../../utils/ergoUtils';
+import { CleanupTxType } from '../../types'
+import { createCollateralRequest } from '../../utils/boxLookupUtils';
 import {
   outputBoxToErgoBox,
   getCommitmentCountFromR7,
@@ -20,13 +20,14 @@ import {
   toRwtRepoData,
   getTokenAmount,
   getWidFromR4Bytes,
-} from '../utils/cleanupUtils';
+} from '../../utils/cleanupUtils';
 import { FraudTx, TriggerEventData } from '@rosen-bridge/fraud-tx';
 import { SlashTx } from '@rosen-bridge/slash-tx';
-import { RosenContracts } from '../types'
-import { ERGO_CHAIN_NAME } from '../config/constants';
+import { RosenContracts } from '../../types'
+import { ERGO_CHAIN_NAME } from '../../config/constants';
 import { TransactionStatus } from '@rosen-bridge/tx-pot';
-import { CleanupWorkflowState, registerCleanupRequests } from './cleanupWorkflow';
+import { CleanupWorkflowState } from './state';
+import { registerCleanupRequests } from './requests';
 
 export class CleanupWorkflowService extends PeriodicTaskService {
   static name = 'CleanupWorkflowService';

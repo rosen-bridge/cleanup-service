@@ -33,7 +33,7 @@ class ErgoNodeNetwork {
 
   /**
    * get confirmations of a tx or -1 if tx is not in the blockchain
-   * @param txId
+   * @param txId - Transaction id
    */
   public getTxConfirmation = async (txId: string): Promise<number> => {
     try {
@@ -73,7 +73,7 @@ class ErgoNodeNetwork {
 
   /**
    * check if a specific transaction is in the mempool
-   * @param txId
+   * @param txId - Transaction id
    */
   public isTxInMempool = async (txId: string): Promise<boolean> => {
     try {
@@ -96,7 +96,7 @@ class ErgoNodeNetwork {
 
   /**
    * submit a transaction to the network
-   * @param tx the transaction in hex format
+   * @param tx - Transaction in hex format
    */
   public submitTransaction = async (tx: string): Promise<void> => {
     try {
@@ -112,7 +112,7 @@ class ErgoNodeNetwork {
 
   /**
    * check if a box is unspent and valid (that is, exists in the blockchain)
-   * @param boxId
+   * @param boxId - Box id
    */
   public isBoxUnspentAndValid = async (boxId: string): Promise<boolean> => {
     try {

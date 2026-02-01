@@ -31,6 +31,17 @@ export const mnemonicToAddress = (
   return mnemonicToSecretKey(mnemonic).get_address().to_base58(networkPrefix);
 };
 
+
+/**
+ * Signs an unsigned transaction with a mnemonic.
+ *
+ * @param ctx - Ergo state context
+ * @param mnemonic - Mnemonic phrase
+ * @param unsignedTx - Unsigned transaction
+ * @param inputBoxes - Input boxes
+ * @param dataInputs - Data inputs
+ * @returns Signed transaction
+ */
 export const signTx = async (
   ctx: ergoLib.ErgoStateContext,
   mnemonic: string,

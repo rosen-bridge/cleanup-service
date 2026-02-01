@@ -5,6 +5,9 @@ import * as ergoLib from 'ergo-lib-wasm-nodejs';
 
 /**
  * Parses base64-encoded Ergo tx bytes and returns its EIP-12 JSON projection.
+ *
+ * @param tx - Transaction entity with serialized tx bytes
+ * @returns Parsed EIP-12 JSON transaction
  */
 export const deserializeTxForBoxLookup = (tx: TransactionEntity): DeserializedTx => {
   const bytes = Uint8Array.from(Buffer.from(tx.serializedTx, 'base64'));
@@ -16,9 +19,9 @@ export const deserializeTxForBoxLookup = (tx: TransactionEntity): DeserializedTx
 /**
  * Creates a `box-lookup` request for trigger-event boxes.
  *
- * @param ergoTree - Box ergoTree filter
- * @param value - Optional minimal value filter
- * @param tokens - Required tokens filter
+ * @param ergoTree - ergoTree 
+ * @param value - Optional minimal value
+ * @param tokens - Required tokens
  * @param getConfirmedBoxes - Provider for confirmed boxes
  * @param onSuffice - Callback invoked when preferred condition occurs
  * @returns Request definition for BoxLookup
@@ -36,9 +39,9 @@ export const createTriggerEventRequest = (
 /**
  * Creates a `box-lookup` request for fraud boxes.
  *
- * @param ergoTree - Box ergoTree filter
- * @param value - Optional minimal value filter
- * @param tokens - Required tokens filter
+ * @param ergoTree - ergoTree 
+ * @param value - Optional minimal value
+ * @param tokens - Required tokens
  * @param getConfirmedBoxes - Provider for confirmed boxes
  * @param onSuffice - Callback invoked when preferred condition occurs
  * @returns Request definition for BoxLookup
@@ -58,6 +61,13 @@ export const createFraudBoxRequest = (
  *
  * The request should include the CleanupNFT and enough ERG to cover fee needs, so the
  * returned `boxes` can be split into {cleanupBox, feeBoxes} without custom merging.
+ *
+ * @param ergoTree - ergoTree 
+ * @param value - Optional minimal value
+ * @param tokens - Required tokens
+ * @param getConfirmedBoxes - Provider for confirmed boxes
+ * @param onSuffice - Callback invoked when preferred condition occurs
+ * @returns Request definition for BoxLookup
  */
 export const createCleanupRequest = (
   ergoTree: string,
@@ -71,6 +81,13 @@ export const createCleanupRequest = (
 
 /**
  * Creates a `box-lookup` request for the RWT repo box at the repo address.
+ *
+ * @param ergoTree - ergoTree 
+ * @param value - Optional minimal value
+ * @param tokens - Required tokens
+ * @param getConfirmedBoxes - Provider for confirmed boxes
+ * @param onSuffice - Callback invoked when preferred condition occurs
+ * @returns Request definition for BoxLookup
  */
 export const createRepoRequest = (
   ergoTree: string,
@@ -85,6 +102,13 @@ export const createRepoRequest = (
 /**
  * Creates a `box-lookup` request for the watcher collateral address.
  * Used dynamically per fraud work-item to retrieve the relevant collateral box.
+ *
+ * @param ergoTree - ergoTree 
+ * @param value - Optional minimal value
+ * @param tokens - Required tokens
+ * @param getConfirmedBoxes - Provider for confirmed boxes
+ * @param onSuffice - Callback invoked when preferred condition occurs
+ * @returns Request definition for BoxLookup
  */
 export const createCollateralRequest = (
   ergoTree: string,
