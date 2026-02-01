@@ -8,7 +8,7 @@ import {
   ergoScannerRegisterExtractorMock,
   ergoScannerUpdateMock,
 } from './mocked/Scanner.mock';
-import { initServices } from './utils/testUtils';
+import { initServices } from './testUtils';
 
 describe('scannerService', () => {
 

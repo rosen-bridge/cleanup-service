@@ -7,24 +7,14 @@ import { DBService } from '../src/services/dbService';
 import { TxPotService } from '../src/services/txPotService/txPotService';
 import { BoxLookupService } from '../src/services/boxLookupService';
 import { mockNodeUrl } from './testData';
-import { resetServiceInstance } from './testUtils';
+import { createMemoryDataSource, resetServiceInstance } from './testUtils';
 import {
   boxLookupCtorMock,
   boxLookupRegisterRequestMock,
-  boxLookupServiceRequestsMock,
   boxLookupUnregisterRequestMock,
 } from './mocked/BoxLookup.mock';
 import './mocked/ErgoNodeNetwork.mock';
 
-const createMemoryDataSource = () =>
-  new DataSource({
-    type: 'sqlite',
-    database: ':memory:',
-    entities: [],
-    migrations: [],
-    synchronize: false,
-    logging: false,
-  });
 
 const initServices = async (updateInterval: number) => {
   const ds = createMemoryDataSource();
