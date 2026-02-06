@@ -1,4 +1,4 @@
-import { AbstractLogger } from '@rosen-bridge/abstract-logger';
+import { AbstractLogger, DummyLogger } from '@rosen-bridge/abstract-logger';
 import {
   ErgoBoxSelection,
   ErgoChangeBoxBuilder,
@@ -80,18 +80,15 @@ export class FraudTxBuilder {
   private cleanerBox: ergoLib.ErgoBox;
   private height: number;
   private feeBoxes: ergoLib.ErgoBox[];
-  private changeAddress: string;
 
   constructor(
     private fraudAddress: string,
-    private defaultChangeAddress: string,
+    private changeAddress: string,
     private rwtTokenId: string,
     private minBoxValue: bigint,
     private txFee: string,
-    private logger?: AbstractLogger,
-  ) {
-    this.changeAddress = defaultChangeAddress;
-  }
+    private logger: AbstractLogger = new DummyLogger(),
+  ) {}
 
   /**
    * Sets trigger event data for the current instance
@@ -100,7 +97,7 @@ export class FraudTxBuilder {
     triggerEventData: TriggerEventData,
   ): FraudTxBuilder => {
     this.triggerEventData = triggerEventData;
-    this.logger?.debug(
+    this.logger.debug(
       `Trigger event data set with ${triggerEventData.wids.length} watcher IDs`,
     );
     return this;
@@ -111,7 +108,7 @@ export class FraudTxBuilder {
    */
   setCleanerBox = (cleanerBox: ergoLib.ErgoBox): FraudTxBuilder => {
     this.cleanerBox = cleanerBox;
-    this.logger?.debug(
+    this.logger.debug(
       `Cleaner box set with id=${cleanerBox.box_id().to_str()}`,
     );
     return this;
@@ -125,7 +122,7 @@ export class FraudTxBuilder {
       throw new Error('Creation height must be a positive integer');
     }
     this.height = height;
-    this.logger?.debug(`Creation height set to ${height}`);
+    this.logger.debug(`Creation height set to ${height}`);
     return this;
   };
 
@@ -134,7 +131,7 @@ export class FraudTxBuilder {
    */
   setFeeBoxes = (feeBoxes: ergoLib.ErgoBox[]): FraudTxBuilder => {
     this.feeBoxes = feeBoxes;
-    this.logger?.debug(`Fee boxes set: ${feeBoxes.length} boxes available`);
+    this.logger.debug(`Fee boxes set: ${feeBoxes.length} boxes available`);
     return this;
   };
 
@@ -143,7 +140,7 @@ export class FraudTxBuilder {
    */
   setChangeAddress = (address: string): FraudTxBuilder => {
     this.changeAddress = address;
-    this.logger?.debug(`Change address set to ${address}`);
+    this.logger.debug(`Change address set to ${address}`);
     return this;
   };
 
@@ -154,7 +151,7 @@ export class FraudTxBuilder {
     const watcherCount = this.triggerEventData.wids.length;
     const rwtPerFraud = this.triggerEventData.rwtAmount / BigInt(watcherCount);
 
-    this.logger?.debug(
+    this.logger.debug(
       `Creating ${watcherCount} fraud boxes with ${rwtPerFraud} RWT each`,
     );
 
@@ -211,7 +208,7 @@ export class FraudTxBuilder {
       );
     }
 
-    this.logger?.debug(
+    this.logger.debug(
       `Selected ${boxes.length} fee boxes: ${boxes.map((box) => box.box_id().to_str()).join(', ')}`,
     );
 
@@ -299,10 +296,10 @@ export class FraudTxBuilder {
 
     const unsignedTx = txBuilder.build();
 
-    this.logger?.info(
+    this.logger.info(
       `Unsigned fraud transaction built with id=${unsignedTx.id().to_str()}`,
     );
-    this.logger?.debug(
+    this.logger.debug(
       `Built unsigned fraud transaction: ${unsignedTx.to_json()}`,
     );
 
