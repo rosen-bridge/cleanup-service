@@ -1,4 +1,4 @@
-import { AbstractLogger } from '@rosen-bridge/abstract-logger';
+import { AbstractLogger, DummyLogger } from '@rosen-bridge/abstract-logger';
 import {
   ErgoBoxSelection,
   ErgoChangeBoxBuilder,
@@ -72,20 +72,20 @@ export class SlashTxBuilder {
   constructor(
     private minBoxValue: bigint,
     private txFee: string,
-    private logger?: AbstractLogger,
+    private logger: AbstractLogger = new DummyLogger(),
   ) {}
 
   setFraudBox = (fraudBox: ergoLib.ErgoBox): SlashTxBuilder => {
     this.fraudBox = fraudBox;
     this.fraudWid = getWidFromR4Bytes(fraudBox);
-    this.logger?.debug(`Fraud box set with id ${fraudBox.box_id().to_str()}`);
+    this.logger.debug(`Fraud box set with id ${fraudBox.box_id().to_str()}`);
     return this;
   };
 
   setCollateralBox = (collateralBox: ergoLib.ErgoBox): SlashTxBuilder => {
     this.collateralBox = collateralBox;
     this.collateralWid = getWidFromR4Bytes(collateralBox);
-    this.logger?.debug(
+    this.logger.debug(
       `Collateral box set with id ${collateralBox.box_id().to_str()}`,
     );
     return this;
@@ -93,13 +93,13 @@ export class SlashTxBuilder {
 
   setRepoData = (repoData: RWTRepoData): SlashTxBuilder => {
     this.repoData = repoData;
-    this.logger?.debug(`Repo data set`);
+    this.logger.debug(`Repo data set`);
     return this;
   };
 
   setCleanupBox = (cleanupBox: ergoLib.ErgoBox): SlashTxBuilder => {
     this.cleanupBox = cleanupBox;
-    this.logger?.debug(
+    this.logger.debug(
       `Cleanup box set with id=${cleanupBox.box_id().to_str()}`,
     );
     return this;
@@ -110,19 +110,19 @@ export class SlashTxBuilder {
       throw new Error('Creation height must be a positive integer');
     }
     this.height = height;
-    this.logger?.debug(`Creation height set to ${height}`);
+    this.logger.debug(`Creation height set to ${height}`);
     return this;
   };
 
   setFeeBoxes = (feeBoxes: ergoLib.ErgoBox[]): SlashTxBuilder => {
     this.feeBoxes = feeBoxes;
-    this.logger?.debug(`Fee boxes set: ${feeBoxes.length} boxes available`);
+    this.logger.debug(`Fee boxes set: ${feeBoxes.length} boxes available`);
     return this;
   };
 
   setChangeAddress = (address: string): SlashTxBuilder => {
     this.changeAddress = address;
-    this.logger?.debug(`Change address set to ${address}`);
+    this.logger.debug(`Change address set to ${address}`);
     return this;
   };
 
@@ -281,7 +281,7 @@ export class SlashTxBuilder {
       );
     }
 
-    this.logger?.debug(
+    this.logger.debug(
       `Selected ${boxes.length} fee boxes: ${boxes.map((box) => box.box_id().to_str()).join(', ')}`,
     );
 
@@ -353,10 +353,10 @@ export class SlashTxBuilder {
 
     const unsignedTx = txBuilder.build();
 
-    this.logger?.info(
+    this.logger.info(
       `Unsigned slash transaction built with id=${unsignedTx.id().to_str()}`,
     );
-    this.logger?.debug(
+    this.logger.debug(
       `Built unsigned slash transaction: ${unsignedTx.to_json()}`,
     );
 
