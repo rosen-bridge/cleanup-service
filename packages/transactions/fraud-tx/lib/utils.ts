@@ -35,37 +35,6 @@ export const getRegisterBytesHex = (
     'hex',
   );
 
-/**
- * Extracts a single WID from R4 when it is encoded as `Coll[Byte]`.
- *
- * @param box - Input box
- * @returns WID as a hex string
- */
-export const getWidFromR4Bytes = (box: ergoLib.ErgoBox): string => {
-  return getRegisterBytesHex(box, ergoLib.NonMandatoryRegisterId.R4, 'R4');
-};
-
-/**
- * Returns the amount of a token inside a box.
- *
- * @param box - Input box
- * @param tokenId - Token id to look up
- * @returns Token amount
- * @throws When token does not exist in the box
- */
-export const getTokenAmount = (
-  box: ergoLib.ErgoBox,
-  tokenId: string,
-): bigint => {
-  const tokens = box.tokens();
-  for (let i = 0; i < tokens.len(); i++) {
-    const token = tokens.get(i);
-    if (token.id().to_str() === tokenId) {
-      return BigInt(token.amount().as_i64().to_str());
-    }
-  }
-  throw new Error(`Token ${tokenId} not found in box ${box.box_id().to_str()}`);
-};
 
 /**
  * Converts a hex string to a Uint8Array
