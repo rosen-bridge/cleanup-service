@@ -1,7 +1,5 @@
 import { OutputBox } from '@ergo-raffle/box-lookup';
 import * as ergoLib from 'ergo-lib-wasm-nodejs';
-import { RWTRepoData } from '@rosen-bridge/slash-tx';
-import { CleanupTokenIds } from '../types/cleanup';
 import { TransactionEntity } from '@rosen-bridge/tx-pot';
 import { DeserializedTx } from '@ergo-raffle/box-lookup';
 /**
@@ -163,29 +161,6 @@ export const getRsnAmountFromR5 = (box: ergoLib.ErgoBox): bigint => {
   return BigInt(
     getRequiredRegister(box, ergoLib.NonMandatoryRegisterId.R5, 'R5').to_i64().to_str(),
   );
-};
-
-/**
- * Maps an RWT repo `OutputBox` into `slash-tx` builder input.
- *
- * @param repoBox - Repo box
- * @param tokenIds - Required token ids for repo validation
- * @returns `RWTRepoData` for slash-tx
- */
-export const toRwtRepoData = (repoBox: OutputBox, tokenIds: CleanupTokenIds): RWTRepoData => {
-  const box = outputBoxToErgoBox(repoBox);
-  getTokenAmount(box, tokenIds.repoNftTokenId);
-  getTokenAmount(box, tokenIds.rwtTokenId);
-  getTokenAmount(box, tokenIds.rsnTokenId);
-  getTokenAmount(box, tokenIds.awcTokenId);
-
-  return {
-    box,
-    repoNFT: tokenIds.repoNftTokenId,
-    rwtTokenId: tokenIds.rwtTokenId,
-    rsnTokenId: tokenIds.rsnTokenId,
-    awcTokenId: tokenIds.awcTokenId,
-  };
 };
 
 /**

@@ -17,7 +17,6 @@ import {
   getWidListDigestFromR4,
   findCollateralBoxByWid,
   hasToken,
-  toRwtRepoData,
   getTokenAmount,
   getWidFromR4Bytes,
 } from '../../utils/cleanupUtils';
@@ -404,14 +403,7 @@ export class CleanupWorkflowService extends PeriodicTaskService {
           .newBuilder()
           .setFraudBox(outputBoxToErgoBox(nextFraud))
           .setCollateralBox(outputBoxToErgoBox(collateralBox))
-          .setRepoData(
-            toRwtRepoData(repoBox, {
-              repoNftTokenId: contracts.tokens.RepoNFT,
-              rwtTokenId: contracts.tokens.RWTId,
-              rsnTokenId: contracts.tokens.RSN,
-              awcTokenId: contracts.tokens.AwcNFT,
-            }),
-          )
+          .setRepoBox(outputBoxToErgoBox(repoBox))
           .setCleanupBox(cleanupBox)
           .setCreationHeight(height)
           .setFeeBoxes(feeBoxes)
