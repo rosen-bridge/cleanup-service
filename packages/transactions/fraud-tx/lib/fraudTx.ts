@@ -7,8 +7,7 @@ import * as ergoLib from 'ergo-lib-wasm-nodejs';
 import { hexToUint8Array } from './utils';
 import { TriggerEventData } from './types';
 /**
- * FraudTx class handles the creation of fraud boxes from trigger event boxes
- * This is the TypeScript equivalent of the Scala generateFrauds transaction
+ * Singleton class for creating fraud transactions from trigger event boxes.
  */
 export class FraudTx {
   private static _instance?: FraudTx;
@@ -23,7 +22,14 @@ export class FraudTx {
   ) {}
 
   /**
-   * Initializes the singleton instance of FraudTx
+   * Initializes the singleton instance of FraudTx.
+   *
+   * @param fraudAddress - Address for fraud output boxes
+   * @param cleanerAddress - Address of the cleaner box
+   * @param rwtTokenId - RWT token ID
+   * @param minBoxValue - Minimum ERG value for output boxes
+   * @param txFee - Transaction fee in nanoERG
+   * @param logger - Optional logger instance
    */
   static init = (
     fraudAddress: string,
@@ -47,7 +53,10 @@ export class FraudTx {
   };
 
   /**
-   * Returns the singleton instance of FraudTx
+   * Returns the singleton instance of FraudTx.
+   *
+   * @returns FraudTx instance
+   * @throws When instance is not initialized
    */
   static getInstance = (): FraudTx => {
     if (!this._instance) {
@@ -57,7 +66,9 @@ export class FraudTx {
   };
 
   /**
-   * Creates a new FraudTxBuilder instance
+   * Creates a new FraudTxBuilder instance.
+   *
+   * @returns New FraudTxBuilder
    */
   newBuilder = (): FraudTxBuilder => {
     return new FraudTxBuilder(
@@ -72,8 +83,7 @@ export class FraudTx {
 }
 
 /**
- * Builder class for creating fraud transactions
- * Equivalent to Scala's generateFrauds method
+ * Builder class for creating fraud transactions.
  */
 export class FraudTxBuilder {
   private triggerEventData: TriggerEventData;
@@ -91,7 +101,10 @@ export class FraudTxBuilder {
   ) {}
 
   /**
-   * Sets trigger event data for the current instance
+   * Sets the trigger event data containing watcher IDs and RWT amount.
+   *
+   * @param triggerEventData - Trigger event data
+   * @returns This builder instance
    */
   setTriggerEventData = (
     triggerEventData: TriggerEventData,
@@ -104,7 +117,10 @@ export class FraudTxBuilder {
   };
 
   /**
-   * Sets cleaner box for the current instance
+   * Sets the cleaner box to be spent.
+   *
+   * @param cleanerBox - Cleaner box
+   * @returns This builder instance
    */
   setCleanerBox = (cleanerBox: ergoLib.ErgoBox): FraudTxBuilder => {
     this.cleanerBox = cleanerBox;
@@ -115,7 +131,11 @@ export class FraudTxBuilder {
   };
 
   /**
-   * Sets creation height for the current instance
+   * Sets the creation height for output boxes.
+   *
+   * @param height - Block height
+   * @returns This builder instance
+   * @throws When height is not positive
    */
   setCreationHeight = (height: number): FraudTxBuilder => {
     if (height < 1) {
@@ -127,7 +147,10 @@ export class FraudTxBuilder {
   };
 
   /**
-   * Sets fee boxes for the current instance
+   * Sets the fee boxes available for covering transaction fees.
+   *
+   * @param feeBoxes - Array of fee boxes
+   * @returns This builder instance
    */
   setFeeBoxes = (feeBoxes: ergoLib.ErgoBox[]): FraudTxBuilder => {
     this.feeBoxes = feeBoxes;
@@ -136,7 +159,10 @@ export class FraudTxBuilder {
   };
 
   /**
-   * Sets change address for the current instance
+   * Sets the change address for leftover assets.
+   *
+   * @param address - Change address in base58
+   * @returns This builder instance
    */
   setChangeAddress = (address: string): FraudTxBuilder => {
     this.changeAddress = address;
@@ -145,7 +171,9 @@ export class FraudTxBuilder {
   };
 
   /**
-   * Creates fraud boxes, one for each watcher ID in the trigger event
+   * Creates fraud boxes, one for each watcher ID in the trigger event.
+   *
+   * @returns Array of fraud box candidates
    */
   private createFraudBoxes = (): ergoLib.ErgoBoxCandidate[] => {
     const watcherCount = this.triggerEventData.wids.length;
@@ -185,7 +213,11 @@ export class FraudTxBuilder {
   };
 
   /**
-   * Selects fee boxes to cover the required value
+   * Selects fee boxes to cover the required value.
+   *
+   * @param requiredValue - Required ERG value to cover
+   * @returns Selected fee boxes
+   * @throws When available boxes cannot cover the required value
    */
   private selectFeeBoxes = async (
     requiredValue: bigint,
@@ -216,7 +248,9 @@ export class FraudTxBuilder {
   };
 
   /**
-   * Creates the new cleaner box preserving the input cleaner box's value and tokens
+   * Creates the new cleaner box preserving the input cleaner box's value and tokens.
+   *
+   * @returns New cleaner box candidate
    */
   private createCleanerBox = (): ergoLib.ErgoBoxCandidate => {
     const boxBuilder = new ergoLib.ErgoBoxCandidateBuilder(
@@ -235,9 +269,9 @@ export class FraudTxBuilder {
   };
 
   /**
-   * Builds the unsigned fraud transaction
-   * spends trigger event box, cleaner box, and optional fee boxes
-   * creates multiple fraud boxes (one per watcher), a new cleaner box, and a change box
+   * Builds the unsigned fraud transaction.
+   *
+   * @returns Unsigned transaction and input boxes
    */
   build = async (): Promise<{
     unsignedTx: ergoLib.UnsignedTransaction;

@@ -1,7 +1,7 @@
 import JsonBigInt from '@rosen-bridge/json-bigint';
 import * as ergoLib from 'ergo-lib-wasm-nodejs';
 import { beforeEach, describe, expect, it } from 'vitest';
-import { SlashTx, RWTRepoData, getTokenAmount } from '../lib';
+import { SlashTx, getTokenAmount } from '../lib';
 import {
   fraudBoxJson,
   collateralBoxJson,
@@ -104,7 +104,7 @@ describe('SlashTx', () => {
    * - Repo updated correctly
    * - RSN tokens sent to slash address
    */
-  it('should build a complete slash transaction with correct structure', async () => {
+  it('should build a complete slash transaction with real boxes', async () => {
     // Initialize SlashTx
     SlashTx.init(testSlashConfig.minBoxValue, testSlashConfig.txFee);
 
@@ -125,21 +125,13 @@ describe('SlashTx', () => {
       ergoLib.ErgoBox.from_json(JsonBigInt.stringify(boxJson)),
     );
 
-    // Prepare repo data
-    const repoData: RWTRepoData = {
-      box: repoBox,
-      repoNFT: testSlashConfig.repoNFT,
-      rwtTokenId: testSlashConfig.rwtTokenId,
-      rsnTokenId: testSlashConfig.rsnTokenId,
-      awcTokenId: testSlashConfig.awcTokenId,
-    };
-
     // Build transaction
+
     const slashTxBuilder = SlashTx.getInstance()
       .newBuilder()
       .setFraudBox(fraudBox)
       .setCollateralBox(collateralBox)
-      .setRepoData(repoData)
+      .setRepoBox(repoBox)
       .setCleanupBox(cleanupBox)
       .setCreationHeight(testSlashConfig.repoWids.length)
       .setFeeBoxes(feeBoxes)
@@ -272,19 +264,11 @@ describe('SlashTx', () => {
       JsonBigInt.stringify(cleanupBoxJson),
     );
 
-    const repoData: RWTRepoData = {
-      box: repoBox,
-      repoNFT: testSlashConfig.repoNFT,
-      rwtTokenId: testSlashConfig.rwtTokenId,
-      rsnTokenId: testSlashConfig.rsnTokenId,
-      awcTokenId: testSlashConfig.awcTokenId,
-    };
-
     const slashTxBuilder = SlashTx.getInstance()
       .newBuilder()
       .setFraudBox(fraudBox)
       .setCollateralBox(collateralBox)
-      .setRepoData(repoData)
+      .setRepoBox(repoBox)
       .setCleanupBox(cleanupBox)
       .setCreationHeight(testSlashConfig.repoWids.length)
       .setFeeBoxes([]); // No fee boxes
@@ -322,19 +306,12 @@ describe('SlashTx', () => {
     const feeBoxes = feeBoxesJson.map((json) =>
       ergoLib.ErgoBox.from_json(JsonBigInt.stringify(json)),
     );
-    const repoData: RWTRepoData = {
-      box: repoBox,
-      repoNFT: testSlashConfig.repoNFT,
-      rwtTokenId: testSlashConfig.rwtTokenId,
-      rsnTokenId: testSlashConfig.rsnTokenId,
-      awcTokenId: testSlashConfig.awcTokenId,
-    };
 
     const slashTxBuilder = SlashTx.getInstance()
       .newBuilder()
       .setFraudBox(fraudBox)
       .setCollateralBox(collateralBox)
-      .setRepoData(repoData)
+      .setRepoBox(repoBox)
       .setCleanupBox(cleanupBox)
       .setCreationHeight(testSlashConfig.repoWids.length)
       .setFeeBoxes(feeBoxes);
