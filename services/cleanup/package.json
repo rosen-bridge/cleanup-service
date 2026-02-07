@@ -18,7 +18,7 @@
     "ergo-lib-wasm-nodejs": "^0.24.1"
   },
   "dependencies": {
-    "@ergo-raffle/box-lookup": "0.1.0",
+    "@ergo-raffle/box-lookup": "file:../../../raffle-v2/packages/box-lookup",
     "@rosen-bridge/abstract-logger": "^4.0.0",
     "@rosen-bridge/abstract-scanner": "^0.2.3",
     "@rosen-bridge/address-extractor": "^6.3.0",
@@ -26,12 +26,12 @@
     "@rosen-bridge/ergo-scanner": "^0.1.4",
     "@rosen-bridge/extended-typeorm": "1.0.1",
     "@rosen-bridge/fraud-extractor": "2.2.3",
-    "@rosen-bridge/fraud-tx": "0.1.0",
+    "@rosen-bridge/fraud-tx": "0.0.0",
     "@rosen-bridge/json-bigint": "^1.0.0",
     "@rosen-bridge/rwt-repo": "^4.0.0",
     "@rosen-bridge/scanner-interfaces": "^0.2.1",
     "@rosen-bridge/service-manager": "^1.0.2",
-    "@rosen-bridge/slash-tx": "0.1.0",
+    "@rosen-bridge/slash-tx": "0.0.0",
     "@rosen-bridge/tokens": "^4.0.1",
     "@rosen-bridge/tx-pot": "^2.0.2",
     "@rosen-bridge/watcher-data-extractor": "^12.3.0",
@@ -41,12 +41,8 @@
     "config": "^3.3.7",
     "reflect-metadata": "^0.2.2"
   },
-  "devDependencies": {
-    "@rosen-bridge/config": "^0.4.0",
-    "@types/config": "^0.0.41",
-    "sqlite3": "^5.1.7",
-    "tsx": "^4.20.5",
-    "typescript": "^5.3.3",
-    "vitest": "^3.2.4"
+  "engines": {
+    "node": ">=20.10.0",
+    "npm": ">=11.6.2"
   }
 }

@@ -234,7 +234,7 @@ export class ScannerService extends PeriodicTaskService {
       ),
     );
     this.ergoScanner.registerExtractor(
-      new FraudExtractorCompat(
+      new FraudExtractor(
         extractorDataSource,
         'fraud-extractor',
         this.explorerUrl,
@@ -286,9 +286,3 @@ export class ScannerService extends PeriodicTaskService {
     }
   };
 }
-
-class FraudExtractorCompat extends FraudExtractor {
-  initializeBoxes = this.initializeData;
-}
-
-
