@@ -32,7 +32,13 @@
     "kodgen": "^0.1.0",
     "kodgen-cli": "^0.1.0",
     "kodgen-typescript": "^0.1.4",
-    "lint-staged": "^13.0.3"
+    "lint-staged": "^13.0.3",
+    "@types/node": "^20.10.6",
+    "@vitest/coverage-istanbul": "^3.2.4",
+    "prettier": "^3.5.3",
+    "tsx": "^4.19.2",
+    "typescript": "^5.0.0",
+    "vitest": "^3.2.4"
   },
   "engines": {
     "node": ">=20.11.0"

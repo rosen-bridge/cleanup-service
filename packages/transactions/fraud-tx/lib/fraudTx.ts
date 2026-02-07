@@ -4,7 +4,6 @@ import {
   ErgoChangeBoxBuilder,
 } from '@rosen-bridge/ergo-box-selection';
 import * as ergoLib from 'ergo-lib-wasm-nodejs';
-import { hexToUint8Array } from './utils';
 import { TriggerEventData } from './types';
 /**
  * Singleton class for creating fraud transactions from trigger event boxes.
@@ -202,10 +201,12 @@ export class FraudTxBuilder {
         ),
       );
 
+      const widBytes = Uint8Array.from(Buffer.from(wid, 'hex'));
+
       // Set R4 register with WID
       boxBuilder.set_register_value(
         4,
-        ergoLib.Constant.from_byte_array(hexToUint8Array(wid)),
+        ergoLib.Constant.from_byte_array(widBytes),
       );
 
       return boxBuilder.build();
