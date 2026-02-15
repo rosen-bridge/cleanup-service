@@ -1,7 +1,5 @@
 import { OutputBox } from '@ergo-raffle/box-lookup';
 import * as ergoLib from 'ergo-lib-wasm-nodejs';
-import { TransactionEntity } from '@rosen-bridge/tx-pot';
-import { DeserializedTx } from '@ergo-raffle/box-lookup';
 /**
  * Converts a Uint8Array to a hex string.
  *
@@ -41,7 +39,8 @@ export const getRegisterBytesHex = (
   box: ergoLib.ErgoBox,
   id: ergoLib.NonMandatoryRegisterId,
   name: string,
-): string => uint8ArrayToHex(getRequiredRegister(box, id, name).to_byte_array());
+): string =>
+  uint8ArrayToHex(getRequiredRegister(box, id, name).to_byte_array());
 
 /**
  * Converts a `box-lookup` `OutputBox` to a wasm `ErgoBox` by normalizing numeric fields
@@ -71,7 +70,10 @@ export const outputBoxToErgoBox = (box: OutputBox): ergoLib.ErgoBox => {
  * @returns Token amount
  * @throws When token does not exist in the box
  */
-export const getTokenAmount = (box: ergoLib.ErgoBox, tokenId: string): bigint => {
+export const getTokenAmount = (
+  box: ergoLib.ErgoBox,
+  tokenId: string,
+): bigint => {
   const tokens = box.tokens();
   for (let i = 0; i < tokens.len(); i++) {
     const token = tokens.get(i);
@@ -130,8 +132,8 @@ export const findCollateralBoxByWid = (
   awcNftTokenId: string,
   wid: string,
 ): OutputBox[] => {
-  const candidates = boxes.filter(
-    (b) => b.assets.some((asset) => asset.tokenId === awcNftTokenId),
+  const candidates = boxes.filter((b) =>
+    b.assets.some((asset) => asset.tokenId === awcNftTokenId),
   );
   const result = [];
   for (const c of candidates) {
@@ -143,12 +145,16 @@ export const findCollateralBoxByWid = (
 
 /**
  * Extracts commitment count from R7 where it is encoded as `Int`.
- * 
+ *
  * @param box - Input box
  * @returns Commitment count
  */
 export const getCommitmentCountFromR7 = (box: ergoLib.ErgoBox): number => {
-  return getRequiredRegister(box, ergoLib.NonMandatoryRegisterId.R7, 'R7').to_i32();
+  return getRequiredRegister(
+    box,
+    ergoLib.NonMandatoryRegisterId.R7,
+    'R7',
+  ).to_i32();
 };
 
 /**
@@ -159,7 +165,9 @@ export const getCommitmentCountFromR7 = (box: ergoLib.ErgoBox): number => {
  */
 export const getRsnAmountFromR5 = (box: ergoLib.ErgoBox): bigint => {
   return BigInt(
-    getRequiredRegister(box, ergoLib.NonMandatoryRegisterId.R5, 'R5').to_i64().to_str(),
+    getRequiredRegister(box, ergoLib.NonMandatoryRegisterId.R5, 'R5')
+      .to_i64()
+      .to_str(),
   );
 };
 
@@ -169,11 +177,23 @@ export const getRsnAmountFromR5 = (box: ergoLib.ErgoBox): bigint => {
  * @param serialized - Base64 sigma-serialized ErgoBox bytes
  * @returns OutputBox representation
  */
-export const serializedErgoBoxToOutputBox = (
-  serialized: string,
-): OutputBox => {
+export const serializedErgoBoxToOutputBox = (serialized: string): OutputBox => {
   const bytes = new Uint8Array(Buffer.from(serialized, 'base64'));
   const ergoBox = ergoLib.ErgoBox.sigma_parse_bytes(bytes);
   return ergoBox.to_js_eip12() as OutputBox;
 };
 
+/**
+ * Converts a signed transaction outputs into `OutputBox[]`.
+ *
+ * @param tx - Signed transaction
+ * @returns Transaction outputs in EIP-12 shape
+ */
+export const txToOutputs = (tx: ergoLib.Transaction): OutputBox[] => {
+  const outputs: OutputBox[] = [];
+  const txOutputs = tx.outputs();
+  for (let i = 0; i < txOutputs.len(); i++) {
+    outputs.push(txOutputs.get(i).to_js_eip12() as OutputBox);
+  }
+  return outputs;
+};
