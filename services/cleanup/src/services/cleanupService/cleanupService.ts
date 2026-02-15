@@ -17,10 +17,11 @@ import { DBService } from '../dbService';
 import { ScannerService } from '../scannerService';
 import { TxPotService } from '../txPotService';
 import { FraudAction } from './fraudAction';
+import { SlashAction } from './slashAction';
 
 /**
  * New cleanup service.
- * Currently handles only fraud action flow.
+ * Handles fraud and slash action flows.
  */
 export class CleanupService extends PeriodicTaskService {
   static name = 'CleanupService';
@@ -47,6 +48,7 @@ export class CleanupService extends PeriodicTaskService {
   private contracts?: RosenContracts;
   private cleanupAddress?: string;
   private fraudAction?: FraudAction;
+  private slashAction?: SlashAction;
 
   private constructor(logger?: AbstractLogger) {
     super(logger);
@@ -70,7 +72,7 @@ export class CleanupService extends PeriodicTaskService {
   };
 
   /**
-   * Initializes runtime values and registers fraud action request.
+   * Initializes runtime values and registers action requests.
    */
   protected preStart = async (): Promise<void> => {
     this.prepareRuntime();
@@ -84,15 +86,24 @@ export class CleanupService extends PeriodicTaskService {
       this.cleanupAddress,
       this.signAndEnqueueTx,
     );
+    this.slashAction = new SlashAction(
+      this.logger,
+      this.contracts,
+      this.cleanupAddress,
+      this.signAndEnqueueTx,
+    );
     this.fraudAction.register();
+    this.slashAction.register();
   };
 
   /**
-   * Unregisters fraud action request.
+   * Unregisters action requests.
    */
   protected postStop = async (): Promise<void> => {
     this.fraudAction?.unregister();
+    this.slashAction?.unregister();
     this.fraudAction = undefined;
+    this.slashAction = undefined;
   };
 
   /**

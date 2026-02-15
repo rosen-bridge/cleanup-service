@@ -9,6 +9,18 @@ const cleanupUtilsMocks = vi.hoisted(() => ({
   getCommitmentCountFromR7: vi.fn(() => 2),
   getWidListDigestFromR4: vi.fn(() => 'digest'),
   getTokenAmount: vi.fn(() => 1000n),
+  getWidFromR4Bytes: vi.fn(
+    (box: { additionalRegisters?: Record<string, string> }) =>
+      box.additionalRegisters?.R4 ?? 'wid',
+  ),
+  findCollateralBoxByWid: vi.fn(
+    (boxes: OutputBox[], awcNftTokenId: string, wid: string) =>
+      boxes.filter(
+        (box) =>
+          box.assets.some((asset) => asset.tokenId === awcNftTokenId) &&
+          box.additionalRegisters?.R4 === wid,
+      ),
+  ),
   hasToken: vi.fn((box: OutputBox, tokenId: string) =>
     (box.assets ?? []).some((asset) => asset.tokenId === tokenId),
   ),
@@ -23,6 +35,9 @@ export const getCommitmentCountFromR7Mock =
 export const getWidListDigestFromR4Mock =
   cleanupUtilsMocks.getWidListDigestFromR4;
 export const getTokenAmountMock = cleanupUtilsMocks.getTokenAmount;
+export const getWidFromR4BytesMock = cleanupUtilsMocks.getWidFromR4Bytes;
+export const findCollateralBoxByWidMock =
+  cleanupUtilsMocks.findCollateralBoxByWid;
 export const hasTokenMock = cleanupUtilsMocks.hasToken;
 export const txToOutputsMock = cleanupUtilsMocks.txToOutputs;
 
