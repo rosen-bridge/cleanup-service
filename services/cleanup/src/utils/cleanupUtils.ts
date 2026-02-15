@@ -158,20 +158,6 @@ export const getCommitmentCountFromR7 = (box: ergoLib.ErgoBox): number => {
 };
 
 /**
- * Extracts RSN amount from R5 where it is encoded as `Long`.
- *
- * @param box - Input box
- * @returns RSN amount
- */
-export const getRsnAmountFromR5 = (box: ergoLib.ErgoBox): bigint => {
-  return BigInt(
-    getRequiredRegister(box, ergoLib.NonMandatoryRegisterId.R5, 'R5')
-      .to_i64()
-      .to_str(),
-  );
-};
-
-/**
  * Converts base64 sigma-serialized ErgoBox bytes into the plain `box-lookup` `OutputBox` shape.
  *
  * @param serialized - Base64 sigma-serialized ErgoBox bytes
