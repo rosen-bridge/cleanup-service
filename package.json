@@ -1,0 +1,56 @@
+{
+  "name": "cleanup",
+  "private": true,
+  "type": "module",
+  "workspaces": {
+    "packages": [
+      "packages/*"
+    ]
+  },
+  "scripts": {
+    "build": "npm run build --workspaces",
+    "coverage": "npm run coverage --workspaces",
+    "lint": "npm run lint --workspaces",
+    "prepare": "husky install",
+    "release": "npm run release --workspaces",
+    "test": "npm run test --workspaces",
+    "type-check": "npm run type-check --workspaces",
+    "version": "npx changeset version && npm i"
+  },
+  "devDependencies": {
+    "@changesets/cli": "^2.27.1",
+    "@rosen-bridge/changeset-formatter": "^0.1.0",
+    "@rosen-bridge/config": "^0.4.0",
+    "@types/config": "^0.0.41",
+    "@types/node": "^20.10.6",
+    "@typescript-eslint/eslint-plugin": "^8.33.0",
+    "@typescript-eslint/parser": "^8.33.0",
+    "@vitest/coverage-istanbul": "^3.2.4",
+    "enabled": "^2.0.0",
+    "eslint": "^9.28.0",
+    "eslint-config-prettier": "^10.1.5",
+    "eslint-plugin-check-file": "^3.2.0",
+    "husky": "^8.0.1",
+    "kodgen": "^0.1.0",
+    "kodgen-cli": "^0.1.0",
+    "kodgen-typescript": "^0.1.4",
+    "kuler": "^2.0.0",
+    "lint-staged": "^13.0.3",
+    "prettier": "^3.5.3",
+    "sqlite3": "^5.1.7",
+    "tsx": "^4.20.5",
+    "typescript": "^5.3.3",
+    "vitest": "^3.2.4",
+    "winston": "^3.17.0"
+  },
+  "engines": {
+    "node": ">=20.11.0"
+  },
+  "dependencies": {
+    "@rosen-clients/axios": "^1.1.1",
+    "ajv": "^8.17.1"
+  },
+  "overrides": {
+    "@rosen-clients/rate-limited-axios": "1.1.0"
+  }
+}
