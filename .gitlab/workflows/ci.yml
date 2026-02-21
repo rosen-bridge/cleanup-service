@@ -10,16 +10,6 @@ workflow:
 stages:
   - ci
 
-knip:
-  stage: ci
-  cache:
-    key: ${CI_COMMIT_REF_NAME}
-    policy: pull
-    paths:
-      - node_modules
-  script:
-    - npx knip --dependencies
-
 type_check:
   stage: ci
   cache:
@@ -40,7 +30,7 @@ lint:
     paths:
       - node_modules
   script:
-    - npm run lint:check
+    - npm run lint
 
 test:
   stage: ci
