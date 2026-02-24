@@ -213,6 +213,14 @@ describe('FraudTx', () => {
 
   /**
    * @target should fail when insufficient ERG in inputs
+   * @dependencies
+   * - Valid box data in testData.ts
+   * @scenario
+   * - Initialize FraudTx with unreasonably high fee
+   * - Create trigger event data from real box
+   * - Build transaction with no fee boxes
+   * @expected
+   * - Transaction build should throw an error
    */
   it('should fail when insufficient ERG in inputs', async () => {
     FraudTx.init(
@@ -249,6 +257,14 @@ describe('FraudTx', () => {
 
   /**
    * @target should fail when RWT amount is zero
+   * @dependencies
+   * - Valid box data in testData.ts
+   * @scenario
+   * - Initialize FraudTx with config
+   * - Create trigger event data with zero RWT amount
+   * - Build transaction
+   * @expected
+   * - Transaction build should throw an error
    */
   it('should fail when RWT amount is zero', async () => {
     FraudTx.init(
@@ -285,6 +301,14 @@ describe('FraudTx', () => {
 
   /**
    * @target should fail with empty WIDs array
+   * @dependencies
+   * - Valid box data in testData.ts
+   * @scenario
+   * - Initialize FraudTx with config
+   * - Create trigger event data with empty WIDs array
+   * - Build transaction
+   * @expected
+   * - Transaction build should throw an error
    */
   it('should fail with empty WIDs array', async () => {
     FraudTx.init(
