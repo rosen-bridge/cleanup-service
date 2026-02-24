@@ -1,0 +1,15 @@
+
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "outDir": "./dist",
+    "baseUrl": ".",
+    "emitDecoratorMetadata": true,
+    "experimentalDecorators": true,
+  },
+  "include": ["src"],
+  "references": [
+    { "path": "../../packages/fraud-tx/tsconfig.build.json" },
+    { "path": "../../packages/slash-tx/tsconfig.build.json" }
+  ]
+}

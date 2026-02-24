@@ -1,0 +1,28 @@
+intervals:
+  workflow: 30
+workflow:
+  contractsPath: ./contracts/contracts-ergo-pandora-5.1.0.json
+  ergoNetwork: mainnet
+  cleanupMnemonic: >-
+    abandon abandon abandon abandon abandon abandon abandon abandon abandon
+    abandon abandon about
+  minBoxValue: 1000000
+  minCleanupValue: 700000000
+  txFee: '1500000'
+logs:
+  - level: info
+    type: console
+database:
+  type: sqlite
+  path: ./sqlite/cleanup.sqlite
+txpot:
+  updateInterval: 30
+  txRequiredConfirmations: 2
+scanner:
+  updateInterval: 30
+  nodeUrl: http://191.101.234.147:9053/
+  explorerUrl: https://api.ergoplatform.com/
+  initialHeight: 1685706
+boxLookup:
+  updateInterval: 10
+  nodeUrl: http://191.101.234.147:9053/

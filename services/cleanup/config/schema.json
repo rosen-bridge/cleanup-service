@@ -1,0 +1,223 @@
+{
+  "intervals": {
+    "type": "object",
+    "children": {
+      "workflow": {
+        "type": "number",
+        "default": 30,
+        "description": "workflow interval in seconds",
+        "validations": [
+          { "required": true, "error": "intervals.workflow must be specified" }
+        ]
+      }
+    }
+  },
+  "workflow": {
+    "type": "object",
+    "children": {
+      "contractsPath": {
+        "type": "string",
+        "default": "./contracts/contracts-ergo-pandora-5.1.0.json",
+        "validations": [
+          { "required": true, "error": "workflow.contractsPath must be specified" }
+        ]
+      },
+      "ergoNetwork": {
+        "type": "string",
+        "default": "mainnet",
+        "validations": [
+          { "required": true, "error": "workflow.ergoNetwork must be specified" },
+          { "choices": ["mainnet", "testnet"] }
+        ]
+      },
+      "cleanupMnemonic": {
+        "type": "string",
+        "default": "abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about",
+        "validations": [
+          { "required": true, "error": "workflow.cleanupMnemonic must be specified" }
+        ]
+      },
+      "minBoxValue": {
+        "type": "bigint",
+        "default": 1000000,
+        "description": "bigint-like string",
+        "validations": [
+          { "required": true, "error": "workflow.minBoxValue must be specified" }
+        ]
+      },
+      "minCleanupValue": {
+        "type": "bigint",
+        "default": 700000000,
+        "description": "bigint-like string",
+        "validations": [
+          { "required": true, "error": "workflow.minCleanupValue must be specified" }
+        ]
+      },
+      "txFee": {
+        "type": "string",
+        "default": "1500000",
+        "validations": [
+          { "required": true, "error": "workflow.txFee must be specified" }
+        ]
+      }
+    }
+  },
+  "logs": {
+    "type": "array",
+    "default": [
+      {
+        "type": "console",
+        "level": "info"
+      }
+    ],
+    "items": {
+      "type": "object",
+      "children": {
+        "type": {
+          "type": "string",
+          "validations": [
+            { "required": true, "error": "log type must be specified" },
+            { "choices": ["file", "console", "loki"] }
+          ]
+        },
+        "level": {
+          "type": "string",
+          "default": "info",
+          "validations": [
+            { "required": true, "error": "log level must be specified" }
+          ]
+        },
+        "path": {
+          "type": "string",
+          "validations": [
+            {
+              "required": true,
+              "error": "path for file log type must be specified",
+              "when": { "path": "logs.type", "value": "file" }
+            }
+          ]
+        },
+        "maxSize": { "type": "string" },
+        "maxFiles": { "type": "string" },
+        "serviceName": {
+          "type": "string",
+          "validations": [
+            {
+              "required": true,
+              "error": "serviceName for loki log type must be specified",
+              "when": { "path": "logs.type", "value": "loki" }
+            }
+          ]
+        },
+        "host": {
+          "type": "string",
+          "validations": [
+            {
+              "required": true,
+              "error": "host for loki log type must be specified",
+              "when": { "path": "logs.type", "value": "loki" }
+            }
+          ]
+        },
+        "basicAuth": { "type": "string" }
+      }
+    }
+  },
+  "database": {
+    "type": "object",
+    "children": {
+      "type": {
+        "type": "string",
+        "default": "sqlite",
+        "validations": [
+          { "required": true, "error": "database type must be specified" },
+          { "choices": ["sqlite", "postgres"] }
+        ]
+      },
+      "path": {
+        "type": "string",
+        "default": "./sqlite/cleanup.sqlite"
+      },
+      "host": { "type": "string" },
+      "port": { "type": "number" },
+      "user": { "type": "string" },
+      "password": { "type": "string" },
+      "name": { "type": "string" }
+    }
+  },
+  "txpot": {
+    "type": "object",
+    "children": {
+      "updateInterval": {
+        "type": "number",
+        "default": 30,
+        "description": "tx-pot update interval in seconds",
+        "validations": [
+          { "required": true, "error": "txpot.updateInterval must be specified" }
+        ]
+      },
+      "txRequiredConfirmations": {
+        "type": "number",
+        "default": 2,
+        "description": "tx-pot required confirmations",
+        "validations": [
+          { "required": true, "error": "txpot.txRequiredConfirmations must be specified" }
+        ]
+      }
+    }
+  },
+  "scanner": {
+    "type": "object",
+    "children": {
+      "updateInterval": {
+        "type": "number",
+        "default": 30,
+        "description": "scanner update interval in seconds",
+        "validations": [
+          { "required": true, "error": "scanner.updateInterval must be specified" }
+        ]
+      },
+      "nodeUrl": {
+        "type": "string",
+        "default": "http://191.101.234.147:9053/",
+        "validations": [
+          { "required": true, "error": "scanner.nodeUrl must be specified" }
+        ]
+      },
+      "explorerUrl": {
+        "type": "string",
+        "default": "https://api.ergoplatform.com/",
+        "validations": [
+          { "required": true, "error": "scanner.explorerUrl must be specified" }
+        ]
+      },
+      "initialHeight": {
+        "type": "number",
+        "default": 1685706,
+        "validations": [
+          { "required": true, "error": "scanner.initialHeight must be specified" }
+        ]
+      }
+    }
+  },
+  "boxLookup": {
+    "type": "object",
+    "children": {
+      "updateInterval": {
+        "type": "number",
+        "default": 10,
+        "description": "box lookup update interval in seconds",
+        "validations": [
+          { "required": true, "error": "boxLookup.updateInterval must be specified" }
+        ]
+      },
+      "nodeUrl": {
+        "type": "string",
+        "default": "http://191.101.234.147:9053/",
+        "validations": [
+          { "required": true, "error": "boxLookup.nodeUrl must be specified" }
+        ]
+      }
+    }
+  }
+}

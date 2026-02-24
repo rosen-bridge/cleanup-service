@@ -1,0 +1,65 @@
+{
+  "name": "cleanup",
+  "version": "0.0.0",
+  "description": "This service monitors the Rosen Bridge for fraudulent behavior by watchers and executes slashing transactions to penalize malicious actors.",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/rosen-bridge/cleanup-service.git"
+  },
+  "license": "MIT",
+  "author": "Rosen Team",
+  "type": "module",
+  "main": "src/index.ts",
+  "files": [
+    "dist",
+    "CHANGELOG.md"
+  ],
+  "scripts": {
+    "coverage": "npm run test -- --coverage",
+    "lint": "eslint --fix . && npm run prettify",
+    "lint:check": "eslint . && npm run prettify:check",
+    "prettify": "prettier --write . --ignore-path ../../.gitignore",
+    "prettify:check": "prettier --check . --ignore-path ../../.gitignore",
+    "start": "tsx ./src/index.ts",
+    "start:dev": "tsx watch ./src/index.ts",
+    "test": "NODE_OPTIONS='--import tsx' vitest",
+    "type-check": "tsc --noEmit",
+    "typeorm": "cross-env NODE_OPTIONS=\"--import tsx\" typeorm",
+    "typeorm:generate": "npm run typeorm migration:generate ./src/db/migrations/migration -- -p -d ./src/dataSource.ts",
+    "typeorm:migrate": "npm run typeorm migration:run -- -d ./src/dataSource.ts"
+  },
+  "peerDependencies": {
+    "ergo-lib-wasm-nodejs": "^0.24.1"
+  },
+  "dependencies": {
+    "@ergo-raffle/box-lookup": "file:/Users/mehran/work/code/rosen/raffle-v2/packages/box-lookup",
+    "@rosen-bridge/abstract-logger": "^4.0.0",
+    "@rosen-bridge/abstract-scanner": "^0.2.3",
+    "@rosen-bridge/address-extractor": "^6.3.0",
+    "@rosen-bridge/callback-logger": "^2.0.0",
+    "@rosen-bridge/ergo-scanner": "^0.1.4",
+    "@rosen-bridge/extended-typeorm": "1.0.1",
+    "@rosen-bridge/fraud-extractor": "2.2.3",
+    "@rosen-bridge/fraud-tx": "0.0.0",
+    "@rosen-bridge/json-bigint": "^1.0.0",
+    "@rosen-bridge/rwt-repo": "^4.0.0",
+    "@rosen-bridge/scanner-interfaces": "^0.2.1",
+    "@rosen-bridge/service-manager": "^1.0.2",
+    "@rosen-bridge/slash-tx": "0.0.0",
+    "@rosen-bridge/tokens": "^4.0.1",
+    "@rosen-bridge/tx-pot": "2.0.2",
+    "@rosen-bridge/watcher-data-extractor": "^12.3.0",
+    "@rosen-bridge/winston-logger": "^3.0.0",
+    "@rosen-clients/ergo-node": "^1.2.3",
+    "axios": "^1.13.2",
+    "config": "^3.3.7",
+    "reflect-metadata": "^0.2.2"
+  },
+  "devDependencies": {
+    "@types/config": "^0.0.41"
+  },
+  "engines": {
+    "node": ">=22.18.0",
+    "npm": "11.6.2"
+  }
+}
