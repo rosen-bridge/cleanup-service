@@ -1,5 +1,5 @@
 {
-  "name": "fraud-tx",
+  "name": "@rosen-bridge/fraud-tx",
   "version": "0.0.0",
   "description": "Transaction builder for creating fraud boxes from trigger event boxes in the Rosen Bridge cleanup service.",
   "repository": {
