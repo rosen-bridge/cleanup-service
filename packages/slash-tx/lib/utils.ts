@@ -46,20 +46,6 @@ export const getWidFromR4Bytes = (box: ergoLib.ErgoBox): string => {
 };
 
 /**
- * Extracts the locked RSN amount from R5.
- *
- * @param box - Input box
- * @returns Locked RSN amount
- */
-export const getLockedRsnFromR5 = (box: ergoLib.ErgoBox): bigint => {
-  return BigInt(
-    getRequiredRegister(box, ergoLib.NonMandatoryRegisterId.R5, 'R5')
-      .to_i64()
-      .to_str(),
-  );
-};
-
-/**
  * Returns the amount of a token inside a box.
  *
  * @param box - Input box

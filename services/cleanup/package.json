@@ -42,7 +42,6 @@
     "@rosen-bridge/fraud-extractor": "2.2.3",
     "@rosen-bridge/fraud-tx": "0.0.0",
     "@rosen-bridge/json-bigint": "^1.0.0",
-    "@rosen-bridge/rwt-repo": "^4.0.0",
     "@rosen-bridge/scanner-interfaces": "^0.2.1",
     "@rosen-bridge/service-manager": "^1.0.2",
     "@rosen-bridge/slash-tx": "0.0.0",

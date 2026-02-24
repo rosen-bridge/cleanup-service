@@ -4,5 +4,7 @@
     "packages/**": {
       "entry": ["lib/{index,cli,main}.{js,cjs,mjs,jsx,ts,cts,mts,tsx}"]
     }
-  }
+  },
+  "ignoreBinaries": ["cross-env", "typeorm"],
+  "ignoreDependencies": ["@ergo-raffle/box-lookup"]
 }
