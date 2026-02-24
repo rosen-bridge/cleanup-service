@@ -1,0 +1,5 @@
+logs:
+  maxSize: 20m
+  maxFilesCount: 14d
+  path: ./logs/
+  level: info

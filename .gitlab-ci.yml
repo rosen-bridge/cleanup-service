@@ -1,16 +1,16 @@
-image: "mozilla/sbt:8u181_1.2.7"
+image: $GITLAB_CI_IMAGE
 
-stages:
-  - test
+default:
+  interruptible: true
 
-test:
-  stage: test
-  script:
-    - sbt clean coverage test coverageReport
-  coverage: '/All files[^|]*\|[^|]*\s+([\d\.]+)/'
-  artifacts:
-    reports:
-      coverage_report:
-        coverage_format: cobertura
-        path: target/scala-2.12/coverage-report/cobertura.xml
+workflow:
+  rules:
+    - if: '$CI_PIPELINE_SOURCE =~ /push/'
+      when: always
+    - when: never
 
+include:
+  - component: $CI_SERVER_FQDN/${ROOT_COMPONENT}
+
+    inputs:
+      enable_ci_child: true
