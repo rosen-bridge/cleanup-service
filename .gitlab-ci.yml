@@ -5,7 +5,7 @@ default:
 
 workflow:
   rules:
-    - if: '$CI_PIPELINE_SOURCE =~ /push/'
+    - if: '$CI_PIPELINE_SOURCE =~ /push|web/'
       when: always
     - when: never
 
@@ -14,3 +14,4 @@ include:
 
     inputs:
       enable_ci_child: true
+      enable_snapshot_publish_child: true
