@@ -1,4 +1,4 @@
-import { AbstractLogger } from '@rosen-bridge/abstract-logger';
+import { AbstractLogger, DummyLogger } from '@rosen-bridge/abstract-logger';
 import {
   ErgoBoxSelection,
   ErgoChangeBoxBuilder,
@@ -6,11 +6,9 @@ import {
 import * as ergoLib from 'ergo-lib-wasm-nodejs';
 
 import { TriggerEventData } from './types';
-import { hexToUint8Array } from './utils';
 
 /**
- * FraudTx class handles the creation of fraud boxes from trigger event boxes
- * This is the TypeScript equivalent of the Scala generateFrauds transaction
+ * Singleton class for creating fraud transactions from trigger event boxes.
  */
 export class FraudTx {
   private static _instance?: FraudTx;
@@ -25,7 +23,14 @@ export class FraudTx {
   ) {}
 
   /**
-   * Initializes the singleton instance of FraudTx
+   * Initializes the singleton instance of FraudTx.
+   *
+   * @param fraudAddress - Address for fraud output boxes
+   * @param cleanerAddress - Address of the cleaner box
+   * @param rwtTokenId - RWT token ID
+   * @param minBoxValue - Minimum ERG value for output boxes
+   * @param txFee - Transaction fee in nanoERG
+   * @param logger - Optional logger instance
    */
   static init = (
     fraudAddress: string,
@@ -49,7 +54,10 @@ export class FraudTx {
   };
 
   /**
-   * Returns the singleton instance of FraudTx
+   * Returns the singleton instance of FraudTx.
+   *
+   * @returns FraudTx instance
+   * @throws When instance is not initialized
    */
   static getInstance = (): FraudTx => {
     if (!this._instance) {
@@ -59,7 +67,9 @@ export class FraudTx {
   };
 
   /**
-   * Creates a new FraudTxBuilder instance
+   * Creates a new FraudTxBuilder instance.
+   *
+   * @returns New FraudTxBuilder
    */
   newBuilder = (): FraudTxBuilder => {
     return new FraudTxBuilder(
@@ -74,89 +84,103 @@ export class FraudTx {
 }
 
 /**
- * Builder class for creating fraud transactions
- * Equivalent to Scala's generateFrauds method
+ * Builder class for creating fraud transactions.
  */
 export class FraudTxBuilder {
   private triggerEventData: TriggerEventData;
   private cleanerBox: ergoLib.ErgoBox;
   private height: number;
   private feeBoxes: ergoLib.ErgoBox[];
-  private changeAddress: string;
 
   constructor(
     private fraudAddress: string,
-    private defaultChangeAddress: string,
+    private changeAddress: string,
     private rwtTokenId: string,
     private minBoxValue: bigint,
     private txFee: string,
-    private logger?: AbstractLogger,
-  ) {
-    this.changeAddress = defaultChangeAddress;
-  }
+    private logger: AbstractLogger = new DummyLogger(),
+  ) {}
 
   /**
-   * Sets trigger event data for the current instance
+   * Sets the trigger event data containing watcher IDs and RWT amount.
+   *
+   * @param triggerEventData - Trigger event data
+   * @returns This builder instance
    */
   setTriggerEventData = (
     triggerEventData: TriggerEventData,
   ): FraudTxBuilder => {
     this.triggerEventData = triggerEventData;
-    this.logger?.debug(
+    this.logger.debug(
       `Trigger event data set with ${triggerEventData.wids.length} watcher IDs`,
     );
     return this;
   };
 
   /**
-   * Sets cleaner box for the current instance
+   * Sets the cleaner box to be spent.
+   *
+   * @param cleanerBox - Cleaner box
+   * @returns This builder instance
    */
   setCleanerBox = (cleanerBox: ergoLib.ErgoBox): FraudTxBuilder => {
     this.cleanerBox = cleanerBox;
-    this.logger?.debug(
+    this.logger.debug(
       `Cleaner box set with id=${cleanerBox.box_id().to_str()}`,
     );
     return this;
   };
 
   /**
-   * Sets creation height for the current instance
+   * Sets the creation height for output boxes.
+   *
+   * @param height - Block height
+   * @returns This builder instance
+   * @throws When height is not positive
    */
   setCreationHeight = (height: number): FraudTxBuilder => {
     if (height < 1) {
       throw new Error('Creation height must be a positive integer');
     }
     this.height = height;
-    this.logger?.debug(`Creation height set to ${height}`);
+    this.logger.debug(`Creation height set to ${height}`);
     return this;
   };
 
   /**
-   * Sets fee boxes for the current instance
+   * Sets the fee boxes available for covering transaction fees.
+   *
+   * @param feeBoxes - Array of fee boxes
+   * @returns This builder instance
    */
   setFeeBoxes = (feeBoxes: ergoLib.ErgoBox[]): FraudTxBuilder => {
     this.feeBoxes = feeBoxes;
-    this.logger?.debug(`Fee boxes set: ${feeBoxes.length} boxes available`);
+    this.logger.debug(`Fee boxes set: ${feeBoxes.length} boxes available`);
     return this;
   };
 
   /**
-   * Sets change address for the current instance
+   * Sets the change address for leftover assets.
+   *
+   * @param address - Change address in base58
+   * @returns This builder instance
    */
   setChangeAddress = (address: string): FraudTxBuilder => {
     this.changeAddress = address;
-    this.logger?.debug(`Change address set to ${address}`);
+    this.logger.debug(`Change address set to ${address}`);
     return this;
   };
 
   /**
-   * Creates fraud boxes, one for each watcher ID in the trigger event
+   * Creates fraud boxes, one for each watcher ID in the trigger event.
+   *
+   * @returns Array of fraud box candidates
    */
   private createFraudBoxes = (): ergoLib.ErgoBoxCandidate[] => {
     const watcherCount = this.triggerEventData.wids.length;
     const rwtPerFraud = this.triggerEventData.rwtAmount / BigInt(watcherCount);
 
-    this.logger?.debug(
+    this.logger.debug(
       `Creating ${watcherCount} fraud boxes with ${rwtPerFraud} RWT each`,
     );
 
@@ -179,10 +203,12 @@ export class FraudTxBuilder {
         ),
       );
 
+      const widBytes = Uint8Array.from(Buffer.from(wid, 'hex'));
+
       // Set R4 register with WID
       boxBuilder.set_register_value(
         4,
-        ergoLib.Constant.from_byte_array(hexToUint8Array(wid)),
+        ergoLib.Constant.from_byte_array(widBytes),
       );
 
       return boxBuilder.build();
@@ -190,7 +216,11 @@ export class FraudTxBuilder {
   };
 
   /**
-   * Selects fee boxes to cover the required value
+   * Selects fee boxes to cover the required value.
+   *
+   * @param requiredValue - Required ERG value to cover
+   * @returns Selected fee boxes
+   * @throws When available boxes cannot cover the required value
    */
   private selectFeeBoxes = async (
     requiredValue: bigint,
@@ -213,7 +243,7 @@ export class FraudTxBuilder {
       );
     }
 
-    this.logger?.debug(
+    this.logger.debug(
       `Selected ${boxes.length} fee boxes: ${boxes.map((box) => box.box_id().to_str()).join(', ')}`,
     );
 
@@ -221,7 +251,9 @@ export class FraudTxBuilder {
   };
 
   /**
-   * Creates the new cleaner box preserving the input cleaner box's value and tokens
+   * Creates the new cleaner box preserving the input cleaner box's value and tokens.
+   *
+   * @returns New cleaner box candidate
    */
   private createCleanerBox = (): ergoLib.ErgoBoxCandidate => {
     const boxBuilder = new ergoLib.ErgoBoxCandidateBuilder(
@@ -240,9 +272,9 @@ export class FraudTxBuilder {
   };
 
   /**
-   * Builds the unsigned fraud transaction
-   * spends trigger event box, cleaner box, and optional fee boxes
-   * creates multiple fraud boxes (one per watcher), a new cleaner box, and a change box
+   * Builds the unsigned fraud transaction.
+   *
+   * @returns Unsigned transaction and input boxes
    */
   build = async (): Promise<{
     unsignedTx: ergoLib.UnsignedTransaction;
@@ -301,10 +333,10 @@ export class FraudTxBuilder {
 
     const unsignedTx = txBuilder.build();
 
-    this.logger?.info(
+    this.logger.info(
       `Unsigned fraud transaction built with id=${unsignedTx.id().to_str()}`,
     );
-    this.logger?.debug(
+    this.logger.debug(
       `Built unsigned fraud transaction: ${unsignedTx.to_json()}`,
     );
 
