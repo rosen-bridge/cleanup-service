@@ -1,5 +1,5 @@
 {
-  "name": "slash-tx",
+  "name": "@rosen-bridge/slash-tx",
   "version": "0.0.0",
   "description": "Transaction builder for slashing fraudulent watchers in the Rosen Bridge cleanup service.",
   "repository": {
