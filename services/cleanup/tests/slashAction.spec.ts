@@ -3,11 +3,6 @@ import * as ergoLib from 'ergo-lib-wasm-nodejs';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import '../src/bootstrap';
-import { getLogger } from '../src/config/loggerConfig';
-import { BoxLookupService } from '../src/services/boxLookupService';
-import { SlashAction } from '../src/services/cleanupService/slashAction';
-import { ScannerService } from '../src/services/scannerService';
-import { CleanupTxType, RosenContracts } from '../src/types';
 import './mocked/cleanupUtils.mock';
 import './mocked/slashAction.mock';
 import {
@@ -19,6 +14,11 @@ import {
   workflowCollateralOutputBox,
   signedSlashTxJson,
 } from './testData';
+import { getLogger } from '../src/config/loggerConfig';
+import { BoxLookupService } from '../src/services/boxLookupService';
+import { SlashAction } from '../src/services/cleanupService/slashAction';
+import { ScannerService } from '../src/services/scannerService';
+import { CleanupTxType, RosenContracts } from '../src/types';
 
 describe('slashAction', () => {
   const contracts = workflowContracts as RosenContracts;
