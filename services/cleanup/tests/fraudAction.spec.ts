@@ -2,14 +2,15 @@ import { OutputBox } from '@ergo-raffle/box-lookup';
 import * as ergoLib from 'ergo-lib-wasm-nodejs';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
+import './mocked/cleanupUtils.mock';
+import './mocked/fraudAction.mock';
+
 import '../src/bootstrap';
 import { getLogger } from '../src/config/loggerConfig';
 import { BoxLookupService } from '../src/services/boxLookupService';
 import { FraudAction } from '../src/services/cleanupService/fraudAction';
 import { ScannerService } from '../src/services/scannerService';
 import { CleanupTxType, RosenContracts } from '../src/types';
-import './mocked/cleanupUtils.mock';
-import './mocked/fraudAction.mock';
 import {
   workflowContracts,
   workflowTriggerEventOutputBox2,
