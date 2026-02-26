@@ -1,18 +1,17 @@
-import './bootstrap';
-
 import { ServiceManager } from '@rosen-bridge/service-manager';
 import * as ergoLib from 'ergo-lib-wasm-nodejs';
 
-import { CleanupService } from './services/cleanupService';
-import { BoxLookupService } from './services/boxLookupService';
-import { DBService } from './services/dbService';
+import './bootstrap';
+import { configs } from './config/config';
 import { loadRosenContracts } from './config/contractsConfig';
-import { mnemonicToAddress } from './utils/ergoUtils';
+import { getLogger } from './config/loggerConfig';
+import dataSource from './db/dataSource';
+import { BoxLookupService } from './services/boxLookupService';
+import { CleanupService } from './services/cleanupService';
+import { DBService } from './services/dbService';
 import { ScannerService } from './services/scannerService';
 import { TxPotService } from './services/txPotService/txPotService';
-import dataSource from './db/dataSource';
-import { configs } from './config/config';
-import { getLogger } from './config/loggerConfig';
+import { mnemonicToAddress } from './utils/ergoUtils';
 
 const logger = getLogger(import.meta.url);
 

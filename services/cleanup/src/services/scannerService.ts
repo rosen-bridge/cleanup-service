@@ -1,10 +1,17 @@
+import { OutputBox } from '@ergo-raffle/box-lookup';
 import { AbstractLogger } from '@rosen-bridge/abstract-logger';
 import { BlockEntity } from '@rosen-bridge/abstract-scanner';
 import { BoxEntity, ErgoUTXOExtractor } from '@rosen-bridge/address-extractor';
 import { ErgoNodeNetwork, ErgoScanner } from '@rosen-bridge/ergo-scanner';
+import { IsNull } from '@rosen-bridge/extended-typeorm';
 import { FraudExtractor, FraudEntity } from '@rosen-bridge/fraud-extractor';
-import { Dependency, PeriodicTaskService, ServiceStatus } from '@rosen-bridge/service-manager';
 import { ErgoNetworkType } from '@rosen-bridge/scanner-interfaces';
+import {
+  Dependency,
+  PeriodicTaskService,
+  ServiceStatus,
+} from '@rosen-bridge/service-manager';
+import { TokenMap } from '@rosen-bridge/tokens';
 import {
   CollateralEntity,
   CollateralExtractor,
@@ -13,14 +20,11 @@ import {
   EventTriggerEntity,
   EventTriggerExtractor,
 } from '@rosen-bridge/watcher-data-extractor';
-import { OutputBox } from '@ergo-raffle/box-lookup';
 import * as ergoLib from 'ergo-lib-wasm-nodejs';
-import { TokenMap } from '@rosen-bridge/tokens';
-import { IsNull } from '@rosen-bridge/extended-typeorm';
 
-import { DBService } from './dbService';
-import { RosenContracts } from '../types'
+import { RosenContracts } from '../types';
 import { serializedErgoBoxToOutputBox } from '../utils/cleanupUtils';
+import { DBService } from './dbService';
 
 export class ScannerService extends PeriodicTaskService {
   static name = 'ScannerService';
@@ -98,7 +102,8 @@ export class ScannerService extends PeriodicTaskService {
    * @returns ScannerService instance
    */
   static getInstance = (): ScannerService => {
-    if (!this.instance) throw new Error('ScannerService instance is not initialized yet');
+    if (!this.instance)
+      throw new Error('ScannerService instance is not initialized yet');
     return this.instance;
   };
 
@@ -132,7 +137,8 @@ export class ScannerService extends PeriodicTaskService {
    * @returns Trigger boxes as `OutputBox[]`
    */
   getUnspentTriggerBoxes = async (): Promise<OutputBox[]> => {
-    const repo = DBService.getInstance().dataSource.getRepository(EventTriggerEntity);
+    const repo =
+      DBService.getInstance().dataSource.getRepository(EventTriggerEntity);
     const rows = await repo.find({
       where: { spendBlock: IsNull() },
     });
@@ -158,7 +164,8 @@ export class ScannerService extends PeriodicTaskService {
    * @returns Collateral boxes as `OutputBox[]`
    */
   getUnspentCollateralBoxes = async (): Promise<OutputBox[]> => {
-    const repo = DBService.getInstance().dataSource.getRepository(CollateralEntity);
+    const repo =
+      DBService.getInstance().dataSource.getRepository(CollateralEntity);
     const rows = await repo.find({
       where: { spendBlock: IsNull() },
     });
@@ -173,7 +180,8 @@ export class ScannerService extends PeriodicTaskService {
    * @returns Ordered list of WIDs (hex)
    */
   getTriggerWidsByTxId = async (triggerTxId: string): Promise<string[]> => {
-    const repo = DBService.getInstance().dataSource.getRepository(CommitmentEntity);
+    const repo =
+      DBService.getInstance().dataSource.getRepository(CommitmentEntity);
     const rows = await repo.find({
       where: { spendTxId: triggerTxId },
       order: { spendIndex: 'ASC' },

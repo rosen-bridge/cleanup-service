@@ -24,6 +24,3 @@ export interface RosenContracts {
   };
   readonly cleanupConfirm: number;
 }
-
-
-

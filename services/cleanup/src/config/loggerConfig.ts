@@ -3,8 +3,8 @@ import WinstonLogger, {
   type TransportOptions,
 } from '@rosen-bridge/winston-logger';
 
+import { Logs } from '../types';
 import { configs } from './config';
-import { Logs } from '../types'
 
 let rootLogger: CallbackLogger | undefined;
 
@@ -53,5 +53,3 @@ export const getLogger = (path: string): CallbackLogger => {
   }
   return rootLogger!.child(path);
 };
-
-

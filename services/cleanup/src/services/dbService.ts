@@ -1,6 +1,10 @@
 import { AbstractLogger } from '@rosen-bridge/abstract-logger';
-import { AbstractService, Dependency, ServiceStatus } from '@rosen-bridge/service-manager';
 import { DataSource } from '@rosen-bridge/extended-typeorm';
+import {
+  AbstractService,
+  Dependency,
+  ServiceStatus,
+} from '@rosen-bridge/service-manager';
 
 export class DBService extends AbstractService {
   static name = 'DBService';
@@ -31,7 +35,8 @@ export class DBService extends AbstractService {
    * @returns DBService instance
    */
   static getInstance = (): DBService => {
-    if (!this.instance) throw new Error('DBService instance is not initialized yet');
+    if (!this.instance)
+      throw new Error('DBService instance is not initialized yet');
     return this.instance;
   };
 
@@ -57,5 +62,3 @@ export class DBService extends AbstractService {
     return true;
   };
 }
-
-

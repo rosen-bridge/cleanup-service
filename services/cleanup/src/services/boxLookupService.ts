@@ -1,9 +1,13 @@
-import { AbstractLogger } from '@rosen-bridge/abstract-logger';
-import { Dependency, PeriodicTaskService, ServiceStatus } from '@rosen-bridge/service-manager';
 import { BoxLookup, Request } from '@ergo-raffle/box-lookup';
+import { AbstractLogger } from '@rosen-bridge/abstract-logger';
+import {
+  Dependency,
+  PeriodicTaskService,
+  ServiceStatus,
+} from '@rosen-bridge/service-manager';
 
-import { TxPotService } from './txPotService/txPotService';
 import { deserializeTxForBoxLookup } from '../utils/boxLookupUtils';
+import { TxPotService } from './txPotService/txPotService';
 
 export class BoxLookupService extends PeriodicTaskService {
   static name = 'BoxLookupService';
@@ -12,20 +16,27 @@ export class BoxLookupService extends PeriodicTaskService {
   private static instance?: BoxLookupService;
 
   protected dependencies: Dependency[] = [
-    { serviceName: TxPotService.name, allowedStatuses: [ServiceStatus.running] },
+    {
+      serviceName: TxPotService.name,
+      allowedStatuses: [ServiceStatus.running],
+    },
   ];
 
   private boxLookup: BoxLookup;
   private readonly updateInterval: number;
 
-  private constructor(updateInterval: number, nodeUrl: string, logger?: AbstractLogger) {
+  private constructor(
+    updateInterval: number,
+    nodeUrl: string,
+    logger?: AbstractLogger,
+  ) {
     super(logger);
     this.updateInterval = updateInterval;
     this.boxLookup = new BoxLookup(
       TxPotService.getInstance().getTxPot(),
       nodeUrl,
       deserializeTxForBoxLookup,
-      this.logger
+      this.logger,
     );
   }
 
@@ -36,7 +47,11 @@ export class BoxLookupService extends PeriodicTaskService {
    * @param nodeUrl - Ergo node URL
    * @param logger - Optional logger
    */
-  static init = (updateInterval: number, nodeUrl: string, logger?: AbstractLogger) => {
+  static init = (
+    updateInterval: number,
+    nodeUrl: string,
+    logger?: AbstractLogger,
+  ) => {
     if (this.instance) return;
     this.instance = new BoxLookupService(updateInterval, nodeUrl, logger);
   };
@@ -47,7 +62,8 @@ export class BoxLookupService extends PeriodicTaskService {
    * @returns BoxLookupService instance
    */
   static getInstance = (): BoxLookupService => {
-    if (!this.instance) throw new Error('BoxLookupService instance is not initialized yet');
+    if (!this.instance)
+      throw new Error('BoxLookupService instance is not initialized yet');
     return this.instance;
   };
 
@@ -99,5 +115,3 @@ export class BoxLookupService extends PeriodicTaskService {
     }
   };
 }
-
-

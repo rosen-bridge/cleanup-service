@@ -1,6 +1,6 @@
 import { Asset, Request } from '@ergo-raffle/box-lookup';
-import { TransactionEntity } from '@rosen-bridge/tx-pot';
 import { DeserializedTx } from '@ergo-raffle/box-lookup';
+import { TransactionEntity } from '@rosen-bridge/tx-pot';
 import * as ergoLib from 'ergo-lib-wasm-nodejs';
 
 /**
@@ -9,17 +9,18 @@ import * as ergoLib from 'ergo-lib-wasm-nodejs';
  * @param tx - Transaction entity with serialized tx bytes
  * @returns Parsed EIP-12 JSON transaction
  */
-export const deserializeTxForBoxLookup = (tx: TransactionEntity): DeserializedTx => {
+export const deserializeTxForBoxLookup = (
+  tx: TransactionEntity,
+): DeserializedTx => {
   const bytes = Uint8Array.from(Buffer.from(tx.serializedTx, 'base64'));
   const parsedTx = ergoLib.Transaction.sigma_parse_bytes(bytes);
   return parsedTx.to_js_eip12();
 };
 
-
 /**
  * Creates a `box-lookup` request for trigger-event boxes.
  *
- * @param ergoTree - ergoTree 
+ * @param ergoTree - ergoTree
  * @param value - Optional minimal value
  * @param tokens - Required tokens
  * @param getConfirmedBoxes - Provider for confirmed boxes
@@ -39,7 +40,7 @@ export const createTriggerEventRequest = (
 /**
  * Creates a `box-lookup` request for fraud boxes.
  *
- * @param ergoTree - ergoTree 
+ * @param ergoTree - ergoTree
  * @param value - Optional minimal value
  * @param tokens - Required tokens
  * @param getConfirmedBoxes - Provider for confirmed boxes
@@ -62,7 +63,7 @@ export const createFraudBoxRequest = (
  * The request should include the CleanupNFT and enough ERG to cover fee needs, so the
  * returned `boxes` can be split into {cleanupBox, feeBoxes} without custom merging.
  *
- * @param ergoTree - ergoTree 
+ * @param ergoTree - ergoTree
  * @param value - Optional minimal value
  * @param tokens - Required tokens
  * @param getConfirmedBoxes - Provider for confirmed boxes
@@ -82,7 +83,7 @@ export const createCleanupRequest = (
 /**
  * Creates a `box-lookup` request for the RWT repo box at the repo address.
  *
- * @param ergoTree - ergoTree 
+ * @param ergoTree - ergoTree
  * @param value - Optional minimal value
  * @param tokens - Required tokens
  * @param getConfirmedBoxes - Provider for confirmed boxes
@@ -103,7 +104,7 @@ export const createRepoRequest = (
  * Creates a `box-lookup` request for the watcher collateral address.
  * Used dynamically per fraud work-item to retrieve the relevant collateral box.
  *
- * @param ergoTree - ergoTree 
+ * @param ergoTree - ergoTree
  * @param value - Optional minimal value
  * @param tokens - Required tokens
  * @param getConfirmedBoxes - Provider for confirmed boxes

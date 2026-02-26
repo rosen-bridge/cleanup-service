@@ -1,13 +1,6 @@
 import config from 'config';
 
-import {
-  BoxLookup,
-  Database,
-  Logs,
-  Scanner,
-  Txpot,
-  Workflow,
-} from '../types';
+import { BoxLookup, Database, Logs, Scanner, Txpot, Workflow } from '../types';
 
 export interface CleanupServiceConfig {
   readonly intervals: {
@@ -69,7 +62,9 @@ export const configs: CleanupServiceConfig = {
   },
   txpot: {
     updateInterval: config.get<number>('txpot.updateInterval'),
-    txRequiredConfirmations: config.get<number>('txpot.txRequiredConfirmations'),
+    txRequiredConfirmations: config.get<number>(
+      'txpot.txRequiredConfirmations',
+    ),
   },
   scanner: {
     updateInterval: config.get<number>('scanner.updateInterval'),
@@ -83,5 +78,3 @@ export const configs: CleanupServiceConfig = {
   },
   logs: config.has('logs') ? config.get<Logs[]>('logs') : [],
 };
-
-

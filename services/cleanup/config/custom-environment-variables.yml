@@ -30,5 +30,3 @@ scanner:
 boxLookup:
   updateInterval: CLEANUP_BOXLOOKUP_INTERVAL
   nodeUrl: CLEANUP_BOXLOOKUP_NODE_URL
-
-

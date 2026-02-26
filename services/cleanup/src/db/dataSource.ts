@@ -31,9 +31,9 @@ if (db.type === 'sqlite') {
     ...common,
   });
 } else {
-  throw new Error(`Database type=[${(db as { type: string }).type}] not supported`);
+  throw new Error(
+    `Database type=[${(db as { type: string }).type}] not supported`,
+  );
 }
 
 export default dataSource;
-
-

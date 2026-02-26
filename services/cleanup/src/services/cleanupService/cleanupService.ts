@@ -4,12 +4,12 @@ import {
   PeriodicTaskService,
   ServiceStatus,
 } from '@rosen-bridge/service-manager';
-import * as ergoLib from 'ergo-lib-wasm-nodejs';
 import { TransactionStatus } from '@rosen-bridge/tx-pot';
+import * as ergoLib from 'ergo-lib-wasm-nodejs';
 
 import { configs } from '../../config/config';
-import { loadRosenContracts } from '../../config/contractsConfig';
 import { ERGO_CHAIN_NAME } from '../../config/constants';
+import { loadRosenContracts } from '../../config/contractsConfig';
 import { CleanupTxType, RosenContracts } from '../../types';
 import { mnemonicToAddress, signTx } from '../../utils/ergoUtils';
 import { BoxLookupService } from '../boxLookupService';

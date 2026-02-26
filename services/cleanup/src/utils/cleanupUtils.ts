@@ -1,5 +1,6 @@
 import { OutputBox } from '@ergo-raffle/box-lookup';
 import * as ergoLib from 'ergo-lib-wasm-nodejs';
+
 /**
  * Converts a Uint8Array to a hex string.
  *

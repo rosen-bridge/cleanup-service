@@ -19,14 +19,20 @@
         "type": "string",
         "default": "./contracts/contracts-ergo-pandora-5.1.0.json",
         "validations": [
-          { "required": true, "error": "workflow.contractsPath must be specified" }
+          {
+            "required": true,
+            "error": "workflow.contractsPath must be specified"
+          }
         ]
       },
       "ergoNetwork": {
         "type": "string",
         "default": "mainnet",
         "validations": [
-          { "required": true, "error": "workflow.ergoNetwork must be specified" },
+          {
+            "required": true,
+            "error": "workflow.ergoNetwork must be specified"
+          },
           { "choices": ["mainnet", "testnet"] }
         ]
       },
@@ -34,7 +40,10 @@
         "type": "string",
         "default": "abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about",
         "validations": [
-          { "required": true, "error": "workflow.cleanupMnemonic must be specified" }
+          {
+            "required": true,
+            "error": "workflow.cleanupMnemonic must be specified"
+          }
         ]
       },
       "minBoxValue": {
@@ -42,7 +51,10 @@
         "default": 1000000,
         "description": "bigint-like string",
         "validations": [
-          { "required": true, "error": "workflow.minBoxValue must be specified" }
+          {
+            "required": true,
+            "error": "workflow.minBoxValue must be specified"
+          }
         ]
       },
       "minCleanupValue": {
@@ -50,7 +62,10 @@
         "default": 700000000,
         "description": "bigint-like string",
         "validations": [
-          { "required": true, "error": "workflow.minCleanupValue must be specified" }
+          {
+            "required": true,
+            "error": "workflow.minCleanupValue must be specified"
+          }
         ]
       },
       "txFee": {
@@ -153,7 +168,10 @@
         "default": 30,
         "description": "tx-pot update interval in seconds",
         "validations": [
-          { "required": true, "error": "txpot.updateInterval must be specified" }
+          {
+            "required": true,
+            "error": "txpot.updateInterval must be specified"
+          }
         ]
       },
       "txRequiredConfirmations": {
@@ -161,7 +179,10 @@
         "default": 2,
         "description": "tx-pot required confirmations",
         "validations": [
-          { "required": true, "error": "txpot.txRequiredConfirmations must be specified" }
+          {
+            "required": true,
+            "error": "txpot.txRequiredConfirmations must be specified"
+          }
         ]
       }
     }
@@ -174,7 +195,10 @@
         "default": 30,
         "description": "scanner update interval in seconds",
         "validations": [
-          { "required": true, "error": "scanner.updateInterval must be specified" }
+          {
+            "required": true,
+            "error": "scanner.updateInterval must be specified"
+          }
         ]
       },
       "nodeUrl": {
@@ -195,7 +219,10 @@
         "type": "number",
         "default": 1685706,
         "validations": [
-          { "required": true, "error": "scanner.initialHeight must be specified" }
+          {
+            "required": true,
+            "error": "scanner.initialHeight must be specified"
+          }
         ]
       }
     }
@@ -208,7 +235,10 @@
         "default": 10,
         "description": "box lookup update interval in seconds",
         "validations": [
-          { "required": true, "error": "boxLookup.updateInterval must be specified" }
+          {
+            "required": true,
+            "error": "boxLookup.updateInterval must be specified"
+          }
         ]
       },
       "nodeUrl": {

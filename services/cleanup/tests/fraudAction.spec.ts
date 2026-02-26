@@ -3,6 +3,11 @@ import * as ergoLib from 'ergo-lib-wasm-nodejs';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import '../src/bootstrap';
+import { getLogger } from '../src/config/loggerConfig';
+import { BoxLookupService } from '../src/services/boxLookupService';
+import { FraudAction } from '../src/services/cleanupService/fraudAction';
+import { ScannerService } from '../src/services/scannerService';
+import { CleanupTxType, RosenContracts } from '../src/types';
 import './mocked/cleanupUtils.mock';
 import './mocked/fraudAction.mock';
 import {
@@ -12,11 +17,6 @@ import {
   workflowFeeBoxesJson,
   signedFraudTxJson,
 } from './testData';
-import { getLogger } from '../src/config/loggerConfig';
-import { BoxLookupService } from '../src/services/boxLookupService';
-import { FraudAction } from '../src/services/cleanupService/fraudAction';
-import { ScannerService } from '../src/services/scannerService';
-import { CleanupTxType, RosenContracts } from '../src/types';
 
 describe('fraudAction', () => {
   const contracts = workflowContracts as RosenContracts;

@@ -30,5 +30,3 @@ boxLookup:
 logs:
   - type: console
     level: info
-
-
