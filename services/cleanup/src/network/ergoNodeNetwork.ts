@@ -1,8 +1,8 @@
 import { AbstractLogger, DummyLogger } from '@rosen-bridge/abstract-logger';
-import ergoNodeClientFactory from '@rosen-clients/ergo-node';
-import * as ergoLib from 'ergo-lib-wasm-nodejs';
 import JsonBigInt from '@rosen-bridge/json-bigint';
-import { AxiosError, isAxiosError } from 'axios';
+import ergoNodeClientFactory, { BlockHeader } from '@rosen-clients/ergo-node';
+import { AxiosError } from 'axios';
+import * as ergoLib from 'ergo-lib-wasm-nodejs';
 
 const TX_FETCHING_PAGE_SIZE = 50;
 
@@ -46,7 +46,9 @@ class ErgoNodeNetwork {
       if (error instanceof AxiosError && error.response?.status === 404) {
         return -1;
       }
-      throw new Error(`Failed to get tx confirmations from Ergo Node: ${error}`);
+      throw new Error(
+        `Failed to get tx confirmations from Ergo Node: ${error}`,
+      );
     }
   };
 
@@ -137,7 +139,7 @@ class ErgoNodeNetwork {
    */
   public getErgoStateContext = async (): Promise<ergoLib.ErgoStateContext> => {
     const lastHeaders = await this.client.getLastHeaders(10);
-    const headersJson = lastHeaders.map((h: any) =>
+    const headersJson = lastHeaders.map((h: BlockHeader) =>
       JsonBigInt.stringify(h),
     );
     const blockHeaders = ergoLib.BlockHeaders.from_json(headersJson);
@@ -147,5 +149,3 @@ class ErgoNodeNetwork {
 }
 
 export default ErgoNodeNetwork;
-
-

@@ -1,11 +1,15 @@
 import { AbstractLogger } from '@rosen-bridge/abstract-logger';
-import { Dependency, PeriodicTaskService, ServiceStatus } from '@rosen-bridge/service-manager';
-import { TxOptions, TxPot } from '@rosen-bridge/tx-pot';
 import { DataSource } from '@rosen-bridge/extended-typeorm';
-import { DBService } from '../dbService';
+import {
+  Dependency,
+  PeriodicTaskService,
+  ServiceStatus,
+} from '@rosen-bridge/service-manager';
+import { TxPot } from '@rosen-bridge/tx-pot';
+
 import { ERGO_CHAIN_NAME } from '../../config/constants';
+import { DBService } from '../dbService';
 import { ErgoNetworkInterface } from './ergoNetworkInterface';
-import { CleanupTxType } from '../../types'
 
 export class TxPotService extends PeriodicTaskService {
   static name = 'TxPotService';
@@ -58,7 +62,8 @@ export class TxPotService extends PeriodicTaskService {
    * @returns TxPotService instance
    */
   static getInstance = (): TxPotService => {
-    if (!this.instance) throw new Error('TxPotService instance is not initialized yet');
+    if (!this.instance)
+      throw new Error('TxPotService instance is not initialized yet');
     return this.instance;
   };
 
@@ -66,7 +71,10 @@ export class TxPotService extends PeriodicTaskService {
    * Sets up tx-pot and registers the Ergo chain manager.
    */
   protected preStart = async (): Promise<void> => {
-    this.ergoNetworkInterface = new ErgoNetworkInterface(this.txRequiredConfirmations, this.logger);
+    this.ergoNetworkInterface = new ErgoNetworkInterface(
+      this.txRequiredConfirmations,
+      this.logger,
+    );
     TxPot.getInstance().registerChain(
       ERGO_CHAIN_NAME,
       this.ergoNetworkInterface,
