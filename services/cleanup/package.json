@@ -46,7 +46,7 @@
     "@rosen-bridge/service-manager": "^1.0.2",
     "@rosen-bridge/slash-tx": "0.0.0",
     "@rosen-bridge/tokens": "^4.0.1",
-    "@rosen-bridge/tx-pot": "2.0.2",
+    "@rosen-bridge/tx-pot": "^2.0.3",
     "@rosen-bridge/watcher-data-extractor": "^12.3.0",
     "@rosen-bridge/winston-logger": "^3.0.0",
     "@rosen-clients/ergo-node": "^1.2.3",
