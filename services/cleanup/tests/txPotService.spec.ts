@@ -2,14 +2,15 @@ import { ServiceManager } from '@rosen-bridge/service-manager';
 import { DataSource } from 'typeorm';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
-import { DBService } from '../src/services/dbService';
-import { TxPotService } from '../src/services/txPotService/txPotService';
 import {
   txPotGetInstanceMock,
   txPotRegisterChainMock,
   txPotSetupMock,
   txPotUpdateMock,
 } from './mocked/txPot.mock';
+
+import { DBService } from '../src/services/dbService';
+import { TxPotService } from '../src/services/txPotService/txPotService';
 import { resetServiceInstance } from './testUtils';
 
 const createMemoryDataSource = () =>

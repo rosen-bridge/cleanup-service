@@ -1,16 +1,17 @@
 import { Request } from '@ergo-raffle/box-lookup';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
-import '../src/bootstrap';
-import { BoxLookupService } from '../src/services/boxLookupService';
-import { DBService } from '../src/services/dbService';
-import { TxPotService } from '../src/services/txPotService/txPotService';
 import {
   boxLookupCtorMock,
   boxLookupRegisterRequestMock,
   boxLookupUnregisterRequestMock,
 } from './mocked/boxLookup.mock';
 import './mocked/ergoNodeNetwork.mock';
+
+import '../src/bootstrap';
+import { BoxLookupService } from '../src/services/boxLookupService';
+import { DBService } from '../src/services/dbService';
+import { TxPotService } from '../src/services/txPotService/txPotService';
 import { mockNodeUrl } from './testData';
 import { createMemoryDataSource, resetServiceInstance } from './testUtils';
 

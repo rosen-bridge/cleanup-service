@@ -10,17 +10,18 @@ import * as ergoLib from 'ergo-lib-wasm-nodejs';
 import { DataSource } from 'typeorm';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
+import {
+  boxLookupRegisterRequestMock,
+  boxLookupUnregisterRequestMock,
+} from './mocked/boxLookup.mock';
+import './mocked/ergoNodeNetwork.mock';
+
 import '../src/bootstrap';
 import { BoxLookupService } from '../src/services/boxLookupService';
 import { CleanupService } from '../src/services/cleanupService';
 import { DBService } from '../src/services/dbService';
 import { ScannerService } from '../src/services/scannerService';
 import { TxPotService } from '../src/services/txPotService/txPotService';
-import {
-  boxLookupRegisterRequestMock,
-  boxLookupUnregisterRequestMock,
-} from './mocked/boxLookup.mock';
-import './mocked/ergoNodeNetwork.mock';
 import { mockExplorerUrl, mockNodeUrl, workflowContracts } from './testData';
 import { resetServiceInstance } from './testUtils';
 

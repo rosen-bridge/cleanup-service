@@ -1,12 +1,13 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
-import { ScannerService } from '../src/services/scannerService';
 import {
   ergoNodeNetworkCtorMock,
   ergoScannerCtorMock,
   ergoScannerRegisterExtractorMock,
   ergoScannerUpdateMock,
 } from './mocked/scanner.mock';
+
+import { ScannerService } from '../src/services/scannerService';
 import { mockNodeUrl } from './testData';
 import { initServices } from './testUtils';
 
