@@ -1,3 +1,5 @@
+import * as ergoLib from 'ergo-lib-wasm-nodejs';
+
 import { AbstractLogger } from '@rosen-bridge/abstract-logger';
 import {
   Dependency,
@@ -5,7 +7,6 @@ import {
   ServiceStatus,
 } from '@rosen-bridge/service-manager';
 import { TransactionStatus } from '@rosen-bridge/tx-pot';
-import * as ergoLib from 'ergo-lib-wasm-nodejs';
 
 import { configs } from '../../config/config';
 import { ERGO_CHAIN_NAME } from '../../config/constants';

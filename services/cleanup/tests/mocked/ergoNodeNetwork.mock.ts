@@ -1,6 +1,7 @@
-import JsonBigInt from '@rosen-bridge/json-bigint';
 import * as ergoLib from 'ergo-lib-wasm-nodejs';
 import { vi } from 'vitest';
+
+import JsonBigInt from '@rosen-bridge/json-bigint';
 
 import { last10BlockHeaders } from '../testData';
 

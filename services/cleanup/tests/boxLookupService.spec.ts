@@ -1,3 +1,5 @@
+import '../src/bootstrap';
+
 import { Request } from '@ergo-raffle/box-lookup';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
@@ -8,7 +10,6 @@ import {
 } from './mocked/boxLookup.mock';
 import './mocked/ergoNodeNetwork.mock';
 
-import '../src/bootstrap';
 import { BoxLookupService } from '../src/services/boxLookupService';
 import { DBService } from '../src/services/dbService';
 import { TxPotService } from '../src/services/txPotService/txPotService';

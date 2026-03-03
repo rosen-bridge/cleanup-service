@@ -1,3 +1,5 @@
+import '../src/bootstrap';
+
 import { OutputBox } from '@ergo-raffle/box-lookup';
 import * as ergoLib from 'ergo-lib-wasm-nodejs';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
@@ -5,7 +7,6 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import './mocked/cleanupUtils.mock';
 import './mocked/fraudAction.mock';
 
-import '../src/bootstrap';
 import { getLogger } from '../src/config/loggerConfig';
 import { BoxLookupService } from '../src/services/boxLookupService';
 import { FraudAction } from '../src/services/cleanupService/fraudAction';

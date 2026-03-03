@@ -1,8 +1,9 @@
+import { AxiosError } from 'axios';
+import * as ergoLib from 'ergo-lib-wasm-nodejs';
+
 import { AbstractLogger, DummyLogger } from '@rosen-bridge/abstract-logger';
 import JsonBigInt from '@rosen-bridge/json-bigint';
 import ergoNodeClientFactory, { BlockHeader } from '@rosen-clients/ergo-node';
-import { AxiosError } from 'axios';
-import * as ergoLib from 'ergo-lib-wasm-nodejs';
 
 const TX_FETCHING_PAGE_SIZE = 50;
 

@@ -1,7 +1,8 @@
 import { OutputBox, Request } from '@ergo-raffle/box-lookup';
+import * as ergoLib from 'ergo-lib-wasm-nodejs';
+
 import { AbstractLogger } from '@rosen-bridge/abstract-logger';
 import { FraudTx, TriggerEventData } from '@rosen-bridge/fraud-tx';
-import * as ergoLib from 'ergo-lib-wasm-nodejs';
 
 import { configs } from '../../config/config';
 import { CleanupTxType, RosenContracts } from '../../types';

@@ -1,3 +1,5 @@
+import * as ergoLib from 'ergo-lib-wasm-nodejs';
+
 import { BoxEntity } from '@rosen-bridge/address-extractor';
 import { DataSource } from '@rosen-bridge/extended-typeorm';
 import { FraudEntity } from '@rosen-bridge/fraud-extractor';
@@ -7,7 +9,6 @@ import {
   EventTriggerEntity,
 } from '@rosen-bridge/watcher-data-extractor';
 import { CommitmentEntity } from '@rosen-bridge/watcher-data-extractor';
-import * as ergoLib from 'ergo-lib-wasm-nodejs';
 
 import { DBService } from '../src/services/dbService';
 import { ScannerService } from '../src/services/scannerService';

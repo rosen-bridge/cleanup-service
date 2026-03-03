@@ -1,4 +1,5 @@
 import { BoxLookup, Request } from '@ergo-raffle/box-lookup';
+
 import { AbstractLogger } from '@rosen-bridge/abstract-logger';
 import {
   Dependency,

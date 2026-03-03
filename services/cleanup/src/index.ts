@@ -1,7 +1,9 @@
-import { ServiceManager } from '@rosen-bridge/service-manager';
+import './bootstrap';
+
 import * as ergoLib from 'ergo-lib-wasm-nodejs';
 
-import './bootstrap';
+import { ServiceManager } from '@rosen-bridge/service-manager';
+
 import { configs } from './config/config';
 import { loadRosenContracts } from './config/contractsConfig';
 import { getLogger } from './config/loggerConfig';

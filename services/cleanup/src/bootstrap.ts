@@ -1,4 +1,5 @@
 import '@rosen-bridge/extended-typeorm/bootstrap';
+
 import 'reflect-metadata';
 
 import packageJson from '../package.json' with { type: 'json' };

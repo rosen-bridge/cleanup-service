@@ -1,6 +1,7 @@
+import * as ergoLib from 'ergo-lib-wasm-nodejs';
+
 import { AbstractLogger } from '@rosen-bridge/abstract-logger';
 import { AbstractPotChainManager } from '@rosen-bridge/tx-pot';
-import * as ergoLib from 'ergo-lib-wasm-nodejs';
 
 import { configs } from '../../config/config';
 import ErgoNodeNetwork from '../../network/ergoNodeNetwork';

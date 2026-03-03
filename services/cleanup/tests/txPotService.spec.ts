@@ -1,6 +1,7 @@
-import { ServiceManager } from '@rosen-bridge/service-manager';
 import { DataSource } from 'typeorm';
 import { afterEach, describe, expect, it, vi } from 'vitest';
+
+import { ServiceManager } from '@rosen-bridge/service-manager';
 
 import {
   txPotGetInstanceMock,

@@ -1,7 +1,8 @@
 import { Asset, Request } from '@ergo-raffle/box-lookup';
 import { DeserializedTx } from '@ergo-raffle/box-lookup';
-import { TransactionEntity } from '@rosen-bridge/tx-pot';
 import * as ergoLib from 'ergo-lib-wasm-nodejs';
+
+import { TransactionEntity } from '@rosen-bridge/tx-pot';
 
 /**
  * Parses base64-encoded Ergo tx bytes and returns its EIP-12 JSON projection.

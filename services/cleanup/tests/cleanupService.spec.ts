@@ -1,3 +1,9 @@
+import '../src/bootstrap';
+
+import * as ergoLib from 'ergo-lib-wasm-nodejs';
+import { DataSource } from 'typeorm';
+import { afterEach, describe, expect, it, vi } from 'vitest';
+
 import { BoxEntity } from '@rosen-bridge/address-extractor';
 import { FraudEntity } from '@rosen-bridge/fraud-extractor';
 import { TransactionEntity } from '@rosen-bridge/tx-pot';
@@ -6,9 +12,6 @@ import {
   CommitmentEntity,
   EventTriggerEntity,
 } from '@rosen-bridge/watcher-data-extractor';
-import * as ergoLib from 'ergo-lib-wasm-nodejs';
-import { DataSource } from 'typeorm';
-import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import {
   boxLookupRegisterRequestMock,
@@ -16,7 +19,6 @@ import {
 } from './mocked/boxLookup.mock';
 import './mocked/ergoNodeNetwork.mock';
 
-import '../src/bootstrap';
 import { BoxLookupService } from '../src/services/boxLookupService';
 import { CleanupService } from '../src/services/cleanupService';
 import { DBService } from '../src/services/dbService';

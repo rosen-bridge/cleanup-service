@@ -1,4 +1,6 @@
 import { OutputBox } from '@ergo-raffle/box-lookup';
+import * as ergoLib from 'ergo-lib-wasm-nodejs';
+
 import { AbstractLogger } from '@rosen-bridge/abstract-logger';
 import { BlockEntity } from '@rosen-bridge/abstract-scanner';
 import { BoxEntity, ErgoUTXOExtractor } from '@rosen-bridge/address-extractor';
@@ -20,7 +22,6 @@ import {
   EventTriggerEntity,
   EventTriggerExtractor,
 } from '@rosen-bridge/watcher-data-extractor';
-import * as ergoLib from 'ergo-lib-wasm-nodejs';
 
 import { RosenContracts } from '../types';
 import { serializedErgoBoxToOutputBox } from '../utils/cleanupUtils';

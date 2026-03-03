@@ -4,6 +4,7 @@
     "^(.*)/bootstrap",
     "<THIRD_PARTY_MODULES>",
     "^@rosen(.*)/(.*)$",
+    "^\\./mocked/(.*)$",
     "^@/(.*)$",
     "^[.](.*)$"
   ],

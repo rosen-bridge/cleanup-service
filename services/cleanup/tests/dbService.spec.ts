@@ -1,7 +1,9 @@
-import { DataSource } from '@rosen-bridge/extended-typeorm';
+import '../src/bootstrap';
+
 import { describe, expect, it } from 'vitest';
 
-import '../src/bootstrap';
+import { DataSource } from '@rosen-bridge/extended-typeorm';
+
 import entities from '../src/db/entities';
 import migrations from '../src/db/migrations';
 import { DBService } from '../src/services/dbService';
