@@ -123,7 +123,7 @@ class ErgoNodeNetwork {
         `requested 'getBoxById' for boxId [${boxId}]. res: ${JsonBigInt.stringify(box)}`,
       );
 
-      return !box.spentTransactionId;
+      return true;
     } catch (error) {
       if (error instanceof AxiosError && error.response?.status === 404) {
         return false;

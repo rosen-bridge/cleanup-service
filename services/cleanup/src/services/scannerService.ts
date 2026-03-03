@@ -26,6 +26,10 @@ import { RosenContracts } from '../types';
 import { serializedErgoBoxToOutputBox } from '../utils/cleanupUtils';
 import { DBService } from './dbService';
 
+class FraudExtractorCompat extends FraudExtractor {
+  initializeBoxes = this.initializeData;
+}
+
 export class ScannerService extends PeriodicTaskService {
   static name = 'ScannerService';
   protected name = ScannerService.name;
@@ -231,8 +235,8 @@ export class ScannerService extends PeriodicTaskService {
       new EventTriggerExtractor(
         'event-trigger-extractor',
         extractorDataSource,
-        ErgoNetworkType.Explorer,
-        this.explorerUrl,
+        ErgoNetworkType.Node,
+        this.nodeUrl,
         this.contracts.addresses.WatcherTriggerEvent,
         this.contracts.tokens.RWTId,
         this.contracts.addresses.WatcherPermit,
@@ -242,12 +246,16 @@ export class ScannerService extends PeriodicTaskService {
       ),
     );
     this.ergoScanner.registerExtractor(
-      new FraudExtractor(
+      new FraudExtractorCompat(
         extractorDataSource,
         'fraud-extractor',
-        this.explorerUrl,
-        this.contracts.addresses.Fraud,
         this.contracts.tokens.RWTId,
+        {
+          type: ErgoNetworkType.Node,
+          url: this.nodeUrl,
+          address: this.contracts.addresses.Fraud,
+          active: true,
+        },
         this.logger,
       ),
     );
