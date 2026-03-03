@@ -1,9 +1,10 @@
+import * as ergoLib from 'ergo-lib-wasm-nodejs';
+
 import { AbstractLogger, DummyLogger } from '@rosen-bridge/abstract-logger';
 import {
   ErgoBoxSelection,
   ErgoChangeBoxBuilder,
 } from '@rosen-bridge/ergo-box-selection';
-import * as ergoLib from 'ergo-lib-wasm-nodejs';
 
 import { TriggerEventData } from './types';
 
