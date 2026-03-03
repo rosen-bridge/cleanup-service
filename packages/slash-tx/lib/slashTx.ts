@@ -1,3 +1,5 @@
+import * as ergoLib from 'ergo-lib-wasm-nodejs';
+
 import { AbstractLogger, DummyLogger } from '@rosen-bridge/abstract-logger';
 import { CollateralBox } from '@rosen-bridge/collateral';
 import {
@@ -5,7 +7,6 @@ import {
   ErgoChangeBoxBuilder,
 } from '@rosen-bridge/ergo-box-selection';
 import { RWTRepo } from '@rosen-bridge/rwt-repo';
-import * as ergoLib from 'ergo-lib-wasm-nodejs';
 
 import { getTokenAmount } from './utils';
 import { getWidFromR4Bytes } from './utils';

@@ -1,6 +1,7 @@
-import JsonBigInt from '@rosen-bridge/json-bigint';
 import * as ergoLib from 'ergo-lib-wasm-nodejs';
 import { beforeEach, describe, expect, it } from 'vitest';
+
+import JsonBigInt from '@rosen-bridge/json-bigint';
 
 import { SlashTx, getTokenAmount } from '../lib';
 import {
