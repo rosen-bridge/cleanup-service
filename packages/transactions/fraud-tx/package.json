@@ -2,34 +2,45 @@
   "name": "@rosen-bridge/fraud-tx",
   "version": "0.0.0",
   "description": "Transaction builder for creating fraud boxes from trigger events",
-  "repository": "git+https://github.com/rosen-bridge/cleanup-service.git",
-  "license": "GPL-3.0",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/rosen-bridge/cleanup-service.git",
+    "directory": "./packages/transactions/fraud-tx"
+  },
+  "license": "MIT",
   "author": "Rosen Team",
   "type": "module",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
+  "files": [
+    "dist",
+    "CHANGELOG.md"
+  ],
   "scripts": {
     "build": "tsc --build tsconfig.build.json",
+    "clean": "rimraf dist && rimraf tsconfig.build.tsbuildinfo",
     "coverage": "npm run test -- --coverage",
     "lint": "eslint --fix . && npm run prettify",
+    "lint:check": "eslint . && npm run prettify:check",
     "prettify": "prettier --write . --ignore-path ../../../.gitignore",
-    "release": "npm run build && npm publish --access public",
-    "test": "NODE_OPTIONS='--import tsx' vitest",
+    "prettify:check": "prettier --check . --ignore-path ../../../.gitignore",
+    "release": "npm run test -- --run && npm run clean && npm run build && npm publish --access public",
+    "test": "cross-env NODE_OPTIONS=\"--import tsx\" vitest",
     "type-check": "tsc --noEmit"
   },
-  "optionalDependencies": {
-    "@rollup/rollup-linux-x64-gnu": "^4.52.5"
-  },
-  "engines": {
-    "node": ">=20.10.0",
-    "npm": ">=11.6.2"
+  "dependencies": {
+    "@rosen-bridge/abstract-logger": "^4.0.0",
+    "@rosen-bridge/ergo-box-selection": "^2.1.1",
+    "@rosen-bridge/json-bigint": "^1.1.0"
   },
   "peerDependencies": {
     "ergo-lib-wasm-nodejs": "^0.24.1"
   },
-  "dependencies": {
-    "@rosen-bridge/abstract-logger": "^4.0.0",
-    "@rosen-bridge/ergo-box-selection": "^2.1.0",
-    "@rosen-bridge/json-bigint": "^0.1.0"
+  "optionalDependencies": {
+    "@rollup/rollup-linux-x64-gnu": "^4.62.3"
+  },
+  "engines": {
+    "node": ">=22.18.0",
+    "npm": "11.6.2"
   }
 }

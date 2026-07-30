@@ -4,7 +4,9 @@ import {
   ErgoChangeBoxBuilder,
 } from '@rosen-bridge/ergo-box-selection';
 import * as ergoLib from 'ergo-lib-wasm-nodejs';
+
 import { TriggerEventData } from './types';
+
 /**
  * Singleton class for creating fraud transactions from trigger event boxes.
  */

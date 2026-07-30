@@ -1,10 +1,7 @@
 {
-  "extends": "../../../tsconfig.base.json",
+  "extends": "./tsconfig.json",
   "compilerOptions": {
-    "outDir": "./dist",
-    "rootDir": "./lib",
-    "composite": true
+    "rootDir": "./lib"
   },
-  "include": ["lib"],
   "exclude": ["tests", "vitest.config.ts"]
 }

@@ -1,11 +1,5 @@
-import { defineConfig } from 'vitest/config';
+import { defineProject, mergeConfig } from 'vitest/config';
 
-export default defineConfig({
-  test: {
-    coverage: {
-      provider: 'istanbul',
-      reporter: ['text', 'html', 'lcov', 'cobertura'],
-      include: ['lib/**/*.ts'],
-    },
-  },
-});
+import configShared from '../../../vitest.shared';
+
+export default mergeConfig(configShared, defineProject({}));

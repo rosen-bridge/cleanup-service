@@ -51,6 +51,13 @@ const builder = fraudTx.newBuilder(
   changeAddress, // optional: defaults to cleanerAddress
 );
 
+const fraudTxBuilder = FraudTx.getInstance()
+  .newBuilder()
+  .setTriggerEventData(triggerEventData)
+  .setCleanerBox(cleanerBox)
+  .setCreationHeight(1000)
+  .setFeeBoxes(feeBoxes)
+  .setChangeAddress(testFraudConfig.fraudAddress);
 const { unsignedTx, inputBoxes } = await builder.build();
 
 // Sign and submit transaction
@@ -87,4 +94,4 @@ The fraud transaction:
 
 ## License
 
-GPL-3.0
+MIT
