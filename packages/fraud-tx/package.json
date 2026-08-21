@@ -22,8 +22,8 @@
     "coverage": "npm run test -- --coverage",
     "lint": "eslint --fix . && npm run prettify",
     "lint:check": "eslint . && npm run prettify:check",
-    "prettify": "prettier --write . --ignore-path ../../../.gitignore",
-    "prettify:check": "prettier --check . --ignore-path ../../../.gitignore",
+    "prettify": "prettier --write . --ignore-path ../../.gitignore",
+    "prettify:check": "prettier --check . --ignore-path ../../.gitignore",
     "release": "npm run test -- --run && npm run clean && npm run build && npm publish --access public",
     "test": "cross-env NODE_OPTIONS=\"--import tsx\" vitest",
     "type-check": "tsc --noEmit"
