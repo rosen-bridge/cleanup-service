@@ -4,8 +4,7 @@
   "type": "module",
   "workspaces": {
     "packages": [
-      "packages/*",
-      "packages/transactions/*"
+      "packages/*"
     ]
   },
   "scripts": {
