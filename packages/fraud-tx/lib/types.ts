@@ -8,3 +8,11 @@ export interface TriggerEventData {
   wids: string[]; // Array of watcher ID hex strings
   rwtAmount: bigint; // Total RWT tokens in the event box
 }
+
+/**
+ * Result of building an unsigned fraud transaction
+ */
+export interface FraudTransactionBuildResult {
+  unsignedTx: ergoLib.UnsignedTransaction;
+  inputBoxes: ergoLib.ErgoBox[];
+}

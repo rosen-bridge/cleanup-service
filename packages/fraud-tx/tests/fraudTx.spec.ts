@@ -1,6 +1,7 @@
-import JsonBigInt from '@rosen-bridge/json-bigint';
 import * as ergoLib from 'ergo-lib-wasm-nodejs';
 import { beforeEach, describe, expect, it } from 'vitest';
+
+import JsonBigInt from '@rosen-bridge/json-bigint';
 
 import { FraudTx, TriggerEventData } from '../lib';
 import {
@@ -12,54 +13,7 @@ import {
 } from './testData';
 
 describe('FraudTx', () => {
-  beforeEach(() => {
-    // Reset singleton instance before each test
-    FraudTx['_instance'] = undefined;
-  });
-
-  /**
-   * @target should throw exception when FraudTx._instance is not yet initialized
-   * @dependencies
-   * - None
-   * @scenario
-   * - Call FraudTx.getInstance without calling FraudTx.init
-   * - Check FraudTx.getInstance to throw an exception
-   * @expected
-   * - FraudTx.getInstance should throw an exception
-   */
-  it('should throw exception when FraudTx._instance is not yet initialized', () => {
-    expect(() => FraudTx.getInstance()).toThrowError(
-      'FraudTx instance is not initialized yet',
-    );
-  });
-
-  /**
-   * @target should initialize singleton correctly
-   * @dependencies
-   * - None
-   * @scenario
-   * - Call FraudTx.init with parameters
-   * - Call FraudTx.getInstance to get instance
-   * @expected
-   * - getInstance should return the initialized instance
-   */
-  it('should initialize singleton correctly', () => {
-    FraudTx.init(
-      testFraudConfig.fraudAddress,
-      testFraudConfig.cleanerAddress,
-      testFraudConfig.rwtTokenId,
-      testFraudConfig.minBoxValue,
-      testFraudConfig.txFee,
-    );
-
-    const instance = FraudTx.getInstance();
-    expect(instance).toBeDefined();
-    expect(instance['fraudAddress']).toEqual(testFraudConfig.fraudAddress);
-    expect(instance['cleanerAddress']).toEqual(testFraudConfig.cleanerAddress);
-    expect(instance['rwtTokenId']).toEqual(testFraudConfig.rwtTokenId);
-    expect(instance['minBoxValue']).toEqual(testFraudConfig.minBoxValue);
-    expect(instance['txFee']).toEqual(testFraudConfig.txFee);
-  });
+  beforeEach(() => {});
 
   /**
    * @target should build a complete fraud transaction with correct structure
@@ -82,7 +36,7 @@ describe('FraudTx', () => {
    */
   it('should build a complete fraud transaction with correct structure', async () => {
     // Initialize FraudTx
-    FraudTx.init(
+    const fraudTx = new FraudTx(
       testFraudConfig.fraudAddress,
       testFraudConfig.cleanerAddress,
       testFraudConfig.rwtTokenId,
@@ -110,7 +64,7 @@ describe('FraudTx', () => {
 
     // Build transaction
     // Use fraud address as change address (different from cleaner address)
-    const fraudTxBuilder = FraudTx.getInstance()
+    const fraudTxBuilder = fraudTx
       .newBuilder()
       .setTriggerEventData(triggerEventData)
       .setCleanerBox(cleanerBox)
@@ -165,8 +119,9 @@ describe('FraudTx', () => {
       const fraudBox = fraudBoxes[i];
 
       // Each fraud box should have minBoxValue
-      expect(fraudBox.value().as_i64().to_str()).toBe(
-        testFraudConfig.minBoxValue.toString(),
+      expect(BigInt(fraudBox.value().as_i64().to_str())).toBe(
+        BigInt(triggerEventData.box.value().as_i64().to_str()) /
+          BigInt(mockWids.length),
       );
 
       // Each fraud box should have RWT token with correct amount
@@ -223,7 +178,7 @@ describe('FraudTx', () => {
    * - Transaction build should throw an error
    */
   it('should fail when insufficient ERG in inputs', async () => {
-    FraudTx.init(
+    const fraudTx = new FraudTx(
       testFraudConfig.fraudAddress,
       testFraudConfig.cleanerAddress,
       testFraudConfig.rwtTokenId,
@@ -244,7 +199,7 @@ describe('FraudTx', () => {
       rwtAmount: BigInt(triggerEventBoxJson.assets[0].amount),
     };
 
-    const fraudTxBuilder = FraudTx.getInstance()
+    const fraudTxBuilder = fraudTx
       .newBuilder()
       .setTriggerEventData(triggerEventData)
       .setCleanerBox(cleanerBox)
@@ -267,7 +222,7 @@ describe('FraudTx', () => {
    * - Transaction build should throw an error
    */
   it('should fail when RWT amount is zero', async () => {
-    FraudTx.init(
+    const fraudTx = new FraudTx(
       testFraudConfig.fraudAddress,
       testFraudConfig.cleanerAddress,
       testFraudConfig.rwtTokenId,
@@ -288,7 +243,7 @@ describe('FraudTx', () => {
       rwtAmount: 0n, // No RWT
     };
 
-    const fraudTxBuilder = FraudTx.getInstance()
+    const fraudTxBuilder = fraudTx
       .newBuilder()
       .setTriggerEventData(triggerEventData)
       .setCleanerBox(cleanerBox)
@@ -311,7 +266,7 @@ describe('FraudTx', () => {
    * - Transaction build should throw an error
    */
   it('should fail with empty WIDs array', async () => {
-    FraudTx.init(
+    const fraudTx = new FraudTx(
       testFraudConfig.fraudAddress,
       testFraudConfig.cleanerAddress,
       testFraudConfig.rwtTokenId,
@@ -332,7 +287,7 @@ describe('FraudTx', () => {
       rwtAmount: BigInt(triggerEventBoxJson.assets[0].amount),
     };
 
-    const fraudTxBuilder = FraudTx.getInstance()
+    const fraudTxBuilder = fraudTx
       .newBuilder()
       .setTriggerEventData(triggerEventData)
       .setCleanerBox(cleanerBox)

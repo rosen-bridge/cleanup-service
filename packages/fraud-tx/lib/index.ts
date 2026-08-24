@@ -1,2 +1,3 @@
-export { FraudTx, FraudTxBuilder } from './fraudTx';
+export { FraudTx } from './fraudTx';
+export { FraudTxBuilder } from './fraudTxBuilder';
 export * from './types';

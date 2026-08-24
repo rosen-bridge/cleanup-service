@@ -5,7 +5,7 @@
   "repository": {
     "type": "git",
     "url": "git+https://github.com/rosen-bridge/cleanup-service.git",
-    "directory": "./packages/transactions/fraud-tx"
+    "directory": "./packages/fraud-tx"
   },
   "license": "MIT",
   "author": "Rosen Team",
