@@ -21,11 +21,12 @@ npm install @rosen-bridge/fraud-tx
 ## Usage
 
 ```typescript
-import { FraudTx, TriggerEventData } from '@rosen-bridge/fraud-tx';
 import * as ergoLib from 'ergo-lib-wasm-nodejs';
 
-// Initialize FraudTx singleton
-FraudTx.init(
+import { FraudTx, TriggerEventData } from '@rosen-bridge/fraud-tx';
+
+
+const fraudTx = new FraudTx(
   'fraud_contract_address', // fraudAddress
   'cleaner_address', // cleanerAddress
   'rwt_token_id', // rwtTokenId
@@ -51,8 +52,7 @@ const builder = fraudTx.newBuilder(
   changeAddress, // optional: defaults to cleanerAddress
 );
 
-const fraudTxBuilder = FraudTx.getInstance()
-  .newBuilder()
+const fraudTxBuilder = fraudTx.newBuilder()
   .setTriggerEventData(triggerEventData)
   .setCleanerBox(cleanerBox)
   .setCreationHeight(1000)
@@ -67,12 +67,10 @@ const { unsignedTx, inputBoxes } = await builder.build();
 
 ### FraudTx
 
-Singleton class that manages fraud transaction creation.
+class that manages fraud transaction creation.
 
 #### Methods
 
-- `static init(fraudAddress, cleanerAddress, rwtTokenId, minBoxValue, txFee, logger?): void` - Initialize the singleton
-- `static getInstance(): FraudTx` - Get the singleton instance
 - `newBuilder(triggerEventData, cleanerBox, height, feeBoxes, changeAddress?): FraudTxBuilder` - Create a new builder
 
 ### FraudTxBuilder
